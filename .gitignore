@@ -34,3 +34,10 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+
+# Kawa
+*.meta
+*_mod_*
+!*.fbx.meta
+!*.png.meta
+!*.shader.meta
