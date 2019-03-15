@@ -37,7 +37,7 @@ sysinfo.txt
 
 # Kawa
 *.meta
-*_mod_*
 !*.fbx.meta
 !*.png.meta
 !*.shader.meta
+*_mod_*
