@@ -286,7 +286,7 @@ inline float3 KawaWorldSpaceCamPos() {
 
 inline float3 KawaWorldSpaceViewDir(float3 worldPos) {
 	float3 dir;
-	UNITY_BRANCH if (unity_OrthoParams.z > 0.5) {
+	UNITY_BRANCH if (unity_OrthoParams.w > 0.5) {
 		dir = normalize(unity_CameraWorldClipPlanes[4].xyz) * dot(float4(worldPos, 1.0), unity_CameraWorldClipPlanes[4]);
 	} else {
 		dir = KawaWorldSpaceCamPos() - worldPos;
