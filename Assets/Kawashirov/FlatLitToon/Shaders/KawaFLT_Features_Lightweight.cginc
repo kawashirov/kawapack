@@ -87,13 +87,13 @@ inline void kawaflt_fragment_in(inout FRAGMENT_IN v, bool vertexlight_on, float3
 					half t = tangency[i];
 					float lod = sqrt(length(wsvd) * 0.1h);
 					half3 ramp = KAWA_SAMPLE_TEX2D_LOD(_Sh_KwshrvRmp_Tex, half2(t,t), lod).rgb;
-					v.vertexlight += unity_LightColor[i].rgb * ramp / dnm;
+					v.vertexlight += unity_LightColor[i].rgb * max(0.0h, ramp / dnm);
 				}
 			#elif defined(SHADE_KAWAFLT_SINGLE)
 				float4 tangency = toLightX * normal3.x + toLightY * normal3.y + toLightZ * normal3.z;
 				tangency = tangency * rsqrt(lengthSq);
-				tangency = shade_kawaflt_single_tangency_transform(tangency);
-				float4 shade = tangency / (1.0 + lengthSq * unity_4LightAtten0);
+				half4 shade = shade_kawaflt_single(tangency, 1.0) / (1.0 + lengthSq * unity_4LightAtten0);
+				shade = max(half4(0,0,0,0), shade);
 				UNITY_UNROLL for(int i = 0; i < 4; ++i) {
 					v.vertexlight += unity_LightColor[i].rgb * shade[i];
 				}

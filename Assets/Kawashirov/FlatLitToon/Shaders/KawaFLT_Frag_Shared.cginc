@@ -183,6 +183,31 @@ inline half4 frag_forward_get_albedo(FRAGMENT_IN i, float2 texST) {
 		// ???
 	#endif
 
+	#if defined(SHADE_KAWAFLT)
+
+		// Тоже, что и UNITY_LIGHT_ATTENUATION из AutoLight.cginc, но без учёта теней.
+		inline half frag_shade_kawaflt_attenuation_no_shadow(half3 worldPos) {
+			#if defined(POINT)
+				unityShadowCoord3 lightCoord = mul(unity_WorldToLight, unityShadowCoord4(worldPos, 1)).xyz;
+				return tex2D(_LightTexture0, dot(lightCoord, lightCoord).rr).UNITY_ATTEN_CHANNEL;
+			#elif defined(SPOT)
+				unityShadowCoord4 lightCoord = mul(unity_WorldToLight, unityShadowCoord4(worldPos, 1));
+				return (lightCoord.z > 0) * UnitySpotCookie(lightCoord) * UnitySpotAttenuate(lightCoord.xyz);
+			#elif defined(DIRECTIONAL)
+				return 1.0;
+			#elif defined(POINT_COOKIE)
+				unityShadowCoord3 lightCoord = mul(unity_WorldToLight, unityShadowCoord4(worldPos, 1)).xyz;
+				return tex2D(_LightTextureB0, dot(lightCoord, lightCoord).rr).UNITY_ATTEN_CHANNEL * texCUBE(_LightTexture0, lightCoord).w;
+			#elif defined(DIRECTIONAL_COOKIE)
+				unityShadowCoord2 lightCoord = mul(unity_WorldToLight, unityShadowCoord4(worldPos, 1)).xy;
+				return tex2D(_LightTexture0, lightCoord).w;
+			#else
+				#error
+			#endif
+		}
+
+	#endif
+
 	#if defined(SHADE_KAWAFLT_LOG)
 
 		inline half3 frag_shade_kawaflt_log_round(half value) {
@@ -223,6 +248,18 @@ inline half4 frag_forward_get_albedo(FRAGMENT_IN i, float2 texST) {
 			return color;
 		}
 
+		inline half3 frag_shade_kawaflt_log_forward_main(FRAGMENT_IN i, half3 normal, half rim_factor) {
+			half light_atten = frag_shade_kawaflt_attenuation_no_shadow(i.posWorld.xyz);
+
+			float3 wsld = normalize(UnityWorldSpaceLightDir(i.posWorld.xyz));
+			float tangency = max(0, dot(normal, wsld));
+			tangency = frag_shade_kawaflt_log_smooth_tangency(tangency);
+			half shadow_atten = UNITY_SHADOW_ATTENUATION(i, i.posWorld.xyz);
+			half shade = frag_shade_kawaflt_log_steps(tangency * rim_factor * shadow_atten);
+
+			return _LightColor0.rgb * max(0.0h, light_atten * shade);
+		}
+
 	#endif
 
 	#if defined(SHADE_KAWAFLT_RAMP)
@@ -232,7 +269,36 @@ inline half4 frag_forward_get_albedo(FRAGMENT_IN i, float2 texST) {
 			return UNITY_SAMPLE_TEX2D(_Sh_KwshrvRmp_Tex, half2(uv, uv)).rgb;
 		}
 
+		inline half3 frag_shade_kawaflt_ramp_forward_main(FRAGMENT_IN i, half3 normal) {
+			half light_atten = frag_shade_kawaflt_attenuation_no_shadow(i.posWorld.xyz);
+
+			half shadow_atten = UNITY_SHADOW_ATTENUATION(i, i.posWorld.xyz);
+			float3 wsld = normalize(UnityWorldSpaceLightDir(i.posWorld.xyz));
+			half ramp_uv = dot(normal, wsld) * 0.5 + 0.5;
+			half3 shade = frag_shade_kawaflt_ramp_apply(ramp_uv * shadow_atten);
+
+			return _LightColor0.rgb * max(0.0h, light_atten * shade);
+		}
+
 	#endif
+
+	#if defined(SHADE_KAWAFLT_SINGLE)
+	
+		inline half3  frag_shade_kawaflt_single_forward_main(FRAGMENT_IN i, half3 normal) {
+			half light_atten = frag_shade_kawaflt_attenuation_no_shadow(i.posWorld.xyz);
+
+			half shadow_atten = UNITY_SHADOW_ATTENUATION(i, i.posWorld.xyz);
+			float3 dir = normalize(UnityWorldSpaceLightDir(i.posWorld.xyz));
+			float tangency = dot(normal, dir);
+			float shade = shade_kawaflt_single(tangency, shadow_atten);
+
+			return _LightColor0.rgb * max(0.0h, light_atten * shade);
+		}
+
+	#endif
+
+
+
 
 
 #endif

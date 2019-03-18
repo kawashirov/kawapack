@@ -7,7 +7,6 @@
 
 #include ".\KawaFLT_Frag_Shared.cginc"
 
-/* CubedParadox's Flat Lit Toon shading */
 #if defined(SHADE_CUBEDPARADOXFLT)
 	inline half3 frag_shade_cbdprdx_forward_add(FRAGMENT_IN i, half3 baseColor, half3 normal) {
 		// float4 objPos = mul(unity_ObjectToWorld, float4(0,0,0,1));
@@ -21,54 +20,33 @@
 	}
 #endif
 
-
-/* Kawashirov's Flat Lit Toon Log Diffuse-based */
 #if defined(SHADE_KAWAFLT_LOG)
 
 	inline half3 frag_shade_kawaflt_log_forward_add(FRAGMENT_IN i, half3 albedo, half3 normal) {
 		float3 view_dir = normalize(KawaWorldSpaceViewDir(i.posWorld));
 		float view_tangency = dot(normal, view_dir);
-		float rim_factor = frag_shade_kawaflt_log_rim_factor(view_tangency);
+		half rim_factor = frag_shade_kawaflt_log_rim_factor(view_tangency);
 
-		UNITY_LIGHT_ATTENUATION(light_atten, i, i.posWorld.xyz);
-		float3 dir = normalize(UnityWorldSpaceLightDir(i.posWorld.xyz));
-		float direct_tangency = max(0, dot(normal, dir));
-		direct_tangency = frag_shade_kawaflt_log_smooth_tangency(direct_tangency);
-		half3 light_shaded = _LightColor0.rgb * light_atten * direct_tangency * rim_factor;
-		half3 light_final = max(frag_shade_kawaflt_log_steps(light_shaded), half3(0,0,0));
-
-		return albedo * light_final;
+		half3 main = frag_shade_kawaflt_log_forward_main(i, normal, rim_factor);
+		return max(half3(0,0,0), albedo * main);
 	}
 
 #endif
 
-
-/* Kawashirov's Flat Lit Toon Ramp */
 #if defined(SHADE_KAWAFLT_RAMP)
 
 	inline half3 frag_shade_kawaflt_ramp_forward_add(FRAGMENT_IN i, half3 albedo, half3 normal) {
-		UNITY_LIGHT_ATTENUATION(atten, i, i.posWorld.xyz);
-		float3 wsld = normalize(UnityWorldSpaceLightDir(i.posWorld.xyz));
-		float ramp_uv = dot(normal, wsld) * 0.5 + 0.5;
-		half3 ramp = frag_shade_kawaflt_ramp_apply(ramp_uv);
-		return albedo * _LightColor0.rgb * ramp * atten;
+		half3 main = frag_shade_kawaflt_ramp_forward_main(i, normal);
+		return max(half3(0,0,0), albedo * main);
 	}
 
 #endif
 
-
-/* Kawashirov's Flat Lit Toon Log Diffuse-based */
 #if defined(SHADE_KAWAFLT_SINGLE)
 
 	inline half3 frag_shade_kawaflt_single_forward_add(FRAGMENT_IN i, half3 albedo, half3 normal) {
-
-		UNITY_LIGHT_ATTENUATION(light_atten, i, i.posWorld.xyz);
-		float3 dir = normalize(UnityWorldSpaceLightDir(i.posWorld.xyz));
-		float direct_tangency = dot(normal, dir);
-		direct_tangency = shade_kawaflt_single_tangency_transform(direct_tangency);
-		half3 light_shaded = _LightColor0.rgb * light_atten * direct_tangency;
-
-		return albedo * light_shaded;
+		half3 main = frag_shade_kawaflt_single_forward_main(i, normal);
+		return max(half3(0,0,0), albedo * main);
 	}
 
 #endif

@@ -57,7 +57,6 @@ inline half3 frag_forward_get_emission_color(inout FRAGMENT_IN i, half3 baseColo
 	inline half3 frag_shade_kawaflt_log_forward_base(FRAGMENT_IN i, half3 albedo, half3 normal3, half3 emission) {
 		float3 view_dir = normalize(KawaWorldSpaceViewDir(i.posWorld));
 		float view_tangency = dot(normal3, view_dir);
-
 		half rim_factor = frag_shade_kawaflt_log_rim_factor(view_tangency);
 
 		half3 vertexlight = half3(0,0,0);
@@ -71,37 +70,29 @@ inline half3 frag_forward_get_emission_color(inout FRAGMENT_IN i, half3 baseColo
 			ambient = max(frag_shade_kawaflt_log_steps(ambient), half3(0,0,0));
 		#endif
 
-		// Основной прямой свет сцены
-		UNITY_LIGHT_ATTENUATION(direct_atten, i, i.posWorld.xyz);
-		float3 wsld = normalize(UnityWorldSpaceLightDir(i.posWorld.xyz));
-		float direct_tangency = max(0, dot(normal3, wsld));
-		direct_tangency = frag_shade_kawaflt_log_smooth_tangency(direct_tangency);
-		half3 direct_shaded = _LightColor0.rgb * direct_atten * direct_tangency * rim_factor;
-		half3 direct_final = max(frag_shade_kawaflt_log_steps(direct_shaded), half3(0,0,0));
+		half3 main = frag_shade_kawaflt_log_forward_main(i, normal3, rim_factor);
 
-		return albedo * (direct_final + vertexlight + ambient) + emission;
+		return albedo * (main + vertexlight + ambient) + emission;
 	}
+
 #endif
 
 
 /* Kawashirov's Flat Lit Toon Ramp */
 #if defined(SHADE_KAWAFLT_RAMP)
 
-	inline half3 frag_shade_kawaflt_ramp_forward_base(FRAGMENT_IN i, half3 albedo, float2 normal3, half3 emission) {
+	inline half3 frag_shade_kawaflt_ramp_forward_base(FRAGMENT_IN i, half3 albedo, half3 normal3, half3 emission) {
 		half3 ambient = half3(0,0,0);
 		#if defined(UNITY_SHOULD_SAMPLE_SH)
 			ambient = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w) * _Sh_KwshrvRmp_NdrctClr.rgb * _Sh_KwshrvRmp_NdrctClr.a;
+			ambient = max(half3(0,0,0), ambient);
 		#endif
 
-		// Основной прямой свет сцены
-		UNITY_LIGHT_ATTENUATION(direct_atten, i, i.posWorld.xyz);
-		float3 wsld = normalize(UnityWorldSpaceLightDir(i.posWorld.xyz));
-		float ramp_uv = dot(normal3, wsld) * 0.5 + 0.5;
-		half3 ramp = frag_shade_kawaflt_ramp_apply(ramp_uv);
-		half3 direct = _LightColor0.rgb * ramp * direct_atten;
+		half3 main = frag_shade_kawaflt_ramp_forward_main(i, normal3);
 
-		return albedo * (direct + i.vertexlight + ambient) + emission;
+		return albedo * (main + i.vertexlight + ambient) + emission;
 	}
+
 #endif
 
 /* Kawashirov's Flat Lit Toon Single Diffuse-based */
@@ -112,17 +103,14 @@ inline half3 frag_forward_get_emission_color(inout FRAGMENT_IN i, half3 baseColo
 		#if defined(UNITY_SHOULD_SAMPLE_SH)
 			ambient = i.ambient + SHEvalLinearL2(half4(normal3, 1));
 			ambient = lerp(ambient, half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w), _Sh_Kwshrv_Smth);
+			ambient = max(half3(0,0,0), ambient);
 		#endif
 
-		// Основной прямой свет сцены
-		UNITY_LIGHT_ATTENUATION(direct_atten, i, i.posWorld.xyz);
-		float3 wsld = normalize(UnityWorldSpaceLightDir(i.posWorld.xyz));
-		float direct_tangency = dot(normal3, wsld);
-		direct_tangency = shade_kawaflt_single_tangency_transform(direct_tangency);
-		half3 direct_shaded = _LightColor0.rgb * direct_atten * direct_tangency;
+		half3 main = frag_shade_kawaflt_single_forward_main(i, normal3);
 
-		return albedo * (direct_shaded + i.vertexlight + ambient) + emission;
+		return albedo * (main + i.vertexlight + ambient) + emission;
 	}
+
 #endif
 
 

@@ -42,6 +42,7 @@ Shader "Kawashirov/Flat Lit Toon/Opaque VHDGF (Tessellation+Geometry)" {
 		[PowerSlider(1.5)] _Sh_KwshrvSngl_TngntHi("_Sh_KwshrvSngl_TngntHi", Range(0, 1)) = 0.8
 		_Sh_KwshrvSngl_ShdLo("_Sh_KwshrvSngl_ShdLo", Range(0, 1)) = 0.4 
 		_Sh_KwshrvSngl_ShdHi("_Sh_KwshrvSngl_ShdHi", Range(0, 1)) = 0.9
+		[PowerSlider(2)] _Sh_KwshrvSngl_ShdBlnd("_Sh_KwshrvSngl_ShdBlnd", Range(0, 1)) = 0.2
 
 		/* Editor */ [HideInInspector] _OutlineMode("__outline_mode", Float) = 0.0
 		_outline_width("outline_width", Range(0, 1)) = 0.2

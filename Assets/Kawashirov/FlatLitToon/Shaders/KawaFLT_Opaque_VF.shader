@@ -35,6 +35,7 @@ Shader "Kawashirov/Flat Lit Toon/Opaque VF (Lightweight)" {
 		[PowerSlider(1.5)] _Sh_KwshrvSngl_TngntHi("_Sh_KwshrvSngl_TngntHi", Range(0, 1)) = 0.8
 		_Sh_KwshrvSngl_ShdLo("_Sh_KwshrvSngl_ShdLo", Range(0, 1)) = 0.4 
 		_Sh_KwshrvSngl_ShdHi("_Sh_KwshrvSngl_ShdHi", Range(0, 1)) = 0.9
+		[PowerSlider(2)] _Sh_KwshrvSngl_ShdBlnd("_Sh_KwshrvSngl_ShdBlnd", Range(0, 1)) = 0.2
 
 		// Ditance fade feature
 		/* Editor */ [HideInInspector] _DstFd_Mode("_DstFd_Mode", Float) = 0.0
@@ -77,7 +78,7 @@ Shader "Kawashirov/Flat Lit Toon/Opaque VF (Lightweight)" {
 			#define KAWAFLT_PASS_FORWARDBASE 1
 			#define KAWAFLT_PASS_LIGHTWEIGHT 1
 
-			#pragma enable_d3d11_debug_symbols
+			// #pragma enable_d3d11_debug_symbols
 			
 			#pragma shader_feature SHADE_CUBEDPARADOXFLT SHADE_KAWAFLT_LOG SHADE_KAWAFLT_RAMP SHADE_KAWAFLT_SINGLE
 

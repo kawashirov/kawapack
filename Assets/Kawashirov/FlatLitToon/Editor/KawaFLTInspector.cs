@@ -404,16 +404,17 @@ public class KawaFLTInspector : MaterialEditor {
 			this.ShaderProperty(this.FindProperty("_Sh_KwshrvRmp_NdrctClr"), "Indirect Tint");
 		} else if (shadingModeEnum == ShadingMode.KawashirovFLTSingle ) {
 			this.ShaderProperty(this.FindProperty("_Sh_Kwshrv_Smth"), "Light smooth");
-			EditorGUILayout.LabelField("Threshold");
+			EditorGUILayout.LabelField("Sides threshold");
 			EditorGUI.indentLevel += 1;
 				this.ShaderProperty(this.FindProperty("_Sh_KwshrvSngl_TngntLo"), "Low");
 				this.ShaderProperty(this.FindProperty("_Sh_KwshrvSngl_TngntHi"), "High");
 			EditorGUI.indentLevel -= 1;
-			EditorGUILayout.LabelField("Shade");
+			EditorGUILayout.LabelField("Brightness");
 			EditorGUI.indentLevel += 1;
-				this.ShaderProperty(this.FindProperty("_Sh_KwshrvSngl_ShdLo"), "Back");
-				this.ShaderProperty(this.FindProperty("_Sh_KwshrvSngl_ShdHi"), "Front");
+				this.ShaderProperty(this.FindProperty("_Sh_KwshrvSngl_ShdLo"), "Back side (Shaded)");
+				this.ShaderProperty(this.FindProperty("_Sh_KwshrvSngl_ShdHi"), "Front side (Lit)");
 			EditorGUI.indentLevel -= 1;
+			this.ShaderProperty(this.FindProperty("_Sh_KwshrvSngl_ShdBlnd"), "RT Shade blending");
 		}
 		EditorGUI.indentLevel -= 1;
 	}

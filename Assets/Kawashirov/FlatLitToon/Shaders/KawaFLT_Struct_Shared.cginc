@@ -145,15 +145,20 @@ uniform float4 _Color;
 		uniform float _Sh_KwshrvSngl_TngntHi;
 		uniform float _Sh_KwshrvSngl_ShdLo;
 		uniform float _Sh_KwshrvSngl_ShdHi;
+		uniform float _Sh_KwshrvSngl_ShdBlnd;
 
-		inline float shade_kawaflt_single_tangency_transform(float tangency) {
-			float2 t;
+		inline float shade_kawaflt_single(float tangency, float shadow_atten) {
+			half2 t;
 			t.x = min(_Sh_KwshrvSngl_TngntLo, _Sh_KwshrvSngl_TngntHi);
 			t.y = max(_Sh_KwshrvSngl_TngntLo, _Sh_KwshrvSngl_TngntHi);
 			t = 2.0 * t - 1.0;
-			float ref = saturate( (tangency - t.x) / (t.y - t.x) );
-			float flat = lerp(_Sh_KwshrvSngl_ShdLo, _Sh_KwshrvSngl_ShdHi, ref);
-			return saturate(lerp(max(0, tangency), flat, _Sh_Kwshrv_Smth));
+			half ref_light = saturate( (tangency - t.x) / (t.y - t.x) );
+			ref_light = ref_light * ref_light * (3.0 - 2.0 * ref_light); // Cubic Hermite H01 interoplation
+			half flat_sh_blended = lerp(1.0, shadow_atten, _Sh_KwshrvSngl_ShdBlnd);
+			half flat_sh_separated = lerp(shadow_atten, 1.0, _Sh_KwshrvSngl_ShdBlnd);
+			half flat = lerp(_Sh_KwshrvSngl_ShdLo, _Sh_KwshrvSngl_ShdHi, ref_light * flat_sh_blended) * flat_sh_separated;
+			half diffuse = max(0, tangency) * shadow_atten;
+			return saturate(lerp(diffuse, flat, _Sh_Kwshrv_Smth));
 		}
 
 	#else
