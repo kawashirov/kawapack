@@ -1,5 +1,5 @@
-#ifndef KAWARND_LOGIC_INCLUDED
-#define KAWARND_LOGIC_INCLUDED
+#ifndef KAWARND_INCLUDED
+#define KAWARND_INCLUDED
 
 
 /* Hashes */

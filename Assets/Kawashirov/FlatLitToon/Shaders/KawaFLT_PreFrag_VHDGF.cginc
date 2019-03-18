@@ -1,5 +1,5 @@
-#ifndef KAWAFLT_VERT_GEOMETRY_INCLUDED
-#define KAWAFLT_VERT_GEOMETRY_INCLUDED
+#ifndef KAWAFLT_PREFRAG_VHDGF_INCLUDED
+#define KAWAFLT_PREFRAG_VHDGF_INCLUDED
 
 #include ".\KawaFLT_Struct_VHDGF.cginc"
 #include ".\KawaFLT_Features_Lightweight.cginc"
@@ -263,4 +263,4 @@ void geom(triangle GEOMETRY_IN IN[3], inout TriangleStream<GEOMETRY_OUT> tristre
 }
 
 
-#endif // KAWAFLT_VERT_GEOMETRY_INCLUDED
+#endif // KAWAFLT_PREFRAG_VHDGF_INCLUDED

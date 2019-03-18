@@ -61,14 +61,14 @@ inline void kawaflt_fragment_in(inout FRAGMENT_IN v, bool vertexlight_on, float3
 			float4 lengthSq = toLightX * toLightX + toLightY * toLightY + toLightZ * toLightZ;
 			lengthSq = max(lengthSq, 0.000001); // non-zero
 
-			#if defined(SHADE_KAWAFLT_DIFFUSE)
+			#if defined(SHADE_KAWAFLT_LOG)
 				float4 tangency = float4(_Sh_Kwshrv_Smth_Tngnt, _Sh_Kwshrv_Smth_Tngnt, _Sh_Kwshrv_Smth_Tngnt, _Sh_Kwshrv_Smth_Tngnt);
 				UNITY_BRANCH if (_Sh_Kwshrv_Smth < 0.99) {
 					// Only calc tangency when not fully flat
 					float4 prec_tangency = toLightX * normal3.x + toLightY * normal3.y + toLightZ * normal3.z;
 					prec_tangency = max(float4(0,0,0,0), prec_tangency * rsqrt(lengthSq));
 
-					// TODO frag_shade_kawaflt_diffuse_smooth_tangency
+					// TODO frag_shade_kawaflt_log_smooth_tangency
 					// v.vertexlight smoothing
 					float4 smooth = float4(_Sh_Kwshrv_Smth, _Sh_Kwshrv_Smth, _Sh_Kwshrv_Smth, _Sh_Kwshrv_Smth);
 					tangency = saturate(lerp(prec_tangency, tangency, smooth));
@@ -89,9 +89,17 @@ inline void kawaflt_fragment_in(inout FRAGMENT_IN v, bool vertexlight_on, float3
 					half3 ramp = KAWA_SAMPLE_TEX2D_LOD(_Sh_KwshrvRmp_Tex, half2(t,t), lod).rgb;
 					v.vertexlight += unity_LightColor[i].rgb * ramp / dnm;
 				}
+			#elif defined(SHADE_KAWAFLT_SINGLE)
+				float4 tangency = toLightX * normal3.x + toLightY * normal3.y + toLightZ * normal3.z;
+				tangency = tangency * rsqrt(lengthSq);
+				tangency = shade_kawaflt_single_tangency_transform(tangency);
+				float4 shade = tangency / (1.0 + lengthSq * unity_4LightAtten0);
+				UNITY_UNROLL for(int i = 0; i < 4; ++i) {
+					v.vertexlight += unity_LightColor[i].rgb * shade[i];
+				}
 			#endif
 		}
-		#if defined(UNITY_SHOULD_SAMPLE_SH) && defined(SHADE_KAWAFLT_DIFFUSE)
+		#if defined(UNITY_SHOULD_SAMPLE_SH) && (defined(SHADE_KAWAFLT_LOG) || defined(SHADE_KAWAFLT_SINGLE))
 			v.ambient = SHEvalLinearL0L1(half4(v.normalDir, 1));
 		#endif
 	#endif

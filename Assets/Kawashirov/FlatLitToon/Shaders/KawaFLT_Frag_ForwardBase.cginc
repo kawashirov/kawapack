@@ -1,5 +1,5 @@
-#ifndef KAWAFLT_G_FRAGMENT_FORWARD_BASE_INCLUDED
-#define KAWAFLT_G_FRAGMENT_FORWARD_BASE_INCLUDED
+#ifndef KAWAFLT_FRAG_FORWARD_BASE_INCLUDED
+#define KAWAFLT_FRAG_FORWARD_BASE_INCLUDED
 
 #if !defined(KAWAFLT_PASS_FORWARDBASE)
 	#error KAWAFLT_PASS_FORWAR_BASE not defined, but KAWAFLT_STAGE_FRAGMENT_FORWARD_BASE included. 
@@ -51,33 +51,33 @@ inline half3 frag_forward_get_emission_color(inout FRAGMENT_IN i, half3 baseColo
 #endif
 
 
-/* Kawashirov's Flat Lit Toon Diffuse */
-#if defined(SHADE_KAWAFLT_DIFFUSE)
+/* Kawashirov's Flat Lit Toon Log Diffuse-based */
+#if defined(SHADE_KAWAFLT_LOG)
 
-	inline half3 frag_shade_kawaflt_diffuse_forward_base(FRAGMENT_IN i, half3 albedo, half3 normal3, half3 emission) {
+	inline half3 frag_shade_kawaflt_log_forward_base(FRAGMENT_IN i, half3 albedo, half3 normal3, half3 emission) {
 		float3 view_dir = normalize(KawaWorldSpaceViewDir(i.posWorld));
 		float view_tangency = dot(normal3, view_dir);
 
-		half rim_factor = frag_shade_kawaflt_diffuse_rim_factor(view_tangency);
+		half rim_factor = frag_shade_kawaflt_log_rim_factor(view_tangency);
 
 		half3 vertexlight = half3(0,0,0);
 		vertexlight = i.vertexlight * rim_factor;
-		vertexlight = max(frag_shade_kawaflt_diffuse_steps(vertexlight), half3(0,0,0));
+		vertexlight = max(frag_shade_kawaflt_log_steps(vertexlight), half3(0,0,0));
 
 		half3 ambient = half3(0,0,0);
 		#if defined(UNITY_SHOULD_SAMPLE_SH)
 			ambient = i.ambient + SHEvalLinearL2(half4(normal3, 1));
 			ambient = lerp(ambient, half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w), _Sh_Kwshrv_Smth) * rim_factor;
-			ambient = max(frag_shade_kawaflt_diffuse_steps(ambient), half3(0,0,0));
+			ambient = max(frag_shade_kawaflt_log_steps(ambient), half3(0,0,0));
 		#endif
 
 		// Основной прямой свет сцены
 		UNITY_LIGHT_ATTENUATION(direct_atten, i, i.posWorld.xyz);
 		float3 wsld = normalize(UnityWorldSpaceLightDir(i.posWorld.xyz));
 		float direct_tangency = max(0, dot(normal3, wsld));
-		direct_tangency = frag_shade_kawaflt_diffuse_smooth_tangency(direct_tangency);
+		direct_tangency = frag_shade_kawaflt_log_smooth_tangency(direct_tangency);
 		half3 direct_shaded = _LightColor0.rgb * direct_atten * direct_tangency * rim_factor;
-		half3 direct_final = max(frag_shade_kawaflt_diffuse_steps(direct_shaded), half3(0,0,0));
+		half3 direct_final = max(frag_shade_kawaflt_log_steps(direct_shaded), half3(0,0,0));
 
 		return albedo * (direct_final + vertexlight + ambient) + emission;
 	}
@@ -101,6 +101,27 @@ inline half3 frag_forward_get_emission_color(inout FRAGMENT_IN i, half3 baseColo
 		half3 direct = _LightColor0.rgb * ramp * direct_atten;
 
 		return albedo * (direct + i.vertexlight + ambient) + emission;
+	}
+#endif
+
+/* Kawashirov's Flat Lit Toon Single Diffuse-based */
+#if defined(SHADE_KAWAFLT_SINGLE)
+
+	inline half3 frag_shade_kawaflt_single_forward_base(FRAGMENT_IN i, half3 albedo, half3 normal3, half3 emission) {
+		half3 ambient = half3(0,0,0);
+		#if defined(UNITY_SHOULD_SAMPLE_SH)
+			ambient = i.ambient + SHEvalLinearL2(half4(normal3, 1));
+			ambient = lerp(ambient, half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w), _Sh_Kwshrv_Smth);
+		#endif
+
+		// Основной прямой свет сцены
+		UNITY_LIGHT_ATTENUATION(direct_atten, i, i.posWorld.xyz);
+		float3 wsld = normalize(UnityWorldSpaceLightDir(i.posWorld.xyz));
+		float direct_tangency = dot(normal3, wsld);
+		direct_tangency = shade_kawaflt_single_tangency_transform(direct_tangency);
+		half3 direct_shaded = _LightColor0.rgb * direct_atten * direct_tangency;
+
+		return albedo * (direct_shaded + i.vertexlight + ambient) + emission;
 	}
 #endif
 
@@ -130,15 +151,18 @@ half4 frag_forwardbase(FRAGMENT_IN i) : COLOR {
 	#if defined(SHADE_CUBEDPARADOXFLT)
 		finalColor.rgb = frag_shade_cbdprdx_forward_base(i, albedo.rgb, normal3, emissive);
 	#endif
-	#if defined(SHADE_KAWAFLT_DIFFUSE)
-		finalColor.rgb = frag_shade_kawaflt_diffuse_forward_base(i, albedo.rgb, normal3, emissive);
+	#if defined(SHADE_KAWAFLT_LOG)
+		finalColor.rgb = frag_shade_kawaflt_log_forward_base(i, albedo.rgb, normal3, emissive);
 	#endif
 	#if defined(SHADE_KAWAFLT_RAMP)
 		finalColor.rgb = frag_shade_kawaflt_ramp_forward_base(i, albedo.rgb, normal3, emissive);
+	#endif
+	#if defined(SHADE_KAWAFLT_SINGLE)
+		finalColor.rgb = frag_shade_kawaflt_single_forward_base(i, albedo.rgb, normal3, emissive);
 	#endif
 	
 	UNITY_APPLY_FOG(i.fogCoord, finalColor);
 	return finalColor;
 }
 
-#endif // KAWAFLT_G_FRAGMENT_FORWARD_BASE_INCLUDED
+#endif // KAWAFLT_FRAG_FORWARD_BASE_INCLUDED

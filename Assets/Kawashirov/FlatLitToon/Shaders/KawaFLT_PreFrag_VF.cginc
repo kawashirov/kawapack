@@ -1,5 +1,5 @@
-#ifndef KAWAFLT_VERT_LIGHTWEIGHT_INCLUDED
-#define KAWAFLT_VERT_LIGHTWEIGHT_INCLUDED
+#ifndef KAWAFLT_PREFRAG_VF_INCLUDED
+#define KAWAFLT_PREFRAG_VF_INCLUDED
 
 #include ".\KawaFLT_Struct_VF.cginc"
 #include ".\KawaFLT_Features_Lightweight.cginc"
@@ -48,4 +48,4 @@ VERTEX_OUT vert(appdata_full v) {
 	return o;
 }
 
-#endif // KAWAFLT_VERT_LIGHTWEIGHT_INCLUDED
+#endif // KAWAFLT_PREFRAG_VF_INCLUDED

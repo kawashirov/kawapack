@@ -41,7 +41,7 @@ struct v2f {
 		half3 bitangentDir : KAWASMNT_BITANGENT_DIR;
 		#if defined(KAWAFLT_PASS_FORWARDBASE) && defined(SHADE_KAWAFLT)
 			half3 vertexlight : KAWASMNT_VERTEXLIGHT;
-			#if defined(UNITY_SHOULD_SAMPLE_SH)
+			#if defined(UNITY_SHOULD_SAMPLE_SH) && (defined(SHADE_KAWAFLT_LOG) || defined(SHADE_KAWAFLT_SINGLE))
 				half3 ambient : KAWASMNT_AMBIENT;
 			#endif
 		#endif

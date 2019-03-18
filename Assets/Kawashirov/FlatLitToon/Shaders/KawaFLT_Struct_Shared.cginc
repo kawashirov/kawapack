@@ -115,7 +115,7 @@ uniform float4 _Color;
 
 		uniform float _Sh_Cbdprdx_Shadow;
 
-	#elif defined(SHADE_KAWAFLT_DIFFUSE)
+	#elif defined(SHADE_KAWAFLT_LOG)
 		#define SHADE_KAWAFLT 1
 
 		uniform float _Sh_Kwshrv_RimScl;
@@ -136,6 +136,25 @@ uniform float4 _Color;
 		UNITY_DECLARE_TEX2D(_Sh_KwshrvRmp_Tex);
 		uniform float _Sh_KwshrvRmp_Pwr;
 		uniform float4 _Sh_KwshrvRmp_NdrctClr;
+
+	#elif defined(SHADE_KAWAFLT_SINGLE)
+		#define SHADE_KAWAFLT 1
+
+		uniform float _Sh_Kwshrv_Smth;
+		uniform float _Sh_KwshrvSngl_TngntLo;
+		uniform float _Sh_KwshrvSngl_TngntHi;
+		uniform float _Sh_KwshrvSngl_ShdLo;
+		uniform float _Sh_KwshrvSngl_ShdHi;
+
+		inline float shade_kawaflt_single_tangency_transform(float tangency) {
+			float2 t;
+			t.x = min(_Sh_KwshrvSngl_TngntLo, _Sh_KwshrvSngl_TngntHi);
+			t.y = max(_Sh_KwshrvSngl_TngntLo, _Sh_KwshrvSngl_TngntHi);
+			t = 2.0 * t - 1.0;
+			float ref = saturate( (tangency - t.x) / (t.y - t.x) );
+			float flat = lerp(_Sh_KwshrvSngl_ShdLo, _Sh_KwshrvSngl_ShdHi, ref);
+			return saturate(lerp(max(0, tangency), flat, _Sh_Kwshrv_Smth));
+		}
 
 	#else
 		#error SHADE_???

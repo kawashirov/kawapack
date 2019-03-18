@@ -183,9 +183,9 @@ inline half4 frag_forward_get_albedo(FRAGMENT_IN i, float2 texST) {
 		// ???
 	#endif
 
-	#if defined(SHADE_KAWAFLT_DIFFUSE)
+	#if defined(SHADE_KAWAFLT_LOG)
 
-		inline half3 frag_shade_kawaflt_diffuse_round(half value) {
+		inline half3 frag_shade_kawaflt_log_round(half value) {
 			// only apply bound smooth when it's noticeble
 			// <0.01 full-sharp bound
 			// 0.01..0.99 mixed bound
@@ -202,21 +202,21 @@ inline half4 frag_forward_get_albedo(FRAGMENT_IN i, float2 texST) {
 			return value;
 		}
 
-		inline half frag_shade_kawaflt_diffuse_rim_factor(half tangency) {
+		inline half frag_shade_kawaflt_log_rim_factor(half tangency) {
 			return 1.0h + (pow(1.0h - abs(tangency), _Sh_Kwshrv_RimPwr) + _Sh_Kwshrv_RimBs) * _Sh_Kwshrv_RimScl;
 		}
 
-		inline float frag_shade_kawaflt_diffuse_smooth_tangency(float tangency) {
+		inline float frag_shade_kawaflt_log_smooth_tangency(float tangency) {
 			return saturate(lerp(tangency, _Sh_Kwshrv_Smth_Tngnt, _Sh_Kwshrv_Smth));
 		}
 
-		inline half3 frag_shade_kawaflt_diffuse_steps(half3 color) {
+		inline half3 frag_shade_kawaflt_log_steps(half3 color) {
 			UNITY_BRANCH if ( _Sh_Kwshrv_FltFctr > 0.01 && _Sh_Kwshrv_BndSmth < 0.99 ) {
 				// Only apply steps when flatness noticeble
 				float luma = Luminance(color);
 				float layers = luma;
 				layers = log(layers) * _Sh_Kwshrv_FltLogSclA;
-				layers = frag_shade_kawaflt_diffuse_round(layers);
+				layers = frag_shade_kawaflt_log_round(layers);
 				layers = exp(layers / _Sh_Kwshrv_FltLogSclA);
 				color = lerp(color, color * (layers / luma), _Sh_Kwshrv_FltFctr);
 			}

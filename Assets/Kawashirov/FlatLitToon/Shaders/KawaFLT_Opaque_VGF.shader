@@ -31,6 +31,11 @@ Shader "Kawashirov/Flat Lit Toon/Opaque VGF (Geometry)" {
 		[HDR] _Sh_KwshrvRmp_NdrctClr("_Sh_KwshrvRmp_NdrctClr", Color) = (1,1,1,1)
 		[PowerSlider(5.0)] _Sh_KwshrvRmp_Pwr("_Sh_KwshrvRmp_Pwr", Range(0.1, 10)) = 1
 
+		[PowerSlider(1.5)] _Sh_KwshrvSngl_TngntLo("_Sh_KwshrvSngl_TngntLo", Range(0, 1)) = 0.7
+		[PowerSlider(1.5)] _Sh_KwshrvSngl_TngntHi("_Sh_KwshrvSngl_TngntHi", Range(0, 1)) = 0.8
+		_Sh_KwshrvSngl_ShdLo("_Sh_KwshrvSngl_ShdLo", Range(0, 1)) = 0.4 
+		_Sh_KwshrvSngl_ShdHi("_Sh_KwshrvSngl_ShdHi", Range(0, 1)) = 0.9
+
 		/* Editor */ [HideInInspector] _OutlineMode("__outline_mode", Float) = 0.0
 		_outline_width("outline_width", Range(0, 1)) = 0.2
 		[HDR] _outline_color("outline_color", Color) = (0.5,0.5,0.5,1)
@@ -109,7 +114,7 @@ Shader "Kawashirov/Flat Lit Toon/Opaque VGF (Geometry)" {
 
 			// #pragma enable_d3d11_debug_symbols
 			
-			#pragma shader_feature SHADE_CUBEDPARADOXFLT SHADE_KAWAFLT_DIFFUSE SHADE_KAWAFLT_RAMP
+			#pragma shader_feature SHADE_CUBEDPARADOXFLT SHADE_KAWAFLT_LOG SHADE_KAWAFLT_RAMP SHADE_KAWAFLT_SINGLE
 
 			#pragma shader_feature MAINTEX_OFF MAINTEX_NOMASK MAINTEX_COLORMASK
 			#pragma shader_feature _ _NORMALMAP
@@ -163,7 +168,7 @@ Shader "Kawashirov/Flat Lit Toon/Opaque VGF (Geometry)" {
 
 			// #pragma enable_d3d11_debug_symbols
 			
-			#pragma shader_feature SHADE_CUBEDPARADOXFLT SHADE_KAWAFLT_DIFFUSE SHADE_KAWAFLT_RAMP
+			#pragma shader_feature SHADE_CUBEDPARADOXFLT SHADE_KAWAFLT_LOG SHADE_KAWAFLT_RAMP SHADE_KAWAFLT_SINGLE
 
 			#pragma shader_feature MAINTEX_OFF MAINTEX_NOMASK MAINTEX_COLORMASK
 			#pragma shader_feature _ _NORMALMAP
