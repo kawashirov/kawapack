@@ -36,6 +36,8 @@ sysinfo.txt
 *.unitypackage
 
 # Kawa
+Assets/Kawashirov/Demo*
+Assets/Kawashirov/Experemental*
 *.meta
 !*.fbx.meta
 !*.png.meta
