@@ -266,6 +266,7 @@ inline half4 frag_forward_get_albedo(FRAGMENT_IN i, float2 texST) {
 	
 		inline half3 frag_shade_kawaflt_ramp_apply(half uv) {
 			uv = pow(uv, _Sh_KwshrvRmp_Pwr);
+			uv = uv * uv * (3.0 - 2.0 * uv); // Cubic Hermite H01 interoplation
 			return UNITY_SAMPLE_TEX2D(_Sh_KwshrvRmp_Tex, half2(uv, uv)).rgb;
 		}
 
