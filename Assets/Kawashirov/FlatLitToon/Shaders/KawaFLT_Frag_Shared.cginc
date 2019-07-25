@@ -235,15 +235,27 @@ inline half4 frag_forward_get_albedo(FRAGMENT_IN i, float2 texST) {
 			return saturate(lerp(tangency, _Sh_Kwshrv_Smth_Tngnt, _Sh_Kwshrv_Smth));
 		}
 
-		inline half3 frag_shade_kawaflt_log_steps(half3 color) {
-			UNITY_BRANCH if ( _Sh_Kwshrv_FltFctr > 0.01 && _Sh_Kwshrv_BndSmth < 0.99 ) {
+		inline half frag_shade_kawaflt_log_steps_mono(half atten) {
+			UNITY_BRANCH if ( _Sh_KwshrvLog_Fltnss > 0.01 && _Sh_Kwshrv_BndSmth < 0.99 && atten > 0.01) {
 				// Only apply steps when flatness noticeble
-				float luma = Luminance(color);
-				float layers = luma;
+				float layers = atten;
 				layers = log(layers) * _Sh_Kwshrv_FltLogSclA;
 				layers = frag_shade_kawaflt_log_round(layers);
 				layers = exp(layers / _Sh_Kwshrv_FltLogSclA);
-				color = lerp(color, color * (layers / luma), _Sh_Kwshrv_FltFctr);
+				atten = lerp(atten, layers, _Sh_KwshrvLog_Fltnss);
+			}
+			return atten;
+		}
+
+		inline half frag_shade_kawaflt_log_steps_color(half color) {
+			UNITY_BRANCH if ( _Sh_KwshrvLog_Fltnss > 0.01 && _Sh_Kwshrv_BndSmth < 0.99 && all(color > half3(0.01, 0.01, 0.01) )) {
+				// Only apply steps when flatness noticeble
+				float luma = Luminance(color);
+				float layers = color;
+				layers = log(layers) * _Sh_Kwshrv_FltLogSclA;
+				layers = frag_shade_kawaflt_log_round(layers);
+				layers = exp(layers / _Sh_Kwshrv_FltLogSclA);
+				color = lerp(color, layers * (layers / luma), _Sh_KwshrvLog_Fltnss);
 			}
 			return color;
 		}
@@ -255,7 +267,9 @@ inline half4 frag_forward_get_albedo(FRAGMENT_IN i, float2 texST) {
 			float tangency = max(0, dot(normal, wsld));
 			tangency = frag_shade_kawaflt_log_smooth_tangency(tangency);
 			half shadow_atten = UNITY_SHADOW_ATTENUATION(i, i.posWorld.xyz);
-			half shade = frag_shade_kawaflt_log_steps(tangency * rim_factor * shadow_atten);
+			half shade_blended = frag_shade_kawaflt_log_steps_mono(tangency * rim_factor * shadow_atten);
+			half shade_separated = frag_shade_kawaflt_log_steps_mono(tangency * rim_factor) * shadow_atten;
+			half shade = lerp(shade_separated, shade_blended, _Sh_Kwshrv_ShdBlnd);
 
 			return _LightColor0.rgb * max(0.0h, light_atten * shade);
 		}
@@ -276,7 +290,9 @@ inline half4 frag_forward_get_albedo(FRAGMENT_IN i, float2 texST) {
 			half shadow_atten = UNITY_SHADOW_ATTENUATION(i, i.posWorld.xyz);
 			float3 wsld = normalize(UnityWorldSpaceLightDir(i.posWorld.xyz));
 			half ramp_uv = dot(normal, wsld) * 0.5 + 0.5;
-			half3 shade = frag_shade_kawaflt_ramp_apply(ramp_uv * shadow_atten);
+			half3 shade_blended = frag_shade_kawaflt_ramp_apply(ramp_uv * shadow_atten);
+			half3 shade_separated = frag_shade_kawaflt_ramp_apply(ramp_uv) * shadow_atten;
+			half3 shade = lerp(shade_separated, shade_blended, _Sh_Kwshrv_ShdBlnd);
 
 			return _LightColor0.rgb * max(0.0h, light_atten * shade);
 		}
@@ -290,8 +306,8 @@ inline half4 frag_forward_get_albedo(FRAGMENT_IN i, float2 texST) {
 
 			half shadow_atten = UNITY_SHADOW_ATTENUATION(i, i.posWorld.xyz);
 			float3 dir = normalize(UnityWorldSpaceLightDir(i.posWorld.xyz));
-			float tangency = dot(normal, dir);
-			float shade = shade_kawaflt_single(tangency, shadow_atten);
+			half tangency = dot(normal, dir);
+			half shade = shade_kawaflt_single(tangency, shadow_atten);
 
 			return _LightColor0.rgb * max(0.0h, light_atten * shade);
 		}

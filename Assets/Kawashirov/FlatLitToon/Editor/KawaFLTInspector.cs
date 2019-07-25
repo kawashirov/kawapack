@@ -5,85 +5,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 
-public class KawaFLTInspector : MaterialEditor {
+namespace Kawashirov.FLT  
+{
 
-	protected static string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
-	protected static string[] cullModeNames = Enum.GetNames(typeof(CullMode));
-
-	protected enum TessDomain { Triangles, Quads }
-	protected enum TessPartioning { integer, fractional_even, fractional_odd, pow2 }
-	//protected enum TessPhong { None, fractional_even, fractional_odd, pow2 }
-	protected static string[] TessDomainNames = Enum.GetNames(typeof(TessDomain));
-	protected static string[] TessPartioningNames = Enum.GetNames(typeof(TessPartioning));
-
-	// protected enum BlendTemplate { Opaque, Cutout, Fade, Transparent, Custom }
-	// protected enum BlendKeywords { None, AlphaTest, AlphaBlend, AlphaPreMultiply }
-	protected enum MainTexKeywords { Off, NoMask, ColorMask }
-	protected enum CutoutMode { Classic, RangeRandom, RangePattern }
-	// protected static string[] blendTemplateNames = Enum.GetNames(typeof(BlendTemplate));
-	// protected static string[] blendKeywordsNames = Enum.GetNames(typeof(BlendKeywords));
-	protected static string[] mainTexKeywordsNames = Enum.GetNames(typeof(MainTexKeywords));
-	protected static string[] cutoutModeNames = Enum.GetNames(typeof(CutoutMode));
-
-	protected enum ShadingMode { CubedParadoxFLT, KawashirovFLTLog, KawashirovFLTRamp, KawashirovFLTSingle }
-	// protected enum ShadingKawashirovSmooth { None, Four, Six, Eight }
-	// protected enum ShadingKawashirovFlatMode { None, Linear, Logarithmic }
-	protected static string[] shadingModeNames = new string[] {
-		"CubedParadox FLT (Для особо упрямых)", "Kawashirov FLT Logarithmic Diffuse-based (Пластилиновый™)", "Kawashirov FLT Ramp-based (In Dev)", "Kawashirov FLT Single Diffuse-based (Похож на CubedParadox)"
-	};
-	//protected static string[] shadingKawashirovSmoothNames = Enum.GetNames(typeof(ShadingKawashirovSmooth));
-	// protected static string[] shadingKawashirovFlatModeNames = Enum.GetNames(typeof(ShadingKawashirovFlatMode));
-
-	protected enum DistanceFadeMode { None, Range, Infinity }
-	protected enum DistanceFadeRandom { PerPixel, PerVertex, ScreenPattern }
-	protected static string[] distanceFadeModeNames = Enum.GetNames(typeof(DistanceFadeMode));
-	protected static string[] distanceFadeRandomNames = Enum.GetNames(typeof(DistanceFadeRandom));
-
-	protected enum FPSMode { None, Color, Texture, Mesh }
-	protected static string[] FPSModeNames = Enum.GetNames(typeof(FPSMode));
-
-	public enum OutlineMode { None, Tinted, Colored }
-	protected static string[] outlineModeNames = Enum.GetNames(typeof(OutlineMode));
-
-	public enum DisintegrationMode { None, Pixel, Face, PixelAndFace }
-	protected static string[] disintegrationModeNames = Enum.GetNames(typeof(DisintegrationMode));
-
-	public enum PolyColorWaveMode { None, Enabled }
-	protected static string[] polyColorWaveModeNames = Enum.GetNames(typeof(PolyColorWaveMode));
-
-	static KawaFLTInspector() {
-		string rem = "[ Feature removed, do not use it ]";
-		distanceFadeRandomNames[1] = rem;
-		disintegrationModeNames[1] = rem;
-		disintegrationModeNames[3] = rem;
-	}
+public class Inspector : MaterialEditor {
 
 	protected bool updateMeta = false;
 	protected bool checkValues = false;
 	protected bool haveGeometry = false;
 	protected bool haveTessellation = false;
 	protected IDictionary<string, MaterialProperty> materialProperties;
-
-	protected static bool MaterialCheckTag(object material, string tag, string value) {
-		Material m = material as Material;
-		string tag_v = m ? m.GetTag(tag, false, "") : null;
-		// Debug.Log(String.Format("{0}: {1}={2}", material, tag, tag_v));
-		return m && string.Equals(value, tag_v, StringComparison.InvariantCultureIgnoreCase);
-	}
-
-	protected static bool CheckMaterialTagContains(object material, string tag, string value) {
-		Material m = material as Material;
-		if (!m) return false;
-		string tag_v = m.GetTag(tag, false, "");
-		return tag_v.Split(',').ToList<string>().Any(v => string.Equals(value, v, StringComparison.InvariantCultureIgnoreCase));
-	}
-
-	protected static bool CheckAllMaterialsTagContains(object[] materials, string tag, string value) {
-		foreach(object material in materials)
-			if (!CheckMaterialTagContains(material, tag, value))
-				return false;
-		return true;
-	}
 
 	// protected static bool MaterialIsLightweight(Material material) {
 	// 	return MaterialCheckTag(material, "KawaFLT_Features", "Geometry");
@@ -174,7 +105,7 @@ public class KawaFLTInspector : MaterialEditor {
 	}
 
 	protected static void SetupMaterialWithCutoutMode(Material material) {
-		bool isCutout = MaterialCheckTag(material, "KawaFLT_RenderType", "Cutout");
+		bool isCutout = Commons.MaterialCheckTag(material, "KawaFLT_RenderType", "Cutout");
 		CutoutMode mode = (CutoutMode) (isCutout ? material.GetFloat("_CutoffMode") : 0);
 		SetKeyword(material, "CUTOFF_CLASSIC", isCutout && mode == CutoutMode.Classic);
 		SetKeyword(material, "CUTOFF_RANDOM", isCutout && mode == CutoutMode.RangeRandom);
@@ -224,7 +155,7 @@ public class KawaFLTInspector : MaterialEditor {
 	}
 
 	protected static void SetupMaterialWithOutlineMode(Material material) {
-		bool isGeom = CheckMaterialTagContains(material, "KawaFLT_Features", "Geometry");
+		bool isGeom = Commons.CheckMaterialTagContains(material, "KawaFLT_Features", "Geometry");
 		OutlineMode outlineMode = (OutlineMode) (isGeom ? material.GetFloat("_OutlineMode") : 0);
 		SetKeyword(material, "NO_OUTLINE", isGeom && outlineMode == OutlineMode.None);
 		SetKeyword(material, "TINTED_OUTLINE", isGeom && outlineMode == OutlineMode.Tinted);
@@ -232,14 +163,14 @@ public class KawaFLTInspector : MaterialEditor {
 	}
 
 	public static void SetupMaterialWithDisintegrationMode(Material material) {
-		bool isGeom = CheckMaterialTagContains(material, "KawaFLT_Features", "Geometry");
+		bool isGeom = Commons.CheckMaterialTagContains(material, "KawaFLT_Features", "Geometry");
 		DisintegrationMode mode = (DisintegrationMode) (isGeom ? material.GetFloat("_Dsntgrt_Mode") : 0);
 		// SetKeyword(material, "DSNTGRT_PIXEL", mode == DisintegrationMode.PixelAndFace || mode == DisintegrationMode.Pixel);
 		SetKeyword(material, "DSNTGRT_FACE", isGeom && mode == DisintegrationMode.Face); // mode == DisintegrationMode.PixelAndFace || 
 	}
 
 	public static void SetupMaterialWithPolyColorWaveMode(Material material) {
-		bool isGeom = CheckMaterialTagContains(material, "KawaFLT_Features", "Geometry");
+		bool isGeom = Commons.CheckMaterialTagContains(material, "KawaFLT_Features", "Geometry");
 		PolyColorWaveMode mode = (PolyColorWaveMode) (isGeom ? material.GetFloat("_PCW_Mode") : 0);
 		SetKeyword(material, "PCW_ON", isGeom && mode == PolyColorWaveMode.Enabled);
 	}
@@ -286,7 +217,7 @@ public class KawaFLTInspector : MaterialEditor {
 
 	protected void OnGUI_BlendMode() {
 		MaterialProperty cull = this.FindProperty("_Cull");
-		PopupProperty("Cull faces", cull, cullModeNames, this.needUpdateMeta);
+		PopupProperty("Cull faces", cull, Commons.cullModeNames, this.needUpdateMeta);
 		this.EnableInstancingField();
 	}
 
@@ -305,9 +236,9 @@ public class KawaFLTInspector : MaterialEditor {
 		EditorGUI.showMixedValue = false;
 
 		EditorGUI.indentLevel += 1;
-			bool isNotOpaque = !MaterialCheckTag(this.target, "KawaFLT_RenderType", "Opaque");
-			bool isCutout = MaterialCheckTag(this.target, "KawaFLT_RenderType", "Cutout");
-			bool isForceNoShadowCasting = MaterialCheckTag(this.target, "ForceNoShadowCasting", "True");
+			bool isNotOpaque = !Commons.MaterialCheckTag(this.target, "KawaFLT_RenderType", "Opaque");
+			bool isCutout = Commons.MaterialCheckTag(this.target, "KawaFLT_RenderType", "Cutout");
+			bool isForceNoShadowCasting = Commons.MaterialCheckTag(this.target, "ForceNoShadowCasting", "True");
 
 			if (isNotOpaque) {
 				bool showCutoutSettings = false;
@@ -320,7 +251,7 @@ public class KawaFLTInspector : MaterialEditor {
 				}
 				if(showCutoutSettings) {
 					MaterialProperty mode = this.FindProperty("_CutoffMode");
-					var modeEnum = (CutoutMode) PopupProperty("Cutout Mode", mode, cutoutModeNames, this.needUpdateMeta);
+					var modeEnum = (CutoutMode) PopupProperty("Cutout Mode", mode, Commons.cutoutModeNames, this.needUpdateMeta);
 					if (modeEnum == CutoutMode.Classic) {
 						this.ShaderProperty(this.FindProperty("_Cutoff"), "Cutout", 2);
 					} else {
@@ -374,18 +305,19 @@ public class KawaFLTInspector : MaterialEditor {
 		MaterialProperty shadingMode = this.FindProperty("_Sh_Mode");
 		ShadingMode shadingModeEnum = (ShadingMode) shadingMode.floatValue;
 
-		PopupProperty("Shading Mode", shadingMode, shadingModeNames, this.needUpdateMeta);
+		PopupProperty("Shading Mode", shadingMode, Commons.shadingModeNames, this.needUpdateMeta);
 
 		EditorGUI.indentLevel += 1;
 		if (shadingModeEnum == ShadingMode.CubedParadoxFLT) {
 			this.ShaderProperty(this.FindProperty("_Sh_Cbdprdx_Shadow"), "Shadow");
 		} else if (shadingModeEnum == ShadingMode.KawashirovFLTLog ) {
+			this.ShaderProperty(this.FindProperty("_Sh_Kwshrv_ShdBlnd"), "RT Shadows blending");
 			this.ShaderProperty(this.FindProperty("_Sh_Kwshrv_Smth"), "Light smooth");
 			EditorGUI.indentLevel += 1;
 				this.ShaderProperty(this.FindProperty("_Sh_Kwshrv_Smth_Tngnt"), "Correction");
 			EditorGUI.indentLevel -= 1;
 			
-			this.ShaderProperty(this.FindProperty("_Sh_Kwshrv_FltFctr"), "Flatness");
+			this.ShaderProperty(this.FindProperty("_Sh_KwshrvLog_Fltnss"), "Flatness Direct");
 			EditorGUI.indentLevel += 1;
 				this.ShaderProperty(this.FindProperty("_Sh_Kwshrv_BndSmth"), "Smoothness");
 				this.ShaderProperty(this.FindProperty("_Sh_Kwshrv_FltLogSclA"), "Scale");
@@ -397,13 +329,14 @@ public class KawaFLTInspector : MaterialEditor {
 				this.ShaderProperty(this.FindProperty("_Sh_Kwshrv_RimBs"), "Bias");
 			EditorGUI.indentLevel -= 1;
 		} else if (shadingModeEnum == ShadingMode.KawashirovFLTRamp) {
+			this.ShaderProperty(this.FindProperty("_Sh_Kwshrv_ShdBlnd"), "RT Shadows blending");
 			this.TexturePropertySingleLine(
 				new GUIContent("Ramp Texture", "Ramp Texture (RGB)"), this.FindProperty("_Sh_KwshrvRmp_Tex")
 			);
 			this.ShaderProperty(this.FindProperty("_Sh_KwshrvRmp_Pwr"), "Power");
 			this.ShaderProperty(this.FindProperty("_Sh_KwshrvRmp_NdrctClr"), "Indirect Tint");
 		} else if (shadingModeEnum == ShadingMode.KawashirovFLTSingle ) {
-			this.ShaderProperty(this.FindProperty("_Sh_Kwshrv_Smth"), "Light smooth");
+			this.ShaderProperty(this.FindProperty("_Sh_Kwshrv_ShdBlnd"), "RT Shadows blending");
 			EditorGUILayout.LabelField("Sides threshold");
 			EditorGUI.indentLevel += 1;
 				this.ShaderProperty(this.FindProperty("_Sh_KwshrvSngl_TngntLo"), "Low");
@@ -414,14 +347,13 @@ public class KawaFLTInspector : MaterialEditor {
 				this.ShaderProperty(this.FindProperty("_Sh_KwshrvSngl_ShdLo"), "Back side (Shaded)");
 				this.ShaderProperty(this.FindProperty("_Sh_KwshrvSngl_ShdHi"), "Front side (Lit)");
 			EditorGUI.indentLevel -= 1;
-			this.ShaderProperty(this.FindProperty("_Sh_KwshrvSngl_ShdBlnd"), "RT Shade blending");
 		}
 		EditorGUI.indentLevel -= 1;
 	}
 
 	protected void OnGUI_DistanceFade() { 
 		MaterialProperty mode = this.FindProperty("_DstFd_Mode");
-		var modeEnum = (DistanceFadeMode) PopupProperty("Distance Fade", mode, distanceFadeModeNames, this.needUpdateMeta);
+		var modeEnum = (DistanceFadeMode) PopupProperty("Distance Fade", mode, Commons.distanceFadeModeNames, this.needUpdateMeta);
 		if (modeEnum != DistanceFadeMode.None) {
 			EditorGUI.indentLevel += 1;
 
@@ -432,7 +364,7 @@ public class KawaFLTInspector : MaterialEditor {
 				random.floatValue = (int) DistanceFadeRandom.PerPixel;
 				this.needUpdateMeta(true);
 			}
-			var randomEnum = (DistanceFadeRandom) PopupProperty("Random", random, distanceFadeRandomNames, this.needUpdateMeta);
+			var randomEnum = (DistanceFadeRandom) PopupProperty("Random", random, Commons.distanceFadeRandomNames, this.needUpdateMeta);
 			
 
 			if (randomEnum == DistanceFadeRandom.ScreenPattern) {
@@ -458,7 +390,7 @@ public class KawaFLTInspector : MaterialEditor {
 
 	protected void OnGUI_FPS() {
 		MaterialProperty mode = this.FindProperty("_FPS_Mode");
-		var modeEnum = (FPSMode) PopupProperty("FPS Indication", mode, FPSModeNames, this.needUpdateMeta);
+		var modeEnum = (FPSMode) PopupProperty("FPS Indication", mode, Commons.FPSModeNames, this.needUpdateMeta);
 		if (modeEnum != FPSMode.None) {
 			EditorGUI.indentLevel += 1;
 
@@ -471,7 +403,7 @@ public class KawaFLTInspector : MaterialEditor {
 
 	private void OnGUI_Outline() {
 		MaterialProperty outlineMode = this.FindProperty("_OutlineMode");
-		OutlineMode outlineModeEnum = (OutlineMode) PopupProperty("Outline Mode", outlineMode, outlineModeNames, this.needUpdateMeta);
+		OutlineMode outlineModeEnum = (OutlineMode) PopupProperty("Outline Mode", outlineMode, Commons.outlineModeNames, this.needUpdateMeta);
 		if (outlineModeEnum == OutlineMode.Tinted || outlineModeEnum == OutlineMode.Colored) {
 			this.ShaderProperty(this.FindProperty("_outline_color"), "Color", 2);
 			this.ShaderProperty(this.FindProperty("_outline_width"), new GUIContent("Width", "Outline width in cm"), 2);
@@ -481,7 +413,7 @@ public class KawaFLTInspector : MaterialEditor {
 
 	private void OnGUI_Disintegration() {
 		MaterialProperty disintegrationMode = this.FindProperty("_Dsntgrt_Mode");
-		var disintegrationModeEnum = (DisintegrationMode) PopupProperty("Disintegration", disintegrationMode, disintegrationModeNames, this.needUpdateMeta);
+		var disintegrationModeEnum = (DisintegrationMode) PopupProperty("Disintegration", disintegrationMode, Commons.disintegrationModeNames, this.needUpdateMeta);
 		if (disintegrationModeEnum != DisintegrationMode.None) {
 			EditorGUILayout.LabelField("I don't feel so good...");
 			EditorGUI.indentLevel += 1;
@@ -511,7 +443,7 @@ public class KawaFLTInspector : MaterialEditor {
 
 	private void OnGUI_PCW() {
 		MaterialProperty polyColorWaveMode = this.FindProperty("_PCW_Mode");
-		var polyColorWaveModeEnum = (PolyColorWaveMode) PopupProperty("Poly Color Wave", polyColorWaveMode, polyColorWaveModeNames, this.needUpdateMeta);
+		var polyColorWaveModeEnum = (PolyColorWaveMode) PopupProperty("Poly Color Wave", polyColorWaveMode, Commons.polyColorWaveModeNames, this.needUpdateMeta);
 		if (polyColorWaveModeEnum != PolyColorWaveMode.None) {
 			EditorGUI.indentLevel += 1;
 
@@ -593,8 +525,8 @@ public class KawaFLTInspector : MaterialEditor {
 	public override void OnEnable() {
 		base.OnEnable();
 
-		this.haveGeometry = CheckAllMaterialsTagContains(this.targets, "KawaFLT_Features", "Geometry");
-		this.haveTessellation = CheckAllMaterialsTagContains(this.targets, "KawaFLT_Features", "Tessellation");
+		this.haveGeometry = Commons.CheckAllMaterialsTagContains(this.targets, "KawaFLT_Features", "Geometry");
+		this.haveTessellation = Commons.CheckAllMaterialsTagContains(this.targets, "KawaFLT_Features", "Tessellation");
 
 		this.materialProperties = new Dictionary<string, MaterialProperty>();
 		var shaders = new HashSet<Shader>();
@@ -703,5 +635,6 @@ public class KawaFLTInspector : MaterialEditor {
 
 	}
 
+}
 
 }

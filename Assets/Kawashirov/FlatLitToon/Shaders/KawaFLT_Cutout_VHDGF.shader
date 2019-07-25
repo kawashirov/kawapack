@@ -27,9 +27,10 @@ Shader "Kawashirov/Flat Lit Toon/Cutout VHDGF (Tessellation+Geometry)" {
 
 		_Sh_Cbdprdx_Shadow("_Sh_Cbdprdx_Shadow", Range(0, 1)) = 0.4
 
+		[PowerSlider(2)] _Sh_Kwshrv_ShdBlnd("_Sh_Kwshrv_ShdBlnd", Range(0, 1)) = 0.2
 		_Sh_Kwshrv_Smth("_Sh_Kwshrv_Smth", Range(0, 1)) = 0.1
 		_Sh_Kwshrv_Smth_Tngnt("_Sh_Kwshrv_Smth_Tngnt", Range(0, 1)) = 0.4
-		_Sh_Kwshrv_FltFctr("_Sh_Kwshrv_FltFctr", Range(0, 1)) = 0.9
+		_Sh_KwshrvLog_Fltnss("_Sh_KwshrvLog_Fltnss", Range(0, 1)) = 0.9
 		[PowerSlider(2.0)] _Sh_Kwshrv_BndSmth("_Sh_Kwshrv_BndSmth", Range(0, 1)) = 0.1
 		/* Editor */ [HideInInspector] _Sh_Kwshrv_FltMode("_Sh_Kwshrv_FltMode", Float) = 0
 		[PowerSlider(10)] _Sh_Kwshrv_FltLinScl("_Sh_Kwshrv_FltLinScl", Range(0, 20)) = 5
@@ -48,7 +49,6 @@ Shader "Kawashirov/Flat Lit Toon/Cutout VHDGF (Tessellation+Geometry)" {
 		[PowerSlider(1.5)] _Sh_KwshrvSngl_TngntHi("_Sh_KwshrvSngl_TngntHi", Range(0, 1)) = 0.8
 		_Sh_KwshrvSngl_ShdLo("_Sh_KwshrvSngl_ShdLo", Range(0, 1)) = 0.4 
 		_Sh_KwshrvSngl_ShdHi("_Sh_KwshrvSngl_ShdHi", Range(0, 1)) = 0.9
-		[PowerSlider(2)] _Sh_KwshrvSngl_ShdBlnd("_Sh_KwshrvSngl_ShdBlnd", Range(0, 1)) = 0.2
 
 		/* Editor */ [HideInInspector] _OutlineMode("__outline_mode", Float) = 0.0
 		_outline_width("outline_width", Range(0, 1)) = 0.2

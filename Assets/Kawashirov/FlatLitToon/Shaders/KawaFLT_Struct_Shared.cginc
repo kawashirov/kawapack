@@ -118,12 +118,14 @@ uniform float4 _Color;
 	#elif defined(SHADE_KAWAFLT_LOG)
 		#define SHADE_KAWAFLT 1
 
+		uniform float _Sh_Kwshrv_ShdBlnd;
+
 		uniform float _Sh_Kwshrv_RimScl;
 		uniform float4 _Sh_Kwshrv_RimClr;
 		uniform float _Sh_Kwshrv_RimPwr;
 		uniform float _Sh_Kwshrv_RimBs;
 
-		uniform float _Sh_Kwshrv_FltFctr;
+		uniform float _Sh_KwshrvLog_Fltnss;
 		uniform float _Sh_Kwshrv_BndSmth;
 		uniform float _Sh_Kwshrv_FltLogSclA;
 
@@ -133,6 +135,8 @@ uniform float4 _Color;
 	#elif defined(SHADE_KAWAFLT_RAMP)
 		#define SHADE_KAWAFLT 1
 
+		uniform float _Sh_Kwshrv_ShdBlnd;
+
 		UNITY_DECLARE_TEX2D(_Sh_KwshrvRmp_Tex);
 		uniform float _Sh_KwshrvRmp_Pwr;
 		uniform float4 _Sh_KwshrvRmp_NdrctClr;
@@ -140,12 +144,13 @@ uniform float4 _Color;
 	#elif defined(SHADE_KAWAFLT_SINGLE)
 		#define SHADE_KAWAFLT 1
 
+		uniform float _Sh_Kwshrv_ShdBlnd;
+
 		uniform float _Sh_Kwshrv_Smth;
 		uniform float _Sh_KwshrvSngl_TngntLo;
 		uniform float _Sh_KwshrvSngl_TngntHi;
 		uniform float _Sh_KwshrvSngl_ShdLo;
 		uniform float _Sh_KwshrvSngl_ShdHi;
-		uniform float _Sh_KwshrvSngl_ShdBlnd;
 
 		inline float shade_kawaflt_single(float tangency, float shadow_atten) {
 			half2 t;
@@ -154,11 +159,9 @@ uniform float4 _Color;
 			t = 2.0 * t - 1.0;
 			half ref_light = saturate( (tangency - t.x) / (t.y - t.x) );
 			ref_light = ref_light * ref_light * (3.0 - 2.0 * ref_light); // Cubic Hermite H01 interoplation
-			half flat_sh_blended = lerp(1.0, shadow_atten, _Sh_KwshrvSngl_ShdBlnd);
-			half flat_sh_separated = lerp(shadow_atten, 1.0, _Sh_KwshrvSngl_ShdBlnd);
-			half flat = lerp(_Sh_KwshrvSngl_ShdLo, _Sh_KwshrvSngl_ShdHi, ref_light * flat_sh_blended) * flat_sh_separated;
-			half diffuse = max(0, tangency) * shadow_atten;
-			return saturate(lerp(diffuse, flat, _Sh_Kwshrv_Smth));
+			half sh_blended = lerp(1.0, shadow_atten, _Sh_Kwshrv_ShdBlnd);
+			half sh_separated = lerp(shadow_atten, 1.0, _Sh_Kwshrv_ShdBlnd);
+			return lerp(_Sh_KwshrvSngl_ShdLo, _Sh_KwshrvSngl_ShdHi, ref_light * sh_blended) * sh_separated;
 		}
 
 	#else
@@ -319,13 +322,13 @@ inline float3 KawaWorldSpaceViewDir(float3 worldPos) {
 }
 
 // https://www.laurivan.com/rgb-to-hsv-to-rgb-for-shaders/
-half3 hsv2rgb(half3 hsv) {
+inline half3 hsv2rgb(half3 hsv) {
 	half4 K = half4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
 	half3 p = abs(frac(hsv.xxx + K.xyz) * 6.0h - K.www);
 	return hsv.z * lerp(K.xxx, clamp(p - K.xxx, 0.0, 1.0), hsv.y);
 }
 
-half4x4 kawa_rotation(half3 angles) {
+inline half4x4 kawa_rotation(half3 angles) {
 	half3 sins; half3 coss;
 	sincos(angles, sins, coss);
 	half4x4 rz = {
@@ -349,7 +352,7 @@ half4x4 kawa_rotation(half3 angles) {
 	return mul(mul(ry, rx), rz);
 }
 
-half4x4 kawa_rotation_inv(half3 angles) {
+inline half4x4 kawa_rotation_inv(half3 angles) {
 	half3 sins; half3 coss;
 	sincos(angles, sins, coss);
 	half4x4 rz = {
