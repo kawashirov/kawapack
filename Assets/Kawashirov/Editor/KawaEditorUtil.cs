@@ -7,12 +7,12 @@ using System;
 
 
 public class KawaEditorUtil {
-	public static void ShaderEditorFooter() {
-		GUIStyle style = new GUIStyle ();
-		style.richText = true;
-		
+	public static void ShaderEditorFooter()
+	{
+		var style = new GUIStyle { richText = true };
+
 		EditorGUILayout.Space();
-		EditorGUILayout.LabelField("This shit made by <b>kawashirov ACT2</b>; My Contacts:", style);
+		EditorGUILayout.LabelField("This thing made by <b>kawashirov ACT2</b>; My Contacts:", style);
 		EditorGUILayout.BeginHorizontal();
 			EditorGUILayout.LabelField("Discord server:");
 			if (GUILayout.Button("pEugvST")) {
@@ -20,8 +20,10 @@ public class KawaEditorUtil {
 			}
 		EditorGUILayout.EndHorizontal();
 		EditorGUILayout.LabelField("Discord tag: kawashirov#8363");
+		/*
 		if (GUILayout.Button("Pls gimme money")) {
 			Application.OpenURL("https://www.patreon.com/kawashirov");
 		}
+		*/
 	}
 }

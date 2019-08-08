@@ -7,7 +7,7 @@
 /* Disintegration features */
 // (IN[i].vertex, rnd) -> (IN[i].vertex, OUT[i].dsntgrtVertexRotated, rnd, dropFace)
 inline void dsntgrt_hullconst(inout float edge[3], HULL_IN v0, HULL_IN v1, HULL_IN v2) {
-	#if defined(DSNTGRT_ON) && defined(DSNTGRT_FACE)
+	#if defined(DSNTGRT_ON)
 		// Делаем тест на плоскость _Dsntgrt_Plane
 		// тесселлируем если хотя бы один вертекс в пределах спецэффекта  
 		bool test0 = UnityDistanceFromPlane(v0.vertex.xyz, _Dsntgrt_Plane) > -0.01;

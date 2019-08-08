@@ -14,10 +14,15 @@
 
 inline half3 frag_forward_get_emission_color(inout FRAGMENT_IN i, half3 baseColor, float2 texST) {
 	half3 em = half3(0,0,0);
-	#if defined(AVAILABLE_EMISSIONMAP)
+	#if defined(EMISSION_ALBEDO_NOMASK)
+		em = baseColor;
+	#elif defined(EMISSION_ALBEDO_MASK)
+		em = baseColor * UNITY_SAMPLE_TEX2D(_EmissionMap, texST).r;
+	#elif defined(EMISSION_CUSTOM)
 		em = UNITY_SAMPLE_TEX2D(_EmissionMap, texST).rgb;
-		em = em * em * _EmissionColor.rgb;
 	#endif
+	em = em * _EmissionColor.rgb * _EmissionColor.a;
+	em = em * em; // TODO FIXME Gamma fix?
 	em = fps_mix(half4(em, 0)).rgb;
 	em = pcw_mix(em, i, true); // Mix-in Poly Color Wave
 	return em;
@@ -124,9 +129,9 @@ half4 frag_forwardbase(FRAGMENT_IN i) : COLOR {
 
 	float2 texST = frag_applyst(i.uv0);
 
-	uint rnd4_sc = frag_rnd_screencoords(i);
+	uint rnd4_sc = frag_rnd_init(i);
+	
 	dstfd_frag_clip(i, rnd4_sc);
-	dsntgrt_frag_clip(i, rnd4_sc);
 
 	half3 normal3 = frag_forward_get_normal(i, texST);
 	half4 albedo = frag_forward_get_albedo(i, texST);
@@ -150,6 +155,7 @@ half4 frag_forwardbase(FRAGMENT_IN i) : COLOR {
 	#endif
 	
 	UNITY_APPLY_FOG(i.fogCoord, finalColor);
+		
 	return finalColor;
 }
 

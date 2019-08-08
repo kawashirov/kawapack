@@ -4,48 +4,32 @@
 #include "UnityLightingCommon.cginc"
 #include "UnityStandardUtils.cginc"
 
-// All users of this func should define NEED_SCREENPOS
 inline float2 frag_pixelcoords(FRAGMENT_IN i) {
 	float2 pxc = float2(0, 0);
-	#if defined(NEED_SCREENPOS)
+	#if defined(RANDOM_MIX_COORD)
 		pxc =  i.screenPos.xy / i.screenPos.w * _ScreenParams.xy;
 	#endif
+	//float4 sp = ComputeScreenPos(UnityPixelSnap(i.pos));
+	//pxc = sp.xy * _ScreenParams.xy / sp.w;
 	return pxc;
 }
 
 
 /* Disintegration features */
 
-inline void dsntgrt_frag_clip(inout FRAGMENT_IN i, inout uint rnd) {
-	// #if defined(DSNTGRT_PIXEL)
-	// 	half float01 = rnd_next_float_01(rnd);
-	// 	half clip_val = lerp(
-	// 		_Dsntgrt_FragDecayNear, _Dsntgrt_FragDecayFar, pow(float01, _Dsntgrt_FragPowerAdjust)
-	// 	) + i.dsntgrtVertexRotated.x + _Dsntgrt_Plane.w;
-	// 	clip(clip_val);
-	// #endif
-}
-
 inline half4 dsntgrt_mix(half4 color, FRAGMENT_IN i) {
-	#if defined(DSNTGRT_FACE)
+	#if defined(DSNTGRT_ON)
 		color = lerp(color, _Dsntgrt_Tint, i.dsntgrtFactor);
 	#endif
 	return color;
 }
 
-
 /* Distance Fade features */
 
-inline void dstfd_frag_clip(inout FRAGMENT_IN i, uint rnd) {
+inline void dstfd_frag_clip(inout FRAGMENT_IN i, inout uint rnd) {
 	#if defined(DSTFD_ON)
-		half rnd_01; // Равномерный рандом от 0 до 1
-		#if defined(DSTFD_RANDOM_PIXEL)
-			rnd = rnd_fork(rnd, asuint(_Time.y));
-			rnd_01 = rnd_next_float_01(rnd);
-		#elif defined(DSTFD_RANDOM_PATTERN)
-			float2 pattren_uv = fmod(frag_pixelcoords(i), _DstFd_Pattern_TexelSize.zw) * _DstFd_Pattern_TexelSize.xy;
-			rnd_01 = UNITY_SAMPLE_TEX2D(_DstFd_Pattern, pattren_uv).r;
-		#endif
+		// Равномерный рандом от 0 до 1
+		half rnd_01 = rnd_next_float_01(rnd); 
 
 		half clip_v;
 		#if defined(DSTFD_RANGE)
@@ -90,38 +74,45 @@ inline half3 pcw_mix(half3 color, FRAGMENT_IN i, bool is_emission) {
 
 
 inline float2 frag_applyst(float2 uv) {
-	#if defined(AVAILABLE_ST)
-		uv = TRANSFORM_TEX(uv, _MainTex /* _ST */);
-	#endif
+	//#if defined(AVAILABLE_ST)
+		//uv = TRANSFORM_TEX(uv, _MainTex /* _ST */);
+	//#endif
 	return uv;
 }
 
 inline void frag_alphatest(FRAGMENT_IN i, inout uint rnd, in half alpha) {
 	#if defined(CUTOFF_CLASSIC)
 		clip(alpha - _Cutoff);
-	#elif defined(CUTOFF_RANDOM) || defined(CUTOFF_PATTERN)
-		float spread;
-		#if defined(CUTOFF_RANDOM)
-			spread = rnd_next_float_01(rnd);
-		#elif defined(CUTOFF_PATTERN)
-			float2 pattren_uv = fmod(frag_pixelcoords(i), _CutoffPattern_TexelSize.zw) * _CutoffPattern_TexelSize.xy;
-			spread = UNITY_SAMPLE_TEX2D(_CutoffPattern, pattren_uv).r;
-		#endif
+	#elif defined(CUTOFF_RANDOM)
+		float spread = rnd_next_float_01(rnd);
 		clip(alpha - lerp(_CutoffMin, _CutoffMax, spread));
 	#endif
 }
 
-// All users og this func should define NEED_SCREENPOS and NEED_SCREENPOS_RANDOM
-inline uint frag_rnd_screencoords(FRAGMENT_IN i) {
-	#if defined(NEED_SCREENPOS_RANDOM)
-		return rnd_from_float2(floor(frag_pixelcoords(i)));
-	#else
-		return rnd_from_uint(0);
+inline uint frag_rnd_init(FRAGMENT_IN i) {
+	uint rnd1 = 0;
+	#if defined(RANDOM_SEED_TEX)
+		uint2 size;
+		_Rnd_Seed.GetDimensions(size.x, size.y);
+		float2 sc_f = frag_pixelcoords(i);
+		uint2 sc = (uint2)floor(sc_f);
+		uint2 sc_m = sc % size;
+		uint4 rnd4 = _Rnd_Seed.Load(uint3(sc_m.x, sc_m.y, 0));
+		// Реально используется только R,
+		// но почему-то шейдер компилируется как-то не так, если не использовать значения GBA.
+		rnd1 = (rnd4.r + rnd4.g + rnd4.b) * rnd4.a;
 	#endif
-}
-
-inline uint frag_rnd_time(FRAGMENT_IN i) {
-	return rnd_from_float(_Time.y);
+	#if defined(RANDOM_MIX_COORD)
+		rnd1 *= sc.x;
+		rnd_next(rnd1);
+		rnd1 *= sc.y;
+		rnd_next(rnd1);
+	#endif
+	#if defined(RANDOM_MIX_TIME)
+		rnd1 *= asuint(_Time.y);
+		rnd_next(rnd1);
+	#endif
+	return rnd1;
 }
 
 inline void frag_cull(FRAGMENT_IN i) {
@@ -148,9 +139,9 @@ inline half4 frag_forward_get_albedo(FRAGMENT_IN i, float2 texST) {
 	color.rgb = pcw_mix(color.rgb, i, false); // Mix-in Poly Color Wave
 	color = dsntgrt_mix(color, i);
 
-	#if defined(TINTED_OUTLINE) || defined(COLORED_OUTLINE)
+	#if defined(KAWAFLT_PASS_FORWARD) && defined(OUTLINE_ON)
 		UNITY_FLATTEN if(i.is_outline) {
-			#if defined(COLORED_OUTLINE)
+			#if defined(OUTLINE_COLORED)
 				color.rgb = _outline_color.rgb;
 			#else
 				color.rgb *= _outline_color.rgb;

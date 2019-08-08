@@ -6,6 +6,7 @@ using System.Linq;
 using System;
 using System.Text;
 
+
 namespace Kawashirov.FLT {
 
 	public enum TessDomain { Triangles, Quads }
@@ -13,78 +14,122 @@ namespace Kawashirov.FLT {
 
 	public enum ShaderComplexity { VF, VGF, VHDGF }
 	public enum BlendTemplate { Opaque, Cutout, Fade, Custom = 256 }
-	// public enum BlendKeywords { None, AlphaTest, AlphaBlend, AlphaPreMultiply }
-	public enum MainTexKeywords { Off, NoMask, ColorMask }
+	public enum MainTexKeywords { NoMainTex, NoMask, ColorMask }
 	public enum CutoutMode { Classic, RangeRandom, RangePattern }
-	public enum EmissionMode { Off, AlbedoNoMask, AlbedoMask, Custom }
+	public enum EmissionMode { AlbedoNoMask, AlbedoMask, Custom }
 
 	public enum ShadingMode { CubedParadoxFLT, KawashirovFLTSingle, KawashirovFLTRamp }
 
-	public enum DistanceFadeMode { None, Range, Infinity }
+	public enum DistanceFadeMode { Range, Infinity }
 	public enum DistanceFadeRandom { PerPixel, ScreenPattern }
 
-	public enum FPSMode { None, Color, Texture, Mesh }
+	public enum FPSMode { ColorTint, DigitsTexture, DigitsMesh }
 
-	public enum OutlineMode { None, Tinted, Colored }
+	public enum OutlineMode { Tinted, Colored }
 
 	public enum DisintegrationMode { None, Pixel, Face, PixelAndFace }
 
-	public enum PolyColorWaveMode { None, Enabled }
-
+	public enum PolyColorWaveMode { Classic, KawaColorfulWaves }
 
 	static class Commons {
-		public static string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
-		public static string[] cullModeNames = Enum.GetNames(typeof(CullMode));
+		
+		public static readonly string Unity_Feature_DisableBatching = "DisableBatching";
+		public static readonly string Unity_Feature_ForceNoShadowCasting = "ForceNoShadowCasting";
+		public static readonly string Unity_Feature_IgnoreProjector = "IgnoreProjector";
+		public static readonly string Unity_RenderType = "RenderType";
 
-		public static string[] TessDomainNames = Enum.GetNames(typeof(TessDomain));
-		public static string[] TessPartioningNames = Enum.GetNames(typeof(TessPartioning));
+		public static readonly string KawaFLT_RenderType = "KawaFLT_RenderType";
+		public static readonly string KawaFLT_Feature_Instancing = "KawaFLT_Feature_Instancing";
 
-		public static string[] blendTemplateNames = Enum.GetNames(typeof(BlendTemplate));
+		public static readonly string KawaFLT_Feature_Geometry = "KawaFLT_Feature_Geometry";
+		public static readonly string KawaFLT_Feature_Tessellation = "KawaFLT_Feature_Tessellation";
 
-		public static Dictionary<ShaderComplexity, string> shaderComplexityNames = new Dictionary<ShaderComplexity, string> {
-			{ ShaderComplexity.VF, "VF: Lightweight (Vertex/Fragment)" },
-			{ ShaderComplexity.VGF, "VGF: Geometry (Vertex/Geometry/Fragment)" },
-			{ ShaderComplexity.VHDGF, "VHDGF: Tessellation (Vertex/Hull/Domain/Geometry/Fragment)" },
+		public static readonly string KawaFLT_Feature_Random = "KawaFLT_Feature_Random";
+
+		public static readonly string KawaFLT_Feature_MainTex = "KawaFLT_Feature_MainTex";
+		public static readonly string KawaFLT_Feature_Cutout = "KawaFLT_Feature_Cutout";
+		public static readonly string KawaFLT_Feature_Emission = "KawaFLT_Feature_Emission";
+		public static readonly string KawaFLT_Feature_EmissionMode = "KawaFLT_Feature_EmissionMode";
+		public static readonly string KawaFLT_Feature_NormalMap = "KawaFLT_Feature_NormalMap";
+
+		public static readonly string KawaFLT_Feature_Shading = "KawaFLT_Feature_Shading";
+
+		public static readonly string KawaFLT_Feature_DistanceFade = "KawaFLT_Feature_DistanceFade";
+		public static readonly string KawaFLT_Feature_DistanceFadeMode = "KawaFLT_Feature_DistanceFadeMode";
+		public static readonly string KawaFLT_Feature_DistanceFadeRandom = "KawaFLT_Feature_DistanceFadeRandom";
+
+		public static readonly string KawaFLT_Feature_FPS = "KawaFLT_Feature_FPS";
+		public static readonly string KawaFLT_Feature_FPSMode = "KawaFLT_Feature_FPSMode";
+
+		public static readonly string KawaFLT_Feature_Outline = "KawaFLT_Feature_Outline";
+		public static readonly string KawaFLT_Feature_OutlineMode = "KawaFLT_Feature_OutlineMode";
+
+		public static readonly string KawaFLT_Feature_InfinityWarDecimation = "KawaFLT_Feature_InfinityWarDecimation";
+
+		public static readonly string KawaFLT_Feature_PCW = "KawaFLT_Feature_PCW";
+		public static readonly string KawaFLT_Feature_PCWMode = "KawaFLT_Feature_PCWMode";
+
+
+		public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
+		public static readonly string[] cullModeNames = Enum.GetNames(typeof(CullMode));
+
+		public static readonly string[] TessDomainNames = Enum.GetNames(typeof(TessDomain));
+		public static readonly string[] TessPartioningNames = Enum.GetNames(typeof(TessPartioning));
+
+		public static readonly string[] blendTemplateNames = Enum.GetNames(typeof(BlendTemplate));
+
+		public static readonly Dictionary<ShaderComplexity, string> shaderComplexityNames = new Dictionary<ShaderComplexity, string> {
+			{ ShaderComplexity.VF, "VF Lightweight (Vertex/Fragment)" },
+			{ ShaderComplexity.VGF, "VGF Geometry (Vertex/Geometry/Fragment)" },
+			{ ShaderComplexity.VHDGF, "VHDGF Tessellation+Geometry (Vertex/Hull/Domain/Geometry/Fragment)" },
 		};
 
-		public static Dictionary<MainTexKeywords, string> mainTexKeywordsNames = new Dictionary<MainTexKeywords, string> {
-			{ MainTexKeywords.Off, "No Main Texture (Albedo Color Only)" },
+		public static readonly Dictionary<MainTexKeywords, string> mainTexKeywordsNames = new Dictionary<MainTexKeywords, string> {
+			{ MainTexKeywords.NoMainTex, "No Main Texture (Albedo Color Only)" },
 			{ MainTexKeywords.NoMask, "Main Texture without Color Mask" },
 			{ MainTexKeywords.ColorMask, "Main Texture with Color Mask" },
 		};
 
-		public static Dictionary<EmissionMode, string> emissionMode = new Dictionary<EmissionMode, string> {
-			{ EmissionMode.Off, "No Emission (at all)" },
+		public static readonly Dictionary<EmissionMode, string> emissionMode = new Dictionary<EmissionMode, string> {
 			{ EmissionMode.AlbedoNoMask, "Emission from Main Texture without Mask" },
 			{ EmissionMode.AlbedoMask, "Emission from Main Texture with Mask" },
 			{ EmissionMode.Custom, "Custom Emission Texture" },
 		};
 
-		public static string[] cutoutModeNames = Enum.GetNames(typeof(CutoutMode));
+		public static readonly string[] cutoutModeNames = Enum.GetNames(typeof(CutoutMode));
 
-		public static Dictionary<ShadingMode, string> shadingModeNames = new Dictionary<ShadingMode, string>() {
-			{ ShadingMode.CubedParadoxFLT, "CubedParadox FLT (I dislike this)" },
-			{ ShadingMode.KawashirovFLTSingle, "Kawashirov FLT Single-Step Diffuse-based (Like CubedParadox, but better, also fast as fuck)" },
-			{ ShadingMode.KawashirovFLTRamp, "Kawashirov FLT Ramp-based (In dev, but you can use it)" },
+		public static readonly Dictionary<ShadingMode, string> shadingModeDesc = new Dictionary<ShadingMode, string>() {
+			{ ShadingMode.CubedParadoxFLT, "CubedParadox Flat Lit Toon. Legacy. Not recommended. And I dislike this." },
+			{ ShadingMode.KawashirovFLTSingle, "Kawashirov Flat Lit Toon, Single-Step, Diffuse-based, Simple. Like CubedParadox, but better: supports more standard unity lighting features and also fast as fuck compare to other cbd-flt-like shaders." },
+			{ ShadingMode.KawashirovFLTRamp, "Kawashirov Flat Lit Toon, Ramp-based, In dev yet, need extra tests in various conditions, but you can use it, It should work well." },
 		};
 
-		public static string[] distanceFadeModeNames = Enum.GetNames(typeof(DistanceFadeMode));
-		public static string[] distanceFadeRandomNames = Enum.GetNames(typeof(DistanceFadeRandom));
+		public static readonly string[] distanceFadeModeNames = Enum.GetNames(typeof(DistanceFadeMode));
+		public static readonly string[] distanceFadeRandomNames = Enum.GetNames(typeof(DistanceFadeRandom));
 
-		public static string[] FPSModeNames = Enum.GetNames(typeof(FPSMode));
+		public static readonly string[] FPSModeNames = Enum.GetNames(typeof(FPSMode));
 
-		public static string[] outlineModeNames = Enum.GetNames(typeof(OutlineMode));
+		public static readonly string[] outlineModeNames = Enum.GetNames(typeof(OutlineMode));
 
-		public static string[] disintegrationModeNames = Enum.GetNames(typeof(DisintegrationMode));
+		public static readonly string[] disintegrationModeNames = Enum.GetNames(typeof(DisintegrationMode));
 
-		public static string[] polyColorWaveModeNames = Enum.GetNames(typeof(PolyColorWaveMode));
+		public static readonly string[] polyColorWaveModeNames = Enum.GetNames(typeof(PolyColorWaveMode));
+
 
 		static Commons()
 		{
 		
 		}
 
-		public static bool MaterialCheckTag(object material, string tag, string value)
+		public static bool MaterialTagIsSet(object material, string tag)
+		{
+			var m = material as Material;
+			var tag_v = m ? m.GetTag(tag, false, "") : null;
+			// Debug.Log(String.Format("{0}: {1}={2}", material, tag, tag_v));
+			return m && !string.IsNullOrEmpty(tag_v);
+		}
+
+		public static bool MaterialTagCheck(object material, string tag, string value)
 		{
 			var m = material as Material;
 			var tag_v = m ? m.GetTag(tag, false, "") : null;
@@ -92,7 +137,7 @@ namespace Kawashirov.FLT {
 			return m && string.Equals(value, tag_v, StringComparison.InvariantCultureIgnoreCase);
 		}
 
-		public static bool CheckMaterialTagContains(object material, string tag, string value)
+		public static bool MaterialTagContainsCheck(object material, string tag, string value)
 		{
 			var m = material as Material;
 			if (!m)
@@ -103,10 +148,44 @@ namespace Kawashirov.FLT {
 
 		public static bool CheckAllMaterialsTagContains(object[] materials, string tag, string value)
 		{
+			// LEGACY
 			foreach (var material in materials)
-				if (!CheckMaterialTagContains(material, tag, value))
+				if (!MaterialTagContainsCheck(material, tag, value))
 					return false;
 			return true;
+		}
+
+		public static bool MaterialTagBoolCheck(object material, string tag) => MaterialTagCheck(material, tag, "True");
+
+		public static bool MaterialTagEnumCheck<E>(object material, string tag, E value) => MaterialTagCheck(material, tag, Enum.GetName(typeof(E), value));
+
+		public static E MaterialTagEnumGet<E>(object material, string tag) where E : struct
+		{
+			var m = material as Material;
+			if (!m)
+				throw new ArgumentException(string.Format("No vaild material provided: {0}", material));
+			var tag_v = m.GetTag(tag, false, "");
+			if (string.IsNullOrEmpty(tag_v))
+				throw new ArgumentException(string.Format("No vaild tag set in material: {0}.{1} = {2}", material, tag, tag_v));
+			return (E) Enum.Parse(typeof(E), tag_v, true);
+		}
+
+		public static E MaterialTagEnumGet<E>(object material, string tag, E defualt) where E : struct
+		{
+			try {
+				return MaterialTagEnumGet<E>(material, tag);
+			} catch (Exception exc) {
+				return defualt;
+			}
+		}
+
+		public static E? MaterialTagEnumGetSafe<E>(object material, string tag, E? defualt = null) where E : struct
+		{
+			try {
+				return MaterialTagEnumGet<E>(material, tag);
+			} catch (Exception exc) {
+				return defualt;
+			}
 		}
 
 		public static void BakeTags(this StringBuilder sb, IDictionary<string, string> tags)
@@ -145,9 +224,7 @@ namespace Kawashirov.FLT {
 			return value;
 		}
 
-
 	}
-
 
 	public abstract class Property {
 		public string name = null;
@@ -278,6 +355,7 @@ namespace Kawashirov.FLT {
 			this.forward_add.defines.Add(define);
 			this.shadowcaster.defines.Add(define);
 		}
+
 		public void Include(string include)
 		{
 			this.forward.includes.Add(include);
@@ -287,10 +365,22 @@ namespace Kawashirov.FLT {
 
 		public void Debug(bool debug)
 		{
+			this.TagBool("KawaFLT_Feature_Debug", debug);
 			this.forward.enable_d3d11_debug_symbols = debug;
 			this.forward_add.enable_d3d11_debug_symbols = debug;
 			this.shadowcaster.enable_d3d11_debug_symbols = debug;
 		}
+
+		public void TagBool(string tag, bool value)
+		{
+			this.tags[tag] = value ? "True" : "False";
+		}
+
+		public void TagEnum<E>(string tag, E value)
+		{
+			this.tags[tag] = Enum.GetName(typeof(E), value);
+		}
+
 		public void Bake(ref StringBuilder sb){
 			sb.Append("Shader \"Kawashirov/Flat Lit Toon/");
 			sb.Append(this.name);
@@ -472,6 +562,5 @@ namespace Kawashirov.FLT {
 			return sb.ToString();
 		}
 	}
-
 
 }

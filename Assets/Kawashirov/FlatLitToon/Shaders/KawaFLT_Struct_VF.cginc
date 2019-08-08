@@ -10,10 +10,6 @@
 
 #define PIPELINE_VF 1
 
-#if defined(NEED_SCREENPOS_RANDOM)
-	#define NEED_SCREENPOS 1
-#endif
-
 struct v2f {
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 	UNITY_VERTEX_OUTPUT_STEREO
@@ -24,8 +20,7 @@ struct v2f {
 	
 	float4 posWorld : KAWASMNT_POS_WORLD;
 
-	#if defined(NEED_SCREENPOS)
-		// float2 screenCoords : KAWASMNT_SCREENCOORDS;
+	#if defined(RANDOM_MIX_COORD)
 		float4 screenPos : KAWASMNT_SCREENPOS;
 	#endif
 
@@ -55,10 +50,7 @@ struct v2f {
 	#endif
 
 	#if defined(DSTFD_ON)
-		 float3 dstfdDistance : DSTFD_DISTANCE;
-		 #if defined(DSTFD_RANDOM_VERTEX)
-			// float3 dstfdRandom : DSTFD_RANDOM; 
-		#endif
+		float3 dstfdDistance : DSTFD_DISTANCE;
 	#endif
 };
 

@@ -157,7 +157,7 @@ DOMAIN_OUT domain (TessellationFactors tessFactors, const OutputPatch<DOMAIN_IN,
 }
 
 
-#if defined(NO_OUTLINE)
+#if defined(OUTLINE_OFF)
 	[maxvertexcount(3)]
 #else
 	[maxvertexcount(6)]
@@ -221,7 +221,7 @@ void geom(triangle GEOMETRY_IN IN[3], inout TriangleStream<GEOMETRY_OUT> tristre
 			float3 wsvd = KawaWorldSpaceViewDir(OUT[i2].posWorld.xyz);
 			kawaflt_fragment_in(OUT[i2], vertexlight_on, wsvd);
 			UNITY_TRANSFER_FOG(OUT[i2], OUT[i2].pos);
-			#if defined(TINTED_OUTLINE) || defined(COLORED_OUTLINE)
+			#if defined(OUTLINE_ON)
 				OUT[i2].is_outline = false;
 			#endif
 		#endif
@@ -241,7 +241,7 @@ void geom(triangle GEOMETRY_IN IN[3], inout TriangleStream<GEOMETRY_OUT> tristre
 
 	tristream.RestartStrip();
 	
-	#if defined(KAWAFLT_PASS_FORWARD) && (defined(TINTED_OUTLINE) || defined(COLORED_OUTLINE))
+	#if defined(KAWAFLT_PASS_FORWARD) && defined(OUTLINE_ON)
 		// Loop in reversed order
 		UNITY_UNROLL for (int i4 = 2; i4 >= 0; i4--) {
 			// Copy and rewrite for outline

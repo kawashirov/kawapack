@@ -58,27 +58,25 @@ inline void dsntgrt_geometry(inout GEOMETRY_IN IN[3], inout GEOMETRY_OUT OUT[3],
 		float3 plane_normal = normalize(_Dsntgrt_Plane.xyz);
 		float plane_distance = dot(float4(pos_mid, 1.0), _Dsntgrt_Plane);
 
-		#if defined(DSNTGRT_FACE)
-			if (plane_distance > 0.0h) {
-				float dst_far = _Dsntgrt_TriDecayFar;
-				float dst_near = 0; //min(_Dsntgrt_TriDecayNear, _Dsntgrt_TriDecayFar);
+		if (plane_distance > 0.0h) {
+			float dst_far = _Dsntgrt_TriDecayFar;
+			float dst_near = 0; //min(_Dsntgrt_TriDecayNear, _Dsntgrt_TriDecayFar);
 
-				float dst_factor = saturate((plane_distance - dst_near) / (dst_far - dst_near));
-				float3 noise_normal = rnd_next_float3_01(rnd) - 0.5;
+			float dst_factor = saturate((plane_distance - dst_near) / (dst_far - dst_near));
+			float3 noise_normal = rnd_next_float3_01(rnd) - 0.5;
 
-				float offset_ammount = plane_distance * plane_distance * _Dsntgrt_TriSpreadAccel; //abs(pow(plane_distance * 5.0h, 3.0h));
-				float3 pos_mid_new = pos_mid.xyz + normalize(plane_normal + noise_normal * _Dsntgrt_TriSpreadFactor) * offset_ammount;
+			float offset_ammount = plane_distance * plane_distance * _Dsntgrt_TriSpreadAccel; //abs(pow(plane_distance * 5.0h, 3.0h));
+			float3 pos_mid_new = pos_mid.xyz + normalize(plane_normal + noise_normal * _Dsntgrt_TriSpreadFactor) * offset_ammount;
 
-				UNITY_UNROLL for (int j2 = 2; j2 >= 0; j2--) {
-					OUT[j2].dsntgrtFactor = saturate(dst_factor * 2.0);
-					IN[j2].vertex.xyz = pos_mid_new + (IN[j2].vertex.xyz - pos_mid) * (1.0 - dst_factor);
-				}
-			} else {
-				UNITY_UNROLL for (int j3 = 2; j3 >= 0; j3--) {
-					OUT[j3].dsntgrtFactor = 0;
-				}
+			UNITY_UNROLL for (int j2 = 2; j2 >= 0; j2--) {
+				OUT[j2].dsntgrtFactor = saturate(dst_factor * 2.0);
+				IN[j2].vertex.xyz = pos_mid_new + (IN[j2].vertex.xyz - pos_mid) * (1.0 - dst_factor);
 			}
-		#endif
+		} else {
+			UNITY_UNROLL for (int j3 = 2; j3 >= 0; j3--) {
+				OUT[j3].dsntgrtFactor = 0;
+			}
+		}
 	#endif
 }
 

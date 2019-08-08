@@ -62,9 +62,8 @@ half4 frag_forwardadd(FRAGMENT_IN i) : COLOR {
 
 	float2 texST = frag_applyst(i.uv0);
 	
-	uint rnd4_sc = frag_rnd_screencoords(i);
+	uint rnd4_sc = frag_rnd_init(i);
 	dstfd_frag_clip(i, rnd4_sc);
-	dsntgrt_frag_clip(i, rnd4_sc);
 	
 	half3 normal3 = frag_forward_get_normal(i, texST);
 	half4 albedo = frag_forward_get_albedo(i, texST);

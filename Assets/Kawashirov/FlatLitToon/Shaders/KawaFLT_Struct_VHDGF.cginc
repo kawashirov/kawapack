@@ -36,10 +36,6 @@ struct v2g {
 		#endif
 	#endif
 
-	#if defined(DSTFD_ON) && defined(DSTFD_RANDOM_VERTEX)
-		// float3 dstfdRandom : DSTFD_RANDOM; 
-	#endif
-
 	#if defined(NEED_CULL)
 		nointerpolation bool cull : KAWASMNT_CULL;
 	#endif
@@ -56,7 +52,7 @@ struct g2f {
 	
 	float4 posWorld : KAWASMNT_POS_WORLD;
 
-	#if defined(NEED_SCREENPOS)
+	#if defined(RANDOM_MIX_COORD)
 		float4 screenPos : KAWASMNT_SCREENPOS;
 		// float2 screenCoords : KAWASMNT_SCREENCOORDS;
 	#endif
@@ -78,7 +74,7 @@ struct g2f {
 				half3 ambient : KAWASMNT_AMBIENT;
 			#endif
 		#endif
-		#if defined(TINTED_OUTLINE) || defined(COLORED_OUTLINE)
+		#if defined(OUTLINE_ON)
 			bool is_outline : KAWASMNT_OUTLINE;
 		#endif
 		SHADOW_COORDS(3)
@@ -92,12 +88,9 @@ struct g2f {
 
 	#if defined(DSTFD_ON)
 		 float3 dstfdDistance : DSTFD_DISTANCE;
-		 #if defined(DSTFD_RANDOM_VERTEX)
-			// float3 dstfdRandom : DSTFD_RANDOM; 
-		#endif
 	#endif
 	
-	#if defined(DSNTGRT_FACE)
+	#if defined(DSNTGRT_ON)
 		half dsntgrtFactor : DSNTGRT_FACTOR;
 	#endif
 	

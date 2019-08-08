@@ -10,15 +10,15 @@
 half4 frag_shadowcaster(FRAGMENT_IN i) : SV_Target {
 	UNITY_SETUP_INSTANCE_ID(i);
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-
+ 
 	frag_cull(i);
 	fps_frag(i);
 	
 	float2 texST = frag_applyst(i.uv0);
 
-	uint rnd4_sc = frag_rnd_screencoords(i);
+	uint rnd4_sc = frag_rnd_init(i);
+	
 	dstfd_frag_clip(i, rnd4_sc);
-	dsntgrt_frag_clip(i, rnd4_sc);
 
 	half alpha = frag_forward_get_albedo(i, texST).a;
 	frag_alphatest(i, rnd4_sc, alpha);

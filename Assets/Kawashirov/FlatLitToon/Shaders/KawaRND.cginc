@@ -33,10 +33,13 @@ inline uint4 kawahash_4a(uint4 seed) {
 /* Random One */
 
 inline void rnd_next(inout uint seed) {
-	seed = kawahash_1a(seed);
+	//seed = kawahash_1a(seed);
+	seed = seed * 48271 % 2147483647;
+	// minstd_rand
 }
 
-#define __KAWARND_UINT_TO_FLOAT(value) (value * (1.0 / 4294967296.0));
+//#define __KAWARND_UINT_TO_FLOAT(value) (value * (1.0 / 4294967296.0));
+#define __KAWARND_UINT_TO_FLOAT(value) (value * (1.0 / 2147483647));
 
 inline uint rnd_from_uint(uint u1) {
 	return kawahash_1a(u1);
