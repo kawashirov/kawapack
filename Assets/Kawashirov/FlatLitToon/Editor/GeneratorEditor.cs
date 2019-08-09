@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
+// Имя файла длжно совпадать с именем типа.
+// https://forum.unity.com/threads/solved-blank-scriptableobject-on-import.511527/
+
 namespace Kawashirov.FLT  
 {
 	[CustomEditor(typeof(Generator))]

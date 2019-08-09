@@ -6,6 +6,10 @@ using Kawashirov.FLT;
 using static Kawashirov.FLT.Commons;
 using System.Reflection;
 
+// Имя файла длжно совпадать с именем типа.
+// https://forum.unity.com/threads/solved-blank-scriptableobject-on-import.511527/
+// Тип не включен в неймспейс Kawashirov.FLT, т.к. эдитор указывается в файле .shader без указания неймспейса.
+
 public class KawaFLTMaterialEditor : MaterialEditor {
 
 	protected bool haveGeometry = false;

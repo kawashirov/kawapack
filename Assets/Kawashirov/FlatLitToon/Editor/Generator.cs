@@ -7,6 +7,9 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using static Kawashirov.FLT.Commons;
 
+// Имя файла длжно совпадать с именем типа.
+// https://forum.unity.com/threads/solved-blank-scriptableobject-on-import.511527/
+
 namespace Kawashirov.FLT  
 {
 	[CreateAssetMenu(menuName = "Kawashirov Flat Lit Toon Shader Generator")]
