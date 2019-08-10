@@ -225,7 +225,7 @@ uniform float4 _Color;
 	uniform float _Dsntgrt_TriDecayNear;
 	uniform float _Dsntgrt_TriDecayFar;
 	uniform float _Dsntgrt_TriPowerAdjust;
-	#if defined(KAWAFLT_FEATURES_TESSELLATION)
+	#if defined(KAWAFLT_F_TESSELLATION)
 		uniform float _Dsntgrt_Tsltn;
 	#endif
 #endif

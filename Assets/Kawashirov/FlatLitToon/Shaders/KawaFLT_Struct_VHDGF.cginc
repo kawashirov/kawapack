@@ -10,10 +10,6 @@ uniform float _Tsltn_Uni;
 uniform float _Tsltn_Nrm;
 uniform float _Tsltn_Inside;
 
-#if !defined(TESS_D_QUAD)
-	#define TESS_D_TRI 1
-#endif
-
 struct v2g {
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 	UNITY_VERTEX_OUTPUT_STEREO

@@ -10,9 +10,8 @@ using System.Text;
 namespace Kawashirov.FLT {
 
 	public enum TessDomain { Triangles, Quads }
-	public enum TessPartioning { integer, fractional_even, fractional_odd, pow2 }
-
 	public enum ShaderComplexity { VF, VGF, VHDGF }
+	public enum TessPartitioning { Integer, FractionalEven, FractionalOdd, Pow2 }
 	public enum BlendTemplate { Opaque, Cutout, Fade, Custom = 256 }
 	public enum MainTexKeywords { NoMainTex, NoMask, ColorMask }
 	public enum CutoutMode { Classic, RangeRandom, RangePattern }
@@ -43,6 +42,8 @@ namespace Kawashirov.FLT {
 
 		public static readonly string KawaFLT_Feature_Geometry = "KawaFLT_Feature_Geometry";
 		public static readonly string KawaFLT_Feature_Tessellation = "KawaFLT_Feature_Tessellation";
+		public static readonly string KawaFLT_Feature_Partitioning = "KawaFLT_Feature_Partitioning";
+		public static readonly string KawaFLT_Feature_Domain = "KawaFLT_Feature_Domain";
 
 		public static readonly string KawaFLT_Feature_Random = "KawaFLT_Feature_Random";
 
@@ -72,9 +73,6 @@ namespace Kawashirov.FLT {
 
 		public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
 		public static readonly string[] cullModeNames = Enum.GetNames(typeof(CullMode));
-
-		public static readonly string[] TessDomainNames = Enum.GetNames(typeof(TessDomain));
-		public static readonly string[] TessPartioningNames = Enum.GetNames(typeof(TessPartioning));
 
 		public static readonly string[] blendTemplateNames = Enum.GetNames(typeof(BlendTemplate));
 

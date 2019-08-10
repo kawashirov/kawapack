@@ -84,11 +84,12 @@ TessellationFactors hullconst(InputPatch<HULL_IN,3> v) {
 	return o;
 }
 
-// [partitioning("integer")]
 #if defined(TESS_D_QUAD)
 	[domain("quad")]
-#else
+#elif defined(TESS_D_TRI)
 	[domain("tri")]
+#else
+	#error "TESS_D_???"
 #endif
 
 #if defined(TESS_P_INT)
@@ -100,7 +101,7 @@ TessellationFactors hullconst(InputPatch<HULL_IN,3> v) {
 #elif defined(TESS_P_POW2)
 	[partitioning("pow2")]
 #else
-	#error TESS_P_???
+	#error "TESS_P_???"
 #endif
 
 [outputtopology("triangle_cw")]
@@ -115,8 +116,10 @@ HULL_OUT hull (InputPatch<HULL_IN, 3> v, uint id : SV_OutputControlPointID) {
 
 #if defined(TESS_D_QUAD)
 	[domain("quad")]
-#else
+#elif defined(TESS_D_TRI)
 	[domain("tri")]
+#else
+	#error "TESS_D_???"
 #endif
 DOMAIN_OUT domain (TessellationFactors tessFactors, const OutputPatch<DOMAIN_IN,3> vi, float3 bary : SV_DomainLocation) {
 	DOMAIN_OUT o;
@@ -162,7 +165,7 @@ DOMAIN_OUT domain (TessellationFactors tessFactors, const OutputPatch<DOMAIN_IN,
 #else
 	[maxvertexcount(6)]
 #endif
-void geom(triangle GEOMETRY_IN IN[3], inout TriangleStream<GEOMETRY_OUT> tristream) {
+void geom(triangle GEOMETRY_IN IN[3], in uint p_id : SV_PrimitiveID, inout TriangleStream<GEOMETRY_OUT> tristream) {
 	// This is not correct, but it's should work because every vert of triange should be from one instance.
 	UNITY_SETUP_INSTANCE_ID(IN[0]);
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN[0]);
@@ -175,9 +178,10 @@ void geom(triangle GEOMETRY_IN IN[3], inout TriangleStream<GEOMETRY_OUT> tristre
 
 	bool dropFace = false;
 
-	/**/
+	//uint p_id = 1;
+	uint rnd_tri = rnd_init_noise_uint(p_id);
+	rnd_tri = rnd_apply_uint(rnd_tri, p_id);
 
-	uint rnd_tri = rnd_from_float2x3(IN[0].uv0, IN[1].uv0, IN[2].uv0); // TODO
 	// IN: (vertex) -> (vertex); OUT: () -> (dsntgrtVertexRotated)
 	dsntgrt_geometry(IN, OUT, rnd_tri, dropFace); 
 

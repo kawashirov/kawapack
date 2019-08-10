@@ -19,6 +19,8 @@ namespace Kawashirov.FLT
 
 		public string shaderName = "";
 		public ShaderComplexity complexity = ShaderComplexity.VF;
+		public TessPartitioning tessPartitioning = TessPartitioning.Integer;
+		public TessDomain tessDomain = TessDomain.Triangles;
 		public BlendTemplate mode = BlendTemplate.Opaque;
 		public CullMode cull = CullMode.Back;
 		public bool instancing = true;
@@ -92,6 +94,7 @@ namespace Kawashirov.FLT
 			}
 
 			this.ConfigureGeneral(ref shader);
+			this.ConfigureTess(ref shader);
 			this.ConfigureBlending(ref shader);
 			this.ConfigureFeatureMainTex(ref shader);
 			this.ConfigureFeatureCutoff(ref shader);
@@ -160,18 +163,24 @@ namespace Kawashirov.FLT
 					shader.TagBool(KawaFLT_Feature_Tessellation, true);
 					shader.Include("KawaFLT_Struct_VHDGF.cginc");
 					shader.Include("KawaFLT_PreFrag_VHDGF.cginc");
+					shader.Define("KAWAFLT_PIPELINE_VHDGF 1");
+					shader.Define("KAWAFLT_F_GEOMETRY 1");
+					shader.Define("KAWAFLT_F_TESSELLATION 1");
 					break;
 				case ShaderComplexity.VGF:
 					shader.TagBool(KawaFLT_Feature_Geometry, true);
 					shader.TagBool(KawaFLT_Feature_Tessellation, false);
 					shader.Include("KawaFLT_Struct_VGF.cginc");
 					shader.Include("KawaFLT_PreFrag_VGF.cginc");
+					shader.Define("KAWAFLT_PIPELINE_VGF 1");
+					shader.Define("KAWAFLT_F_GEOMETRY 1");
 					break;
 				default:
 					shader.TagBool(KawaFLT_Feature_Geometry, false);
 					shader.TagBool(KawaFLT_Feature_Tessellation, false);
 					shader.Include("KawaFLT_Struct_VF.cginc");
 					shader.Include("KawaFLT_PreFrag_VF.cginc");
+					shader.Define("KAWAFLT_PIPELINE_VF 1");
 					break;
 			}
 
@@ -206,6 +215,43 @@ namespace Kawashirov.FLT
 			shader.shadowcaster.domain = this.complexity == ShaderComplexity.VHDGF ? "domain" : null;
 			shader.shadowcaster.geometry = this.complexity == ShaderComplexity.VHDGF || this.complexity == ShaderComplexity.VGF ? "geom" : null;
 			shader.shadowcaster.fragment = "frag_shadowcaster";
+		}
+
+
+		private void ConfigureTess(ref ShaderSetup shader)
+		{
+			if (this.complexity != ShaderComplexity.VHDGF)
+				return;
+
+			shader.TagEnum(KawaFLT_Feature_Partitioning, this.tessPartitioning);
+			switch (this.tessPartitioning) {
+				case TessPartitioning.Integer:
+					shader.Define("TESS_P_INT 1");
+					break;
+				case TessPartitioning.FractionalEven:
+					shader.Define("TESS_P_EVEN 1");
+					break;
+				case TessPartitioning.FractionalOdd:
+					shader.Define("TESS_P_ODD 1");
+					break;
+				case TessPartitioning.Pow2:
+					shader.Define("TESS_P_POW2 1");
+					break;
+			}
+
+			shader.TagEnum(KawaFLT_Feature_Domain, this.tessDomain);
+			switch (this.tessDomain) {
+				case TessDomain.Triangles:
+					shader.Define("TESS_D_TRI 1");
+					break;
+				case TessDomain.Quads:
+					shader.Define("TESS_D_QUAD 1");
+					break;
+			}
+
+			shader.properties.Add(new PropertyFloat() { name = "_Tsltn_Uni", defualt = 1, range = new Vector2(0.9f, 10), power = 2 });
+			shader.properties.Add(new PropertyFloat() { name = "_Tsltn_Nrm", defualt = 1, range = new Vector2(0, 20), power = 2 });
+			shader.properties.Add(new PropertyFloat() { name = "_Tsltn_Inside", defualt = 1, range = new Vector2(0.1f, 10), power = 10 });
 		}
 
 		private void ConfigureBlending(ref ShaderSetup shader)

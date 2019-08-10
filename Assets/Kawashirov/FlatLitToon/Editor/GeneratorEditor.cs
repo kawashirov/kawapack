@@ -85,12 +85,16 @@ namespace Kawashirov.FLT
 			EditorGUILayout.LabelField("General Shader Options");
 			using (new EditorGUI.IndentLevelScope()) {
 				this.DefaultPrpertyField("complexity");
-				var complexity = this.serializedObject.FindProperty("complexity");
-				var complexity_int = complexity.intValue;
-				if (complexity_int == (int)ShaderComplexity.VHDGF) {
-					EditorGUILayout.HelpBox("VHDGF currently in-dev and not yet supported.", MessageType.Error);
-					error = true;
+				var complexity_int = this.serializedObject.FindProperty("complexity").intValue;
+				var complexity_VHDGF = complexity_int == (int)ShaderComplexity.VHDGF;
+
+				using (new EditorGUI.DisabledScope(!complexity_VHDGF)) {
+					using (new EditorGUI.IndentLevelScope()) {
+						this.DefaultPrpertyField("tessPartitioning", "Tessellation Partitioning");
+						this.DefaultPrpertyField("tessDomain", "Tessellation Domain");
+					}
 				}
+
 				this.DefaultPrpertyField("mode");
 				var mode = this.serializedObject.FindProperty("mode");
 				var mode_int = mode.intValue;

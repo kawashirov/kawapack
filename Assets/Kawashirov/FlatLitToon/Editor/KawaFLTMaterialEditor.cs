@@ -86,6 +86,28 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 		}
 	}
 
+
+	protected void OnGUI_Tessellation() {
+		var tessellation = MaterialTagBoolCheck(this.target, KawaFLT_Feature_Tessellation);
+		using (new EditorGUI.DisabledScope(!tessellation)) {
+			if (tessellation) {
+				EditorGUILayout.LabelField("Tessellation", "Enabled");
+				using (new EditorGUI.IndentLevelScope()) {
+					var partitioning = MaterialTagEnumGet<TessPartitioning>(this.target, KawaFLT_Feature_Partitioning);
+					var domain = MaterialTagEnumGet<TessDomain>(this.target, KawaFLT_Feature_Domain);
+					EditorGUILayout.LabelField("Partitioning", Enum.GetName(typeof(TessPartitioning), partitioning));
+					EditorGUILayout.LabelField("Domain", Enum.GetName(typeof(TessDomain), domain));
+
+					this.ShaderProperty(this.FindProperty("_Tsltn_Uni"), "Uniform factor");
+					this.ShaderProperty(this.FindProperty("_Tsltn_Nrm"), "Factor from curvness");
+					this.ShaderProperty(this.FindProperty("_Tsltn_Inside"), "Inside multiplier");
+				}
+			} else {
+				EditorGUILayout.LabelField("Tessellation", "Disabled");
+			}
+		}
+	}
+
 	protected void OnGUI_Random()
 	{
 		var random = MaterialTagBoolCheck(this.target, KawaFLT_Feature_Random);
@@ -555,6 +577,9 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 		this.OnGUI_BlendMode();
 
 		EditorGUILayout.Space();
+		this.OnGUI_Tessellation();
+
+		EditorGUILayout.Space();
 		this.OnGUI_Random();
 
 		EditorGUILayout.Space();
@@ -577,15 +602,6 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 
 		EditorGUILayout.Space();
 		this.OnGUI_PolyColorWave();
-
-		if (this.haveTessellation) {
-			EditorGUILayout.Space();
-			EditorGUILayout.Space();
-			EditorGUILayout.LabelField("Tessellation:");
-			this.ShaderProperty(this.FindProperty("_Tsltn_Uni"), "Uniform factor");
-			this.ShaderProperty(this.FindProperty("_Tsltn_Nrm"), "Factor from curvness");
-			this.ShaderProperty(this.FindProperty("_Tsltn_Inside"), "Inside multiplier");
-		}
 
 	}
 
