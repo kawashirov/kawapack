@@ -5,6 +5,22 @@
 
 /* PolyColorWave features */
 
+// (v.normalDir, v.posWorld) -> (v.posWorld, v.vertex, v.pos, v.normalDir, v.is_outline)
+inline void outline_geometry_apply_offset(inout GEOMETRY_OUT v) {
+	#if defined(KAWAFLT_PASS_FORWARD) && defined(OUTLINE_ON)
+		half3 offset_normal = v.normalDir * (_outline_width * 0.01h);
+		half3 offset_bias = KawaWorldSpaceViewDir(v.posWorld);
+		offset_bias = normalize(offset_bias) * (_outline_bias * 0.01h);
+
+		v.posWorld.xyz = v.posWorld.xyz + offset_normal - offset_bias;
+		v.vertex.xyz = mul(unity_WorldToObject, float4(v.posWorld.xyz, 1)).xyz;
+		v.pos = UnityObjectToClipPos(v.vertex);
+		v.normalDir = -v.normalDir;
+		v.is_outline = true; 
+	#endif
+}
+
+
 #if defined(PCW_ON)
 	inline float pcw_wave_intensity(float time_offset) {
 		float4 period = _PCW_WvTmLo + _PCW_WvTmAs + _PCW_WvTmHi + _PCW_WvTmDe;

@@ -125,16 +125,8 @@ void geom(triangle GEOMETRY_IN IN[3], in uint p_id : SV_PrimitiveID, inout Trian
 		UNITY_UNROLL for (int i4 = 2; i4 >= 0; i4--) {
 			// Copy and rewrite for outline
 			GEOMETRY_OUT out_tln = OUT[i4];
-			half3 offset_normal = IN[i4].normal * (_outline_width * 0.01h);
-			half3 offset_bias = UnityWorldToObjectDir(KawaWorldSpaceViewDir(out_tln.posWorld));
-			offset_bias = normalize(offset_bias) * (_outline_bias * 0.01h);
-			out_tln.is_outline = true; 
-			out_tln.vertex = IN[i4].vertex + half4(offset_normal - offset_bias, 0);
-			// Recalculate dependent
-			out_tln.pos = UnityObjectToClipPos(out_tln.vertex);
-			out_tln.posWorld = mul(unity_ObjectToWorld, out_tln.vertex);
+			outline_geometry_apply_offset(out_tln);
 			screencoords_fragment_in(out_tln);
-			out_tln.normalDir = -out_tln.normalDir;
 			UNITY_TRANSFER_FOG(out_tln, out_tln.pos);
 			// Other values should stay the same
 			tristream.Append(out_tln);
