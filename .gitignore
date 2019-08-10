@@ -38,8 +38,5 @@ sysinfo.txt
 # Kawa
 Assets/Kawashirov/Demo*
 Assets/Kawashirov/Experemental*
-*.meta
-!*.fbx.meta
-!*.png.meta
-!*.shader.meta
+*.legacy~
 *_mod_*

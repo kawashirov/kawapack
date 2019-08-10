@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!28 &2800000
+Texture2D:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: noise_16x16_R16
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  serializedVersion: 2
+  m_Width: 16
+  m_Height: 16
+  m_CompleteImageSize: 512
+  m_TextureFormat: 9
+  m_MipCount: 1
+  m_IsReadable: 1
+  m_AlphaIsTransparency: 0
+  m_ImageCount: 1
+  m_TextureDimension: 2
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 0
+    m_WrapV: 0
+    m_WrapW: 0
+  m_LightmapFormat: 0
+  m_ColorSpace: 0
+  image data: 512
+  _typelessdata: 832ae1081333da549fc6d71fda43c68bbd6e5215b8e79f554448ebe9727f825fe923c3cc0a3d9a2c20a8393e71b358f2b21bd9b6253085a070105cd9036f5df1afd9cf59c397cee23ff80152fa22ad724b8bba26f19a94139897cfa51dd441e5277794692204b491b19ecea718af3cf94161120c6182161d1210dc5b090f5fc8e1ba6afe79c73d3087241f1de750da84e0e967bed2baa6635519580c99f5028237eb67227fbb5ad0602a96908b8d361780cd57b3be52da9105cb359fafe5602a16758ea15bf8fe060ce31f6f3ee80bca49639b0bffb66ca2efd0fdaa6e46297f849cb3ab1937696b4c5daf596d41832c890d8f1f33913024c2ea778d15f9a94fa7d7d09449612962d3e5a9b3c78135b6eec165340c13448d506824b41e2e5b67d0407c45599c2f345b2a918c428f4c36484c8eb23fc71fe6ac37ce34cf668188efece5aff00d5b22ea7d797fc64d285ce5253124bf7391822904cb240dccd41dd634f58be0f90ea911344f50c5b99ee220b185d6f7e1cb2157356a803a62e50e621cf90c95a44ae1e1f2192a7fde43248b80053b5cada436303a9567f2ded2d6f3fde71e4a8e8ddb62951dd9def3c032c6ae42c3617919809f7e2006f97ca3123012fe51a71f6ae4a26909f08b40e548f91c1ba06007ce312746dadd53de6d7496a429c2d5d6fed79e19d6f0b30b4a56ff15f33326580c146ff958d45fd0b218
+  m_StreamData:
+    offset: 0
+    size: 0
+    path: 

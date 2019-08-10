@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!28 &2800000
+Texture2D:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: noise_8x8_R16
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  serializedVersion: 2
+  m_Width: 8
+  m_Height: 8
+  m_CompleteImageSize: 128
+  m_TextureFormat: 9
+  m_MipCount: 1
+  m_IsReadable: 1
+  m_AlphaIsTransparency: 0
+  m_ImageCount: 1
+  m_TextureDimension: 2
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 0
+    m_WrapV: 0
+    m_WrapW: 0
+  m_LightmapFormat: 0
+  m_ColorSpace: 0
+  image data: 128
+  _typelessdata: ca1ea6c7cdfc53f1819d19329e41d0cd783c63a0dc5df49495bb6fafa512e14b6e435e9b34b26ace14563c9baca34f5a9aaf0efad43fe73207eb72d431bd3ecbf11af3212d041af9ea3aa6e77acefc8b60ea079bc3baa4340d334a8dbc81890e2c28ef6a785902eb134c48de152c11683d12fb0046ca5c0251dd8588b129eb2c
+  m_StreamData:
+    offset: 0
+    size: 0
+    path: 
