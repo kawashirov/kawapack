@@ -5,69 +5,45 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using System.Security.Cryptography;
 
 public class CreateNoizeTex : MonoBehaviour
 {
 	[MenuItem("GameObject/Create Noize Tex")]
 	static void DoIt()
 	{
-		NoizeTex(16);
-		NoizeTex(32);
-		NoizeTex(64);
-		NoizeTex(128);
-		NoizeTex(256);
+		var rnd = new RNGCryptoServiceProvider();
+			NoizeTex(8, rnd);
+			NoizeTex(16, rnd);
+			NoizeTex(32, rnd);
+			NoizeTex(64, rnd);
+			NoizeTex(128, rnd);
+			NoizeTex(256, rnd);
 		
-		/*
-		BayerTex(2);
-		BayerTex(4);
-		BayerTex(8);
-		BayerTex(16);
-		BayerTex(32);
-		BayerTex(64);
-		BayerTex(128);
-		*/
 	}
 	
-	static void NoizeTex(int size)
+	static void NoizeTex(int size, RNGCryptoServiceProvider rnd)
 	{
-		var rnd = new System.Random();
-		var tex_DXT5 = new Texture2D(size, size, TextureFormat.ARGB32, false, true);
-		var tex_ARGB32 = new Texture2D(size, size, TextureFormat.ARGB32, false, true);
-		var tex_R8 = new Texture2D(size, size, TextureFormat.R8, false, true);
-		tex_DXT5.filterMode = FilterMode.Point;
-		tex_ARGB32.filterMode = FilterMode.Point;
-		tex_R8.filterMode = FilterMode.Point;
+		NoizeTex(size, TextureFormat.R8, rnd, "R8");
+		NoizeTex(size, TextureFormat.R16, rnd, "R16");
+		NoizeTex(size, TextureFormat.BC4, rnd, "BC4");
+		NoizeTex(size, TextureFormat.RHalf, rnd, "RHalf");
+		NoizeTex(size, TextureFormat.RFloat, rnd, "RFloat");
+	}
+	
+	
+	static void NoizeTex(int size, TextureFormat format, RNGCryptoServiceProvider rnd, string name)
+	{
+		var tex = new Texture2D(size, size, format, false, true);
+		Debug.Log(name + " support: " + SystemInfo.SupportsTextureFormat(format));
 		
-		var colors = new Color32[size * size];
-		for(var i = 0; i < size*size; ++i) {
-			var r = (byte) rnd.Next(256);
-			var g = (byte) rnd.Next(256);
-			var b = (byte) rnd.Next(256);
-			var a = (byte) rnd.Next(256);
-			colors[i] = new Color32(r,g,b,a);
-		}
-		tex_DXT5.SetPixels32(colors);
-		tex_ARGB32.SetPixels32(colors);
+		var data = tex.GetRawTextureData();
+		rnd.GetBytes(data);
+		tex.LoadRawTextureData(data);
 		
-		var data_R8 = tex_R8.GetRawTextureData();
-		rnd.NextBytes(data_R8);
-		tex_R8.LoadRawTextureData(data_R8);
-		
-		EditorUtility.CompressTexture(tex_DXT5, TextureFormat.DXT5, TextureCompressionQuality.Best);
-		EditorUtility.CompressTexture(tex_ARGB32, TextureFormat.ARGB32, TextureCompressionQuality.Best);
-		//EditorUtility.CompressTexture(tex_R8, TextureFormat.R8, TextureCompressionQuality.Best);
-		
-		tex_DXT5.Apply(true, true);
-		tex_ARGB32.Apply(true, true);
-		tex_R8.Apply(true, true);
-		
-		string path_DXT5 = "Assets/noise" + size + "x" + size + "DXT5.asset";
-		string path_ARGB32 = "Assets/noise" + size + "x" + size + "ARGB32.asset";
-		string path_R8 = "Assets/noise" + size + "x" + size + "R8.asset";
-		
-		AssetDatabase.CreateAsset(tex_DXT5, path_DXT5);
-		AssetDatabase.CreateAsset(tex_ARGB32, path_ARGB32);
-		AssetDatabase.CreateAsset(tex_R8, path_R8);
+		string path = "Assets/Kawashirov/Additional/noise_" + size + "x" + size + "_" + name + ".asset";
+		AssetDatabase.CreateAsset(tex, path);
+		AssetDatabase.SetLabels(tex, new string[] {"Kawashirov", "Noise", size + "x" + size, name}); 
 	}
 	
 	

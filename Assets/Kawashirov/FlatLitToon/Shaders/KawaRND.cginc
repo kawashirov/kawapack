@@ -1,98 +1,91 @@
 #ifndef KAWARND_INCLUDED
 #define KAWARND_INCLUDED
 
-
-/* Hashes */
-
-inline uint kawahash_1a(uint seed) {
-	// Быстрый хеш для одного значения
-	// Не очень качественный, но для инициализации рандома сойдет.
-	// Регистры: 1 (3 компоненты)
-	// Инструкции: xor, imad
-	uint3 a = seed ^ uint3(0x0c49804e, 0x8e841cea, 0x4ca64728);
-	return mad(a.x, a.y, a.z);
+inline uint rnd_init_noise_uint(in uint value) {
+	uint rnd1 = 1;
+	#if defined(RANDOM_SEED_TEX)
+		uint2 size;
+		_Rnd_Seed.GetDimensions(size.x, size.y);
+		uint2 sc_mod;
+		sc_mod.x = value % size.x;
+		sc_mod.y = (value / size.x) % size.y;
+		uint4 rnd4 = _Rnd_Seed.Load(uint3(sc_mod.x, sc_mod.y, 0));
+		rnd1 = rnd4.x;
+	#else
+		#error "rnd_init_noise_uint called, but RANDOM_SEED_TEX is not defined"
+	#endif
+	return rnd1;
 }
 
-inline uint2 kawahash_2a(uint2 seed) {
-	// Не очень качественный, но для инициализации рандома сойдет.
-	// Быстрый хеш для двух значений, хуже чем два по kawahash_1a, но использует то же кол-во инструкций и регистров.
-	// Регистры: 1 (4 компоненты)
-	// Инструкции: xor, imad
-	uint4 a = seed.xyxy ^ uint4(0x48290df2, 0x6c163a2b, 0x875d5d20, 0x9a73e87c);
-	return mad(seed, a.xy, a.zw);
+inline uint rnd_init_noise_coords(uint2 coords) {
+	uint rnd1 = 1;
+	#if defined(RANDOM_SEED_TEX)
+		uint2 size;
+		_Rnd_Seed.GetDimensions(size.x, size.y);
+		uint2 sc_mod = coords % size;
+		uint4 rnd4 = _Rnd_Seed.Load(uint3(sc_mod.x, sc_mod.y, 0));
+		rnd1 = rnd4.x;
+	#else
+		#error "rnd_init_noise_coords called, but RANDOM_SEED_TEX is not defined"
+	#endif
+	return rnd1;
 }
 
-inline uint4 kawahash_4a(uint4 seed) {
-	// Сложно назвать хешем, соль для инициализаций.
-	// Быстрый хеш для двух значений
-	// Регистры: 1 (4 компоненты)
-	// Инструкции: xor
-	return seed ^ uint4(0x9c40919c, 0x5bf1ef3f, 0x7f065408, 0x6406cb82);
+inline uint rnd_next_c(uint seed, uint c) {
+	return seed * 134775813 + c;
 }
 
-/* Random One */
 
 inline void rnd_next(inout uint seed) {
-	//seed = kawahash_1a(seed);
-	seed = seed * 48271 % 2147483647;
-	// minstd_rand
+	seed = rnd_next_c(seed, 1);
 }
 
-//#define __KAWARND_UINT_TO_FLOAT(value) (value * (1.0 / 4294967296.0));
-#define __KAWARND_UINT_TO_FLOAT(value) (value * (1.0 / 2147483647));
-
-inline uint rnd_from_uint(uint u1) {
-	return kawahash_1a(u1);
+inline uint rnd_apply_uint(uint rnd, uint salt) {
+	// Применяет соль к рандому, salt может быть 0.
+	// Тоже, что и rnd_next, но с другой константой
+	return rnd_next_c(rnd, salt);
 }
 
-inline uint rnd_from_float(float f1) {
-	return rnd_from_uint(asuint(f1));
-}
-
-inline uint rnd_from_float2(float2 f2) {
-	uint rnd = asuint(f2.x);
-	rnd = kawahash_1a(rnd);
-	rnd += asuint(f2.y);
-	rnd = kawahash_1a(rnd);
+inline uint rnd_apply_uint2(uint rnd, uint2 salt) {
+	rnd = rnd_next_c(rnd, salt.x);
+	rnd = rnd_next_c(rnd, salt.y);
 	return rnd;
 }
 
-inline uint rnd_from_float2x3(float2 f1, float2 f2, float2 f3) {
-	uint2 rnd = mad(asuint(f1), asuint(f2), asuint(f3));
-	rnd = kawahash_1a(rnd.y + kawahash_1a(rnd.x));
-	return rnd;
+inline uint rnd_apply_uint4(uint rnd, uint4 salt) {
+	rnd = rnd_next_c(rnd, salt.x);
+	rnd = rnd_next_c(rnd, salt.y);
+	rnd = rnd_next_c(rnd, salt.z);
+	rnd = rnd_next_c(rnd, salt.w);
 }
 
-inline uint rnd_fork(uint rnd, uint seed) {
-	rnd += seed;
-	rnd = kawahash_1a(rnd);
+inline uint rnd_apply_time(uint rnd) {
+	// 2 инструкции
+	rnd = rnd * (asuint(_SinTime.w) + 134775813) + 134775813;
+
+	/*
+	// 5 инструкций, добротный шум
+	uint2 salt = uint2(asuint(_SinTime.w), asuint(_CosTime.w));
+	salt = salt * 134775813 + 134775813; // (salt + 1) * 134775813, устойчивость к занулению
+	rnd = rnd * salt.x + salt.y;
+	rnd = rnd * salt.y + salt.x;
+	*/
+	
 	return rnd;
 }
 
 inline float rnd_next_float_01(inout uint rnd) {
-	float float01 = __KAWARND_UINT_TO_FLOAT(float(rnd));
-	rnd = kawahash_1a(rnd);
+	float float01 = float(rnd) * (1.0 / 0xffffffff); // 1/(2^32-1) aka 1/4294967295
+	rnd_next(rnd);
 	return float01;
 }
 
 inline float2 rnd_next_float2_01(inout uint rnd) {
-	uint2 ret;
-	ret.x = rnd;
-	rnd = kawahash_1a(rnd);
-	ret.y = rnd;
-	rnd = kawahash_1a(rnd);
-	return __KAWARND_UINT_TO_FLOAT(float2(ret));
+	return float2(rnd_next_float_01(rnd), rnd_next_float_01(rnd));
 }
 
 inline float3 rnd_next_float3_01(inout uint rnd) {
-	uint3 ret;
-	ret.x = rnd;
-	rnd = kawahash_1a(rnd);
-	ret.y = rnd;
-	rnd = kawahash_1a(rnd);
-	ret.z = rnd;
-	rnd = kawahash_1a(rnd);
-	return __KAWARND_UINT_TO_FLOAT(float3(ret));
+	return float3(rnd_next_float_01(rnd), rnd_next_float_01(rnd), rnd_next_float_01(rnd));
 }
 
 inline float2 rnd_circle(inout uint rnd) {

@@ -21,7 +21,7 @@ namespace Kawashirov.FLT {
 	public enum ShadingMode { CubedParadoxFLT, KawashirovFLTSingle, KawashirovFLTRamp }
 
 	public enum DistanceFadeMode { Range, Infinity }
-	public enum DistanceFadeRandom { PerPixel, ScreenPattern }
+	//public enum DistanceFadeRandom { PerPixel, ScreenPattern }
 
 	public enum FPSMode { ColorTint, DigitsTexture, DigitsMesh }
 
@@ -56,7 +56,7 @@ namespace Kawashirov.FLT {
 
 		public static readonly string KawaFLT_Feature_DistanceFade = "KawaFLT_Feature_DistanceFade";
 		public static readonly string KawaFLT_Feature_DistanceFadeMode = "KawaFLT_Feature_DistanceFadeMode";
-		public static readonly string KawaFLT_Feature_DistanceFadeRandom = "KawaFLT_Feature_DistanceFadeRandom";
+		//public static readonly string KawaFLT_Feature_DistanceFadeRandom = "KawaFLT_Feature_DistanceFadeRandom";
 
 		public static readonly string KawaFLT_Feature_FPS = "KawaFLT_Feature_FPS";
 		public static readonly string KawaFLT_Feature_FPSMode = "KawaFLT_Feature_FPSMode";
@@ -105,7 +105,7 @@ namespace Kawashirov.FLT {
 		};
 
 		public static readonly string[] distanceFadeModeNames = Enum.GetNames(typeof(DistanceFadeMode));
-		public static readonly string[] distanceFadeRandomNames = Enum.GetNames(typeof(DistanceFadeRandom));
+		//public static readonly string[] distanceFadeRandomNames = Enum.GetNames(typeof(DistanceFadeRandom));
 
 		public static readonly string[] FPSModeNames = Enum.GetNames(typeof(FPSMode));
 

@@ -109,7 +109,7 @@ inline void kawaflt_fragment_in(inout FRAGMENT_IN v, bool vertexlight_on, float3
 
 // (o.pos) -> (o.screenPos)
 inline void screencoords_fragment_in(inout FRAGMENT_IN o) {
-	#if defined(RANDOM_MIX_COORD)
+	#if defined(RANDOM_MIX_COORD) || defined(RANDOM_SEED_TEX)
 		o.screenPos = ComputeScreenPos(o.pos);
 	#endif
 }

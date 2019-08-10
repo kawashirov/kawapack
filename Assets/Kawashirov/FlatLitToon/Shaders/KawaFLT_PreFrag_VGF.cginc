@@ -46,7 +46,7 @@ VERTEX_OUT vert(appdata_full v) {
 #else
 	[maxvertexcount(6)]
 #endif
-void geom(triangle GEOMETRY_IN IN[3], inout TriangleStream<GEOMETRY_OUT> tristream) {
+void geom(triangle GEOMETRY_IN IN[3], in uint p_id : SV_PrimitiveID, inout TriangleStream<GEOMETRY_OUT> tristream) {
 	// This is not correct, but it's should work because every vert of triange should be from one instance.
 	UNITY_SETUP_INSTANCE_ID(IN[0]);
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN[0]);
@@ -65,7 +65,9 @@ void geom(triangle GEOMETRY_IN IN[3], inout TriangleStream<GEOMETRY_OUT> tristre
 
 	if (dropFace) return;
 
-	uint rnd_tri = rnd_from_float2x3(IN[0].uv0, IN[1].uv0, IN[2].uv0);
+	//uint p_id = 1;
+	uint rnd_tri = rnd_init_noise_uint(p_id);
+	rnd_tri = rnd_apply_uint(rnd_tri, p_id);
 
 	// IN: (vertex) -> (vertex); OUT: () -> (dsntgrtVertexRotated)
 	dsntgrt_geometry(IN, OUT, rnd_tri, dropFace); 

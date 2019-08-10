@@ -5,13 +5,26 @@
 #include "UnityStandardUtils.cginc"
 
 inline float2 frag_pixelcoords(FRAGMENT_IN i) {
-	float2 pxc = float2(0, 0);
-	#if defined(RANDOM_MIX_COORD)
+	float2 pxc = float2(1, 1);
+	#if defined(RANDOM_MIX_COORD) || defined(RANDOM_SEED_TEX)
 		pxc =  i.screenPos.xy / i.screenPos.w * _ScreenParams.xy;
 	#endif
 	//float4 sp = ComputeScreenPos(UnityPixelSnap(i.pos));
 	//pxc = sp.xy * _ScreenParams.xy / sp.w;
 	return pxc;
+}
+
+inline uint frag_rnd_init(FRAGMENT_IN i) {
+	float2 sc_raw = frag_pixelcoords(i);
+	float2 sc_floor = floor(sc_raw);
+	uint rnd = rnd_init_noise_coords((uint2) sc_floor);
+	#if defined(RANDOM_MIX_COORD)
+		rnd = rnd_apply_uint2(rnd, asuint(sc_floor));
+	#endif
+	#if defined(RANDOM_MIX_TIME)
+		rnd = rnd_apply_time(rnd);
+	#endif
+	return rnd;
 }
 
 
@@ -87,32 +100,6 @@ inline void frag_alphatest(FRAGMENT_IN i, inout uint rnd, in half alpha) {
 		float spread = rnd_next_float_01(rnd);
 		clip(alpha - lerp(_CutoffMin, _CutoffMax, spread));
 	#endif
-}
-
-inline uint frag_rnd_init(FRAGMENT_IN i) {
-	uint rnd1 = 0;
-	#if defined(RANDOM_SEED_TEX)
-		uint2 size;
-		_Rnd_Seed.GetDimensions(size.x, size.y);
-		float2 sc_f = frag_pixelcoords(i);
-		uint2 sc = (uint2)floor(sc_f);
-		uint2 sc_m = sc % size;
-		uint4 rnd4 = _Rnd_Seed.Load(uint3(sc_m.x, sc_m.y, 0));
-		// Реально используется только R,
-		// но почему-то шейдер компилируется как-то не так, если не использовать значения GBA.
-		rnd1 = (rnd4.r + rnd4.g + rnd4.b) * rnd4.a;
-	#endif
-	#if defined(RANDOM_MIX_COORD)
-		rnd1 *= sc.x;
-		rnd_next(rnd1);
-		rnd1 *= sc.y;
-		rnd_next(rnd1);
-	#endif
-	#if defined(RANDOM_MIX_TIME)
-		rnd1 *= asuint(_Time.y);
-		rnd_next(rnd1);
-	#endif
-	return rnd1;
 }
 
 inline void frag_cull(FRAGMENT_IN i) {

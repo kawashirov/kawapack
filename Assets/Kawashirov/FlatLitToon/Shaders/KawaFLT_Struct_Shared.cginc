@@ -209,8 +209,6 @@ uniform float4 _Color;
 	uniform float _PCW_RnbwStrtn;
 	uniform float _PCW_RnbwBrghtnss;
 	uniform float _PCW_Mix;
-#else
-	#define PCW_OFF
 #endif
 
 /*

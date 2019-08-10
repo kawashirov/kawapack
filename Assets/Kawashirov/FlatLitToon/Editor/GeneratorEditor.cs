@@ -164,7 +164,6 @@ namespace Kawashirov.FLT
 			using (new EditorGUI.DisabledScope(distanceFade.hasMultipleDifferentValues || !distanceFade.boolValue)) {
 				using (new EditorGUI.IndentLevelScope()) {
 					this.DefaultPrpertyField("distanceFadeMode", "Mode");
-					this.DefaultPrpertyField("distanceFadeRandom", "Dither (Randomnss) Type");
 				}
 			}
 

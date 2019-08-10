@@ -52,7 +52,7 @@ struct g2f {
 	
 	float4 posWorld : KAWASMNT_POS_WORLD;
 
-	#if defined(RANDOM_MIX_COORD)
+	#if defined(RANDOM_MIX_COORD) || defined(RANDOM_SEED_TEX)
 		float4 screenPos : KAWASMNT_SCREENPOS;
 		// float2 screenCoords : KAWASMNT_SCREENCOORDS;
 	#endif

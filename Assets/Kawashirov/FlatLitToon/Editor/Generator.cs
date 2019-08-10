@@ -44,7 +44,6 @@ namespace Kawashirov.FLT
 
 		public bool distanceFade = false;
 		public DistanceFadeMode distanceFadeMode = DistanceFadeMode.Range;
-		public DistanceFadeRandom distanceFadeRandom = DistanceFadeRandom.PerPixel;
 
 		public bool FPS = false;
 		public FPSMode FPSMode = FPSMode.ColorTint;
@@ -391,6 +390,7 @@ namespace Kawashirov.FLT
 		{
 			shader.TagBool(KawaFLT_Feature_DistanceFade, this.distanceFade);
 			if (this.distanceFade) {
+				shader.Define("DSTFD_ON 1");
 				this.needRandomFrag = true;
 				shader.TagEnum(KawaFLT_Feature_DistanceFadeMode, this.distanceFadeMode);
 				switch (this.distanceFadeMode) {
