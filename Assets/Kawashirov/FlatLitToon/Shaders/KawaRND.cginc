@@ -48,6 +48,13 @@ inline uint rnd_apply_uint2(uint rnd, uint2 salt) {
 	return rnd;
 }
 
+inline uint rnd_apply_uint3(uint rnd, uint3 salt) {
+	rnd = rnd_next_c(rnd, salt.x);
+	rnd = rnd_next_c(rnd, salt.y);
+	rnd = rnd_next_c(rnd, salt.z);
+	return rnd;
+}
+
 inline uint rnd_apply_uint4(uint rnd, uint4 salt) {
 	rnd = rnd_next_c(rnd, salt.x);
 	rnd = rnd_next_c(rnd, salt.y);

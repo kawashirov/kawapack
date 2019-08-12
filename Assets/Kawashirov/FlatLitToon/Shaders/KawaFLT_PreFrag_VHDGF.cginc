@@ -182,6 +182,12 @@ void geom(triangle GEOMETRY_IN IN[3], in uint p_id : SV_PrimitiveID, inout Trian
 	uint rnd_tri = rnd_init_noise_uint(p_id);
 	rnd_tri = rnd_apply_uint(rnd_tri, p_id);
 
+	// FIXME temporary salt with vtx ids for randomness in tessellated sub-primitives
+	// FIMME a lot of instructions used here, ouff
+	rnd_tri = rnd_apply_uint3(rnd_tri, asuint(IN[0].vertex.xyz));
+	rnd_tri = rnd_apply_uint3(rnd_tri, asuint(IN[1].vertex.xyz));
+	rnd_tri = rnd_apply_uint3(rnd_tri, asuint(IN[1].vertex.xyz));
+
 	// IN: (vertex) -> (vertex); OUT: () -> (dsntgrtVertexRotated)
 	dsntgrt_geometry(IN, OUT, rnd_tri, dropFace); 
 
