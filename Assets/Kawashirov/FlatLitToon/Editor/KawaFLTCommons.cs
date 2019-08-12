@@ -37,6 +37,7 @@ namespace Kawashirov.FLT {
 		public static readonly string Unity_Feature_IgnoreProjector = "IgnoreProjector";
 		public static readonly string Unity_RenderType = "RenderType";
 
+		public static readonly string KawaFLT_GenaratorGUID = "KawaFLT_GenaratorGUID";
 		public static readonly string KawaFLT_RenderType = "KawaFLT_RenderType";
 		public static readonly string KawaFLT_Feature_Instancing = "KawaFLT_Feature_Instancing";
 
@@ -119,40 +120,32 @@ namespace Kawashirov.FLT {
 		
 		}
 
-		public static bool MaterialTagIsSet(object material, string tag)
+		public static string MaterialTagGet(object material, string tag)
 		{
 			var m = material as Material;
 			var tag_v = m ? m.GetTag(tag, false, "") : null;
-			// Debug.Log(String.Format("{0}: {1}={2}", material, tag, tag_v));
-			return m && !string.IsNullOrEmpty(tag_v);
+			return tag_v;
+		}
+
+		public static bool MaterialTagIsSet(object material, string tag)
+		{
+			return !string.IsNullOrEmpty(MaterialTagGet(material, tag));
 		}
 
 		public static bool MaterialTagCheck(object material, string tag, string value)
 		{
-			var m = material as Material;
-			var tag_v = m ? m.GetTag(tag, false, "") : null;
-			// Debug.Log(String.Format("{0}: {1}={2}", material, tag, tag_v));
-			return m && string.Equals(value, tag_v, StringComparison.InvariantCultureIgnoreCase);
+			var tag_v = MaterialTagGet(material, tag);
+			return !string.IsNullOrEmpty(value) && !string.IsNullOrEmpty(tag_v) && string.Equals(value, tag_v, StringComparison.InvariantCultureIgnoreCase);
 		}
 
 		public static bool MaterialTagContainsCheck(object material, string tag, string value)
 		{
-			var m = material as Material;
-			if (!m)
-				return false;
-			var tag_v = m.GetTag(tag, false, "");
-			return tag_v.Split(',').ToList<string>().Any(v => string.Equals(value, v, StringComparison.InvariantCultureIgnoreCase));
+			var tag_v = MaterialTagGet(material, tag);
+			return string.IsNullOrEmpty(tag_v)
+				? false
+				: tag_v.Split(',').ToList<string>().Any(v => string.Equals(value, v, StringComparison.InvariantCultureIgnoreCase));
 		}
-
-		public static bool CheckAllMaterialsTagContains(object[] materials, string tag, string value)
-		{
-			// LEGACY
-			foreach (var material in materials)
-				if (!MaterialTagContainsCheck(material, tag, value))
-					return false;
-			return true;
-		}
-
+		
 		public static bool MaterialTagBoolCheck(object material, string tag) => MaterialTagCheck(material, tag, "True");
 
 		public static bool MaterialTagEnumCheck<E>(object material, string tag, E value) => MaterialTagCheck(material, tag, Enum.GetName(typeof(E), value));

@@ -11,8 +11,6 @@ inline uint rnd_init_noise_uint(in uint value) {
 		sc_mod.y = (value / size.x) % size.y;
 		uint4 rnd4 = _Rnd_Seed.Load(uint3(sc_mod.x, sc_mod.y, 0));
 		rnd1 = rnd4.x;
-	#else
-		#error "rnd_init_noise_uint called, but RANDOM_SEED_TEX is not defined"
 	#endif
 	return rnd1;
 }
@@ -25,8 +23,6 @@ inline uint rnd_init_noise_coords(uint2 coords) {
 		uint2 sc_mod = coords % size;
 		uint4 rnd4 = _Rnd_Seed.Load(uint3(sc_mod.x, sc_mod.y, 0));
 		rnd1 = rnd4.x;
-	#else
-		#error "rnd_init_noise_coords called, but RANDOM_SEED_TEX is not defined"
 	#endif
 	return rnd1;
 }
@@ -70,7 +66,7 @@ inline uint rnd_apply_time(uint rnd) {
 	rnd = rnd * salt.x + salt.y;
 	rnd = rnd * salt.y + salt.x;
 	*/
-	
+
 	return rnd;
 }
 

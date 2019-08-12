@@ -28,7 +28,7 @@ namespace Kawashirov.FLT
 		public bool disableBatching = false;
 		public bool forceNoShadowCasting = false;
 		public bool ignoreProjector = true;
-		public bool zWrite = true;
+		//public bool zWrite = true;
 		public bool debug = false;
 
 		public MainTexKeywords mainTex = MainTexKeywords.ColorMask;
@@ -80,9 +80,51 @@ namespace Kawashirov.FLT
 			var shader_cginc_path = System.IO.Path.GetDirectoryName(shader_template_path);
 			//EditorUtility.DisplayDialog("shader_cginc_path", shader_cginc_path, "OK");
 
+			var shader_generated_path = string.Format("{0}/_generated_{1}.shader", shader_cginc_path, this.shaderName);
+
+			if (this.result == null) {
+				this.result = AssetDatabase.LoadAssetAtPath<Shader>(shader_generated_path);
+				if (this.result != null) {
+					Debug.LogWarningFormat(
+						"Bound shader asset was null, picking up existing asset: {0} at {1}",
+						this.result, shader_generated_path
+					);
+				}
+			}
+
+			if (this.result != null) {
+				var shader_asset = AssetDatabase.LoadAssetAtPath<Shader>(shader_generated_path);
+				if (this.result != shader_asset) {
+					// Шейдер, указанный в result не совпадает с необходимым путем
+					if (shader_asset != null) {
+						// Удаляем другой шейдер, который лежит по целевому пути
+						Debug.LogWarningFormat("Removing old asset at target path: \"{0}\"...", shader_generated_path);
+						AssetDatabase.DeleteAsset(shader_generated_path);
+					}
+					var old_path = AssetDatabase.GetAssetPath(this.result);
+					Debug.LogWarningFormat(
+						"Moving bound shader asset {0} from \"{1}\" to \"{2}\"...",
+						this.result, old_path, shader_generated_path
+					);
+					AssetDatabase.MoveAsset(old_path, shader_generated_path);
+				}
+			}
+
 			var shader = new ShaderSetup {
 				name = this.shaderName.Trim()
 			};
+
+			var self_path = AssetDatabase.GetAssetPath(this);
+			if (string.IsNullOrEmpty(self_path)) {
+				Debug.LogWarningFormat("Generator {0} is not saved to asset file, GUID will not be writen into shader.", this);
+			} else {
+				var self_guid = AssetDatabase.AssetPathToGUID(self_path);
+				if (string.IsNullOrEmpty(self_guid)) {
+					Debug.LogWarningFormat("Generator {0} does not have GUID, so it will not be writen into shader.", this);
+				} else {
+					shader.tags[KawaFLT_GenaratorGUID] = self_guid;
+				}
+			}
 
 			if (string.IsNullOrEmpty(shader.name)) {
 				EditorUtility.DisplayDialog("Invalid Shader Name", "Shader Name is Empty!", "OK");
@@ -119,7 +161,6 @@ namespace Kawashirov.FLT
 			code.Append("// Он сгенерирован скриптами и используется скриптами.\n");
 			shader.Bake(ref code);
 
-			var shader_generated_path = string.Format("{0}/_generated_{1}.shader", shader_cginc_path, this.shaderName);
 			using (var writer = new StreamWriter(shader_generated_path)) {
 				writer.Write(code.ToString());
 				writer.Flush();
@@ -128,7 +169,7 @@ namespace Kawashirov.FLT
 			this.result = AssetDatabase.LoadAssetAtPath<Shader>(shader_generated_path);
 			AssetDatabase.SetLabels(this.result, new string[] { "Kawashirov-Generated-Shader-File", "Kawashirov", "Generated" });
 			Shader.WarmupAllShaders();
-			EditorUtility.FocusProjectWindow();
+			//EditorUtility.FocusProjectWindow();
 		}
 
 		private void ConfigureGeneral(ref ShaderSetup shader)
@@ -184,7 +225,7 @@ namespace Kawashirov.FLT
 					break;
 			}
 
-			shader.forward.zWrite = this.zWrite;
+			//shader.forward.zWrite = this.zWrite;
 			shader.forward.cullMode = this.cull;
 			shader.forward.multi_compile_instancing = f_instancing;
 			shader.forward.defines.Add("KAWAFLT_PASS_FORWARDBASE 1");
@@ -263,9 +304,11 @@ namespace Kawashirov.FLT
 					shader.tags[Unity_RenderType] = "Opaque";
 					shader.tags[KawaFLT_RenderType] = "Opaque";
 					shader.forward.srcBlend = BlendMode.One;
-					shader.forward.srcBlend = BlendMode.Zero;
+					shader.forward.dstBlend = BlendMode.Zero;
+					shader.forward.zWrite = true;
 					shader.forward_add.srcBlend = BlendMode.One;
-					shader.forward_add.srcBlend = BlendMode.One;
+					shader.forward_add.dstBlend = BlendMode.One;
+					shader.forward_add.zWrite = false;
 					break;
 				case BlendTemplate.Cutout:
 					q = "AlphaTest";
@@ -273,9 +316,11 @@ namespace Kawashirov.FLT
 					shader.tags[KawaFLT_RenderType] = "Cutout";
 					shader.Define("_ALPHATEST_ON 1");
 					shader.forward.srcBlend = BlendMode.One;
-					shader.forward.srcBlend = BlendMode.Zero;
+					shader.forward.dstBlend = BlendMode.Zero;
+					shader.forward.zWrite = true;
 					shader.forward_add.srcBlend = BlendMode.One;
-					shader.forward_add.srcBlend = BlendMode.One;
+					shader.forward_add.dstBlend = BlendMode.One;
+					shader.forward_add.zWrite = false;
 					break;
 				case BlendTemplate.Fade:
 					q = "Transparent";
@@ -283,14 +328,17 @@ namespace Kawashirov.FLT
 					shader.tags[KawaFLT_RenderType] = "Fade";
 					shader.Define("_ALPHABLEND_ON 1");
 					shader.forward.srcBlend = BlendMode.SrcAlpha;
-					shader.forward.srcBlend = BlendMode.OneMinusSrcAlpha;
+					shader.forward.dstBlend = BlendMode.OneMinusSrcAlpha;
+					shader.forward.zWrite = false;
 					shader.forward_add.srcBlend = BlendMode.SrcAlpha;
-					shader.forward_add.srcBlend = BlendMode.One;
+					shader.forward_add.dstBlend = BlendMode.One;
+					shader.forward_add.zWrite = false;
 					break;
 			}
 			shader.tags["Queue"] = string.Format("{0}{1:+#;-#;+0}", q, this.queueOffset);
 			shader.shadowcaster.srcBlend = null;
 			shader.shadowcaster.dstBlend = null;
+			shader.shadowcaster.zWrite = null;
 		}
 
 		private void ConfigureFeatureMainTex(ref ShaderSetup shader)

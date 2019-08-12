@@ -12,8 +12,6 @@ using System.Reflection;
 
 public class KawaFLTMaterialEditor : MaterialEditor {
 
-	protected bool haveGeometry = false;
-	protected bool haveTessellation = false;
 	protected IDictionary<string, MaterialProperty> materialProperties;
 
 	protected static void HelpBoxRich(string msg)
@@ -509,26 +507,11 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 				}
 			}
 		}
-
-		if (!this.haveGeometry)
-			return;
-		var isPCW = Commons.MaterialTagCheck(this.target, "KawaFLT_Feature_PCW", "Enabled");
-
-		if (isPCW) {
-			EditorGUI.indentLevel += 1;
-
-		}
-
 	}
-
-	protected bool temporaryBlock = false;
 
 	public override void OnEnable()
 	{
 		base.OnEnable();
-
-		this.haveGeometry = Commons.MaterialTagCheck(this.targets, "KawaFLT_Feature_Geometry", "True");
-		this.haveTessellation = Commons.MaterialTagCheck(this.targets, "KawaFLT_Feature_Tessellation", "True");
 
 		this.materialProperties = new Dictionary<string, MaterialProperty>();
 		var shaders = new HashSet<Shader>();
@@ -550,18 +533,9 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 			}
 		}
 
-		if (shaders.Count > 1) {
-			this.temporaryBlock = true;
-		} else {
-			foreach (var name in names) {
-				this.materialProperties[name] = GetMaterialProperty(this.targets, name);
-			}
+		foreach (var name in names) {
+			this.materialProperties[name] = GetMaterialProperty(this.targets, name);
 		}
-
-		Debug.Log(string.Format(
-			"Tracking {0} properties form {1} names from {2} shaders from {3} meterials from {4} targets.",
-			this.materialProperties.Count, names.Count, shaders.Count, materials, this.targets.Length
-		));
 	}
 
 	public override void OnInspectorGUI()
@@ -571,6 +545,17 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 
 		if (this.targets.Length > 1) {
 			HelpBoxRich("Multi-select is not yet properly work, it can break your materals! Not yet recomended to use.");
+		}
+
+		try {
+			var generator_guid = MaterialTagGet(this.target, KawaFLT_GenaratorGUID);
+			var generator_path = AssetDatabase.GUIDToAssetPath(generator_guid);
+			var generator_obj = AssetDatabase.LoadAssetAtPath<Generator>(generator_path);
+			using (new EditorGUI.DisabledScope(generator_obj == null)) {
+				EditorGUILayout.ObjectField("Shader Generator", generator_obj, typeof(Generator), false);
+			}
+		} catch (Exception exc) {
+			EditorGUILayout.LabelField("Shader Generator Error", exc.ToString());
 		}
 
 		EditorGUILayout.Space();
