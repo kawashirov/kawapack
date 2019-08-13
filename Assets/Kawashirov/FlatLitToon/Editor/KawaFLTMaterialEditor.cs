@@ -416,10 +416,15 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 					using (new EditorGUI.IndentLevelScope()) {
 						this.ShaderProperty(this.FindProperty("_Dsntgrt_Plane"), "");
 					}
-					this.ShaderProperty(this.FindProperty("_Dsntgrt_TriSpreadFactor"), "Spread Factor");
-					this.ShaderProperty(this.FindProperty("_Dsntgrt_TriSpreadAccel"), "Spread Accel");
-					this.ShaderProperty(this.FindProperty("_Dsntgrt_TriDecayFar"), "Far Distance");
-					this.ShaderProperty(this.FindProperty("_Dsntgrt_TriPowerAdjust"), "Power Adjust");
+					EditorGUILayout.LabelField("Spread");
+					using (new EditorGUI.IndentLevelScope()) {
+						this.ShaderProperty(this.FindProperty("_Dsntgrt_TriSpreadRandomness"), "Direction Randomness");
+						this.ShaderProperty(this.FindProperty("_Dsntgrt_TriSpreadSpeed"), "Speed");
+						this.ShaderProperty(this.FindProperty("_Dsntgrt_TriSpreadAccel"), "Accel");
+					}
+					this.ShaderProperty(this.FindProperty("_Dsntgrt_TriDecayFar"), "Compression Distance");
+					this.ShaderProperty(this.FindProperty("_Dsntgrt_TriTintFar"), "Tint Distance");
+					//this.ShaderProperty(this.FindProperty("_Dsntgrt_TriPowerAdjust"), "Power Adjust");
 					this.ShaderProperty(this.FindProperty("_Dsntgrt_Tint"), "Decay tint");
 					if (f_Tessellation) {
 						this.ShaderProperty(this.FindProperty("_Dsntgrt_Tsltn"), "Tessellation factor");

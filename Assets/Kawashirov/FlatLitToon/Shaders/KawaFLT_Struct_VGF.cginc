@@ -6,8 +6,6 @@
 #include "AutoLight.cginc"
 #include "UnityInstancing.cginc"
 
-#define PIPELINE_VGF 1
-
 /* PolyColorWave features */
 
 struct v2g {

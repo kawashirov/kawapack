@@ -8,8 +8,6 @@
 #include "AutoLight.cginc"
 #include "Lighting.cginc"
 
-#define PIPELINE_VF 1
-
 struct v2f {
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 	UNITY_VERTEX_OUTPUT_STEREO

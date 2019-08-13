@@ -550,14 +550,15 @@ namespace Kawashirov.FLT
 		private void ConfigureFeatureInfinityWarDecimation(ref ShaderSetup shader)
 		{
 			shader.TagBool(KawaFLT_Feature_InfinityWarDecimation, this.infinityWarDecimation);
-			if (this.infinityWarDecimation) {
+			if (this.infinityWarDecimation && (this.complexity == ShaderComplexity.VGF || this.complexity == ShaderComplexity.VHDGF)) {
 				this.needRandomVert = true;
 				shader.Define("DSNTGRT_ON 1");
 				shader.properties.Add(new PropertyVector() { name = "_Dsntgrt_Plane", defualt = Vector4.zero });
-				shader.properties.Add(new PropertyFloat() { name = "_Dsntgrt_TriSpreadAccel", defualt = 2, range = new Vector2(0, 5) });
-				shader.properties.Add(new PropertyFloat() { name = "_Dsntgrt_TriSpreadFactor", defualt = 0.1f, range = new Vector2(0, 1) });
-				shader.properties.Add(new PropertyFloat() { name = "_Dsntgrt_TriDecayNear", defualt = 0, range = new Vector2(0, 10) });
-				shader.properties.Add(new PropertyFloat() { name = "_Dsntgrt_TriDecayFar", defualt = 0.5f, range = new Vector2(0, 10) });
+				shader.properties.Add(new PropertyFloat() { name = "_Dsntgrt_TriSpreadRandomness", defualt = 0.5f, range = new Vector2(0, 1) });
+				shader.properties.Add(new PropertyFloat() { name = "_Dsntgrt_TriSpreadSpeed", defualt = 1, range = new Vector2(0, 15), power = 5 });
+				shader.properties.Add(new PropertyFloat() { name = "_Dsntgrt_TriSpreadAccel", defualt = 1, range = new Vector2(0, 15), power = 5 });
+				shader.properties.Add(new PropertyFloat() { name = "_Dsntgrt_TriDecayFar", defualt = 0.5f, range = new Vector2(0, 10), power = 5 });
+				shader.properties.Add(new PropertyFloat() { name = "_Dsntgrt_TriTintFar", defualt = 0.5f, range = new Vector2(0, 10), power = 5 });
 				shader.properties.Add(new PropertyFloat() { name = "_Dsntgrt_TriPowerAdjust", defualt = 1, range = new Vector2(0.5f, 2) });
 				shader.properties.Add(new PropertyColor() { name = "_Dsntgrt_Tint", defualt = new Color(0.2f, 0.2f, 0.2f, 0.1f) });
 				if (this.complexity == ShaderComplexity.VHDGF) {

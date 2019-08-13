@@ -212,7 +212,7 @@ uniform float4 _Color;
 #endif
 
 /*
-	Disintegration features
+	Infinity War features
 */
 
 // Feature strings:
@@ -220,10 +220,12 @@ uniform float4 _Color;
 #if defined(DSNTGRT_ON)
 	uniform float4 _Dsntgrt_Plane;
 	uniform float4 _Dsntgrt_Tint;
+	uniform float _Dsntgrt_TriSpreadRandomness;
+	uniform float _Dsntgrt_TriSpreadSpeed;
 	uniform float _Dsntgrt_TriSpreadAccel;
-	uniform float _Dsntgrt_TriSpreadFactor; 
-	uniform float _Dsntgrt_TriDecayNear;
+	//uniform float _Dsntgrt_TriDecayNear;
 	uniform float _Dsntgrt_TriDecayFar;
+	uniform float _Dsntgrt_TriTintFar;
 	uniform float _Dsntgrt_TriPowerAdjust;
 	#if defined(KAWAFLT_F_TESSELLATION)
 		uniform float _Dsntgrt_Tsltn;

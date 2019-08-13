@@ -64,34 +64,39 @@ inline void pcw_geometry_out(inout GEOMETRY_OUT OUT[3], inout uint rnd) {
 }
 
 
-/* Disintegration features */
-// (IN[i].vertex, rnd) -> (IN[i].vertex, OUT[i].dsntgrtVertexRotated, rnd, dropFace)
+/* Infinity War features */
+// (IN[i].vertex, rnd) -> (IN[i].vertex, OUT[i].dsntgrtFactor, rnd, dropFace)
 inline void dsntgrt_geometry(inout GEOMETRY_IN IN[3], inout GEOMETRY_OUT OUT[3], inout uint rnd, inout bool dropFace) {
-	// Geometry stage code about Disintegration encapsulated here
+	// Geometry stage code about Infinity War encapsulated here
 	#if defined(DSNTGRT_ON)
 		float3 pos_mid = (IN[0].vertex.xyz + IN[1].vertex.xyz + IN[2].vertex.xyz) / 3.0;
 
-		float3 plane_normal = normalize(_Dsntgrt_Plane.xyz);
-		float plane_distance = dot(float4(pos_mid, 1.0), _Dsntgrt_Plane);
+		_Dsntgrt_Plane.xyz = normalize(_Dsntgrt_Plane.xyz);
+		float3 plane_normal = _Dsntgrt_Plane.xyz;
+		float plane_distance_mid = max(0, dot(float4(pos_mid, 1.0f), _Dsntgrt_Plane));
 
-		if (plane_distance > 0.0h) {
-			float dst_far = _Dsntgrt_TriDecayFar;
-			float dst_near = 0; //min(_Dsntgrt_TriDecayNear, _Dsntgrt_TriDecayFar);
+		float3 offset_normal = lerp(plane_normal, rnd_next_direction3(rnd), _Dsntgrt_TriSpreadRandomness);
+		// polynomial y = x^2 * a + x * b + c = x * (x * a + b) + c;  
+		float offset_ammount = plane_distance_mid * (plane_distance_mid * _Dsntgrt_TriSpreadAccel + _Dsntgrt_TriSpreadSpeed);
+		offset_normal = offset_normal * offset_ammount;
+		
+		// Фактор сжатия считается от сердней точки, т.к. если считать для вершин,
+		// то из-за ускорения может начаться растяжение треугольника, а не сжатие
+		float factor_compress = saturate(_Dsntgrt_TriDecayFar > 0.001f ? plane_distance_mid / _Dsntgrt_TriDecayFar : 1.001f);
 
-			float dst_factor = saturate((plane_distance - dst_near) / (dst_far - dst_near));
-			float3 noise_normal = rnd_next_float3_01(rnd) - 0.5;
+		if (factor_compress > 0.999f) {
+			// Если фактор стал больше единицы, значит вертексы сожмутся в точку и фейс не будет нужен
+			//dropFace = true;
+		}
 
-			float offset_ammount = plane_distance * plane_distance * _Dsntgrt_TriSpreadAccel; //abs(pow(plane_distance * 5.0h, 3.0h));
-			float3 pos_mid_new = pos_mid.xyz + normalize(plane_normal + noise_normal * _Dsntgrt_TriSpreadFactor) * offset_ammount;
+		UNITY_UNROLL for (int j2 = 2; j2 >= 0; j2--) {
+			// Фактор потемнения считаетс яот вершин, что бы обеспечить плавность.
+			float plane_distance_v = dot(float4(IN[j2].vertex.xyz, 1.0), _Dsntgrt_Plane);
+			float factor_tint = _Dsntgrt_TriTintFar > 0.001f ? saturate(plane_distance_v / _Dsntgrt_TriTintFar) : 1.001f;
+			factor_tint = factor_tint * factor_tint * (3.0f - 2.0f * factor_tint); // H01
+			OUT[j2].dsntgrtFactor = factor_tint;
 
-			UNITY_UNROLL for (int j2 = 2; j2 >= 0; j2--) {
-				OUT[j2].dsntgrtFactor = saturate(dst_factor * 2.0);
-				IN[j2].vertex.xyz = pos_mid_new + (IN[j2].vertex.xyz - pos_mid) * (1.0 - dst_factor);
-			}
-		} else {
-			UNITY_UNROLL for (int j3 = 2; j3 >= 0; j3--) {
-				OUT[j3].dsntgrtFactor = 0;
-			}
+			IN[j2].vertex.xyz = lerp(IN[j2].vertex.xyz, pos_mid.xyz, factor_compress) + offset_normal;
 		}
 	#endif
 }

@@ -170,7 +170,7 @@ namespace Kawashirov.FLT
 				if (forceNoShadowCasting_bool.HasValue && mode_int.HasValue && !forceNoShadowCasting_bool.Value && mode_int.Value == (int)BlendTemplate.Fade) {
 					EditorGUILayout.HelpBox(
 						"Blending mode is \"Fade\", but \"Force No Shadow Casting\" is Off.\n" +
-						"Usually \"Fade\" does not cast shadow, but this shader can use \"Cutout\" shadow caster for \"Fade\" mode.\n" +
+						"Usually transparent modes does not cast shadows, but this shader can use \"Cutout\" shadow caster for transparent modes.\n" +
 						"It's better to disable shadow casting for \"Fade\" at all, unless you REALLY need it.",
 						MessageType.Warning
 					);

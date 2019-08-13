@@ -10,8 +10,6 @@
 #include "UnityInstancing.cginc"
 #include "KawaRND.cginc"
 
-#define PIPELINE_VHDGF 1
-
 /* General */
 
 VERTEX_OUT vert(appdata_full v) {

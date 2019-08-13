@@ -91,8 +91,22 @@ inline float3 rnd_next_float3_01(inout uint rnd) {
 	return float3(rnd_next_float_01(rnd), rnd_next_float_01(rnd), rnd_next_float_01(rnd));
 }
 
-inline float2 rnd_circle(inout uint rnd) {
-	// uniformly random point within a circle
+inline float3 rnd_next_direction3(inout uint rnd) {
+	// Случайная точка на поверхности сферы
+	float3 float01 = rnd_next_float3_01(rnd) * 2.0 - 1.0;
+	float01 = float01 / cos(float01);
+	return normalize(float01);
+}
+
+inline float2 rnd_next_direction2(inout uint rnd) {
+	// Случайная точка на окружности
+	float3 float01 = rnd_next_float3_01(rnd) * 2.0 - 1.0;
+	float01 = float01 / cos(float01);
+	return normalize(float01);
+}
+
+inline float2 rnd_next_disc2(inout uint rnd) {
+	// Случайная точка внутри диска
 	float a = rnd_next_float_01(rnd) * UNITY_TWO_PI;
 	float r = sqrt(rnd_next_float_01(rnd));
 	float2 sc;

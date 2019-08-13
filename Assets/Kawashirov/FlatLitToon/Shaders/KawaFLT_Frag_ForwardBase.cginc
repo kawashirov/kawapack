@@ -25,6 +25,7 @@ inline half3 frag_forward_get_emission_color(inout FRAGMENT_IN i, half3 baseColo
 	em = em * em; // TODO FIXME Gamma fix?
 	em = fps_mix(half4(em, 0)).rgb;
 	em = pcw_mix(em, i, true); // Mix-in Poly Color Wave
+	em = dsntgrt_mix_emission(em, i);
 	return em;
 }
 
