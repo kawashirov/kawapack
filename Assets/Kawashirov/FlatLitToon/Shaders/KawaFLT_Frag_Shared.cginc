@@ -7,7 +7,7 @@
 inline float2 frag_pixelcoords(FRAGMENT_IN i) {
 	float2 pxc = float2(1, 1);
 	#if defined(RANDOM_MIX_COORD) || defined(RANDOM_SEED_TEX)
-		pxc =  i.screenPos.xy / i.screenPos.w * _ScreenParams.xy;
+		pxc =  i.pos_screen.xy / i.pos_screen.w * _ScreenParams.xy;
 	#endif
 	//float4 sp = ComputeScreenPos(UnityPixelSnap(i.pos));
 	//pxc = sp.xy * _ScreenParams.xy / sp.w;
@@ -32,7 +32,7 @@ inline uint frag_rnd_init(FRAGMENT_IN i) {
 
 inline half4 dsntgrt_mix_albedo(half4 color, FRAGMENT_IN i) {
 	#if defined(DSNTGRT_ON)
-		color.rgb = lerp(color.rgb, _Dsntgrt_Tint.rgb, _Dsntgrt_Tint.a * i.dsntgrtFactor);
+		color.rgb = lerp(color.rgb, _Dsntgrt_Tint.rgb, _Dsntgrt_Tint.a * i.dsntgrt_tint);
 	#endif
 	return color;
 }
@@ -40,7 +40,7 @@ inline half4 dsntgrt_mix_albedo(half4 color, FRAGMENT_IN i) {
 inline half3 dsntgrt_mix_emission(half3 color, FRAGMENT_IN i) {
 	#if defined(DSNTGRT_ON)
 		// Затенение эмишона.
-		color = color * saturate(1.0 - _Dsntgrt_Tint.a * i.dsntgrtFactor);
+		color = color * saturate(1.0 - _Dsntgrt_Tint.a * i.dsntgrt_tint);
 	#endif
 	return color;
 }
@@ -56,11 +56,11 @@ inline void dstfd_frag_clip(inout FRAGMENT_IN i, inout uint rnd) {
 		#if defined(DSTFD_RANGE)
 			half rnd_nonlin = pow(rnd_01, _DstFd_AdjustPower);
 			half dist = lerp(_DstFd_Near, _DstFd_Far, rnd_nonlin);
-			clip_v = dist - i.dstfdDistance;
+			clip_v = dist - i.dstfd_distance;
 		#elif defined(DSTFD_INFINITY)
 			half rnd_nonlin = pow((1.0h - rnd_01) / rnd_01, 1.0h / _DstFd_AdjustPower) * _DstFd_AdjustScale;
 			half dist = rnd_nonlin + _DstFd_Near;
-			clip_v = dist - i.dstfdDistance;
+			clip_v = dist - i.dstfd_distance;
 		#endif
 
 		clip(clip_v * _DstFd_Axis.w);
@@ -88,7 +88,7 @@ inline half4 fps_mix(half4 color) {
 
 inline half3 pcw_mix(half3 color, FRAGMENT_IN i, bool is_emission) {
 	#if defined(PCW_ON)
-		color = lerp(color, i.pcwColor.rgb, i.pcwColor.a * (is_emission ? _PCW_Em : (1.0 - _PCW_Em)));
+		color = lerp(color, i.pcw_color.rgb, i.pcw_color.a * (is_emission ? _PCW_Em : (1.0 - _PCW_Em)));
 	#endif
 	return color;
 }
@@ -111,7 +111,8 @@ inline void frag_alphatest(FRAGMENT_IN i, inout uint rnd, in half alpha) {
 }
 
 inline void frag_cull(FRAGMENT_IN i) {
-	#if defined(NEED_CULL)
+	#if defined(NEED_CULL) && defined(KAWAFLT_PIPELINE_VF)
+		// Без геометри стейджа у нас нет возможность сбрасывать примитивы, по этому сбрасываем фрагменты
 		if (i.cull) discard;
 	#endif
 }
@@ -150,18 +151,18 @@ inline half4 frag_forward_get_albedo(FRAGMENT_IN i, float2 texST) {
 #if defined(KAWAFLT_PASS_FORWARD)
 	inline half3 frag_forward_get_normal(FRAGMENT_IN i, float2 texST) {
 		#if defined(_NORMALMAP)
-			i.normalDir = normalize(i.normalDir);
-			half3x3 tangentTransform = half3x3(i.tangentDir, i.bitangentDir, i.normalDir);
+			i.normal_world = normalize(i.normal_world);
+			half3x3 tangent_world_basis = half3x3(i.tangent_world, i.bitangent_world, i.normal_world);
 			half3 bump = UnpackScaleNormal(UNITY_SAMPLE_TEX2D(_BumpMap, texST), _BumpScale);
-			half3 normalDirection = normalize(mul(bump.rgb, tangentTransform)); // Perturbed normals
+			half3 normal_world_bumped = normalize(mul(bump, tangent_world_basis)); // Perturbed normals
 		#else
-			half3 normalDirection = normalize(i.normalDir);
+			half3 normal_world_bumped = normalize(i.normal_world);
 		#endif
-		return normalDirection;
+		return normal_world_bumped;
 	}
 
 	inline half frag_forward_get_light_attenuation(FRAGMENT_IN i) {
-		UNITY_LIGHT_ATTENUATION(attenuation, i, i.posWorld.xyz);
+		UNITY_LIGHT_ATTENUATION(attenuation, i, i.pos_world.xyz);
 		return attenuation;
 	}
 
@@ -247,12 +248,12 @@ inline half4 frag_forward_get_albedo(FRAGMENT_IN i, float2 texST) {
 		}
 
 		inline half3 frag_shade_kawaflt_log_forward_main(FRAGMENT_IN i, half3 normal, half rim_factor) {
-			half light_atten = frag_shade_kawaflt_attenuation_no_shadow(i.posWorld.xyz);
+			half light_atten = frag_shade_kawaflt_attenuation_no_shadow(i.pos_world.xyz);
 
-			float3 wsld = normalize(UnityWorldSpaceLightDir(i.posWorld.xyz));
+			float3 wsld = normalize(UnityWorldSpaceLightDir(i.pos_world.xyz));
 			float tangency = max(0, dot(normal, wsld));
 			tangency = frag_shade_kawaflt_log_smooth_tangency(tangency);
-			half shadow_atten = UNITY_SHADOW_ATTENUATION(i, i.posWorld.xyz);
+			half shadow_atten = UNITY_SHADOW_ATTENUATION(i, i.pos_world.xyz);
 			half shade_blended = frag_shade_kawaflt_log_steps_mono(tangency * rim_factor * shadow_atten);
 			half shade_separated = frag_shade_kawaflt_log_steps_mono(tangency * rim_factor) * shadow_atten;
 			half shade = lerp(shade_separated, shade_blended, _Sh_Kwshrv_ShdBlnd);
@@ -271,10 +272,10 @@ inline half4 frag_forward_get_albedo(FRAGMENT_IN i, float2 texST) {
 		}
 
 		inline half3 frag_shade_kawaflt_ramp_forward_main(FRAGMENT_IN i, half3 normal) {
-			half light_atten = frag_shade_kawaflt_attenuation_no_shadow(i.posWorld.xyz);
+			half light_atten = frag_shade_kawaflt_attenuation_no_shadow(i.pos_world.xyz);
 
-			half shadow_atten = UNITY_SHADOW_ATTENUATION(i, i.posWorld.xyz);
-			float3 wsld = normalize(UnityWorldSpaceLightDir(i.posWorld.xyz));
+			half shadow_atten = UNITY_SHADOW_ATTENUATION(i, i.pos_world.xyz);
+			float3 wsld = normalize(UnityWorldSpaceLightDir(i.pos_world.xyz));
 			half ramp_uv = dot(normal, wsld) * 0.5 + 0.5;
 			half3 shade_blended = frag_shade_kawaflt_ramp_apply(ramp_uv * shadow_atten);
 			half3 shade_separated = frag_shade_kawaflt_ramp_apply(ramp_uv) * shadow_atten;
@@ -288,10 +289,10 @@ inline half4 frag_forward_get_albedo(FRAGMENT_IN i, float2 texST) {
 	#if defined(SHADE_KAWAFLT_SINGLE)
 	
 		inline half3  frag_shade_kawaflt_single_forward_main(FRAGMENT_IN i, half3 normal) {
-			half light_atten = frag_shade_kawaflt_attenuation_no_shadow(i.posWorld.xyz);
+			half light_atten = frag_shade_kawaflt_attenuation_no_shadow(i.pos_world.xyz);
 
-			half shadow_atten = UNITY_SHADOW_ATTENUATION(i, i.posWorld.xyz);
-			float3 dir = normalize(UnityWorldSpaceLightDir(i.posWorld.xyz));
+			half shadow_atten = UNITY_SHADOW_ATTENUATION(i, i.pos_world.xyz);
+			float3 dir = normalize(UnityWorldSpaceLightDir(i.pos_world.xyz));
 			half tangency = dot(normal, dir);
 			half shade = shade_kawaflt_single(tangency, shadow_atten);
 

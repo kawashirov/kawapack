@@ -12,8 +12,8 @@
 		// float4 objPos = mul(unity_ObjectToWorld, float4(0,0,0,1));
 		//float3 lightDirection = normalize(_WorldSpaceLightPos0.xyz);
 		//float3 lightColor = _LightColor0.rgb;
-		UNITY_LIGHT_ATTENUATION(attenuation, i, i.posWorld.xyz);
-		half lightContribution = dot(normalize(_WorldSpaceLightPos0.xyz - i.posWorld.xyz),normal)*attenuation;
+		UNITY_LIGHT_ATTENUATION(attenuation, i, i.pos_world.xyz);
+		half lightContribution = dot(normalize(_WorldSpaceLightPos0.xyz - i.pos_world.xyz),normal)*attenuation;
 		half3 directContribution = floor(saturate(lightContribution) * 2.0h);
 		half lerp_v = saturate(directContribution + ((1.0h - _Sh_Cbdprdx_Shadow) * attenuation));
 		return baseColor * lerp(0.0h, _LightColor0.rgb, lerp_v);
@@ -23,7 +23,7 @@
 #if defined(SHADE_KAWAFLT_LOG)
 
 	inline half3 frag_shade_kawaflt_log_forward_add(FRAGMENT_IN i, half3 albedo, half3 normal) {
-		float3 view_dir = normalize(KawaWorldSpaceViewDir(i.posWorld));
+		float3 view_dir = normalize(KawaWorldSpaceViewDir(i.pos_world));
 		float view_tangency = dot(normal, view_dir);
 		half rim_factor = frag_shade_kawaflt_log_rim_factor(view_tangency);
 

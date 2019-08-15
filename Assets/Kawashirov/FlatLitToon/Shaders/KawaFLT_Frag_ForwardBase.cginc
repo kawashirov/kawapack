@@ -36,7 +36,7 @@ inline half3 frag_forward_get_emission_color(inout FRAGMENT_IN i, half3 baseColo
 	inline half3 frag_shade_cbdprdx_forward_base(FRAGMENT_IN i, half3 baseColor, float3 normalDirection, half3 emissive) {
 		
 		half3 lightDirection = normalize(_WorldSpaceLightPos0.xyz);
-		UNITY_LIGHT_ATTENUATION(attenuation, i, i.posWorld.xyz);
+		UNITY_LIGHT_ATTENUATION(attenuation, i, i.pos_world.xyz);
 
 		half grayscalelightcolor = dot(_LightColor0.rgb, grayscale_vector);
 		half bottomIndirectLighting = grayscaleSH9(half3(0, -1, 0));
@@ -61,7 +61,7 @@ inline half3 frag_forward_get_emission_color(inout FRAGMENT_IN i, half3 baseColo
 #if defined(SHADE_KAWAFLT_LOG)
 
 	inline half3 frag_shade_kawaflt_log_forward_base(FRAGMENT_IN i, half3 albedo, half3 normal3, half3 emission) {
-		float3 view_dir = normalize(KawaWorldSpaceViewDir(i.posWorld));
+		float3 view_dir = normalize(KawaWorldSpaceViewDir(i.pos_world));
 		float view_tangency = dot(normal3, view_dir);
 		half rim_factor = frag_shade_kawaflt_log_rim_factor(view_tangency);
 

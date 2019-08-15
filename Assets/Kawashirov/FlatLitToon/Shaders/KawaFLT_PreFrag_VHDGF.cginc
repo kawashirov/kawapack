@@ -5,6 +5,7 @@
 #include ".\KawaFLT_Features_Lightweight.cginc"
 #include ".\KawaFLT_Features_Geometry.cginc"
 #include ".\KawaFLT_Features_Tessellation.cginc"
+#include ".\KawaFLT_PreFrag_Shared.cginc"
 
 #include "Tessellation.cginc"
 #include "UnityInstancing.cginc"
@@ -12,37 +13,40 @@
 
 /* General */
 
-VERTEX_OUT vert(appdata_full v) {
-	UNITY_SETUP_INSTANCE_ID(v);
-	VERTEX_OUT o;
-	// UNITY_INITIALIZE_OUTPUT(VERTEX_OUT, o);
-	UNITY_TRANSFER_INSTANCE_ID(v, o);
-	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+VERTEX_OUT vert(appdata_full v_in) {
+	UNITY_SETUP_INSTANCE_ID(v_in);
+	VERTEX_OUT v_out;
+	// UNITY_INITIALIZE_OUTPUT(VERTEX_OUT, v_out);
+	UNITY_TRANSFER_INSTANCE_ID(v_in, v_out);
+	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(v_out);
 
-	//uint rnd = rnd_from_float2(v.texcoord);
+	//uint rnd = rnd_from_float2(v_in.texcoord);
 	
-	o.uv0 = v.texcoord;
-	o.vertex = v.vertex;
-	o.normal = v.normal;
+	v_out.uv0 = v_in.texcoord;
+	v_out.vertex = v_in.vertex;
+	v_out.normal_obj = normalize(v_in.normal);
 	
 	#if defined(KAWAFLT_PASS_FORWARD)
-		o.uv1 = v.texcoord1;
-		//o.tangent = v.tangent;
-		// Псевдоконстантные значения
-		o.normalDir = normalize(UnityObjectToWorldNormal(v.normal));
-		o.tangentDir = normalize(mul(unity_ObjectToWorld, half4(v.tangent.xyz, 0)).xyz);
-		o.bitangentDir = normalize(cross(o.normalDir, o.tangentDir) * v.tangent.w);
+		v_out.uv1 = v_in.texcoord1;
+
+		// С большой вероятностью на geom стейдже система изменится и нужно буде
+		// пересчитывать o->w, по этому сохраняем тангентное-пространство в координатах меши
+		// TODO оптимизировать
+		half tangent_w = v_in.tangent.w; // Определяет леворукость/праворукость/зеркальность?
+		v_out.tangent_obj = normalize(v_in.tangent.xyz);
+		v_out.bitangent_obj = normalize(cross(v_out.normal_obj, v_out.tangent_obj) * tangent_w);
+
 		#if defined(KAWAFLT_PASS_FORWARDBASE) && defined(SHADE_KAWAFLT)
-			o.vertexlight_on = false;
+			v_out.vertexlight_on = false;
 			#if defined(VERTEXLIGHT_ON)
-				o.vertexlight_on = true;
+				v_out.vertexlight_on = true;
 			#endif
 		#endif
 	#endif
 	
-	fps_vertex(v, o);
+	fps_vertex(v_in, v_out);
 
-	return o;
+	return v_out;
 }
 
 struct TessellationFactors {
@@ -50,36 +54,36 @@ struct TessellationFactors {
 	float inside : SV_InsideTessFactor;
 };
 
-TessellationFactors hullconst(InputPatch<HULL_IN,3> v) {
+TessellationFactors hullconst(InputPatch<HULL_IN,3> v_in) {
 	bool cull = false;
 	#if defined(NEED_CULL)
-		cull = v[0].cull && v[1].cull && v[2].cull;
+		cull = v_in[0].cull && v_in[1].cull && v_in[2].cull;
 	#endif
 
-	TessellationFactors o;
+	TessellationFactors v_out;
 
 	if (cull) {
-		o.inside = o.edge[0] = o.edge[1] = o.edge[2] = 0.0;
+		v_out.inside = v_out.edge[0] = v_out.edge[1] = v_out.edge[2] = 0.0;
 	} else {
 		unorm float3 dots;
-		dots.x = saturate(0.5 - dot(v[1].normal, v[2].normal) * 0.5);
-		dots.y = saturate(0.5 - dot(v[2].normal, v[0].normal) * 0.5);
-		dots.z = saturate(0.5 - dot(v[0].normal, v[1].normal) * 0.5);
+		dots.x = saturate(0.5 - dot(v_in[1].normal_obj, v_in[2].normal_obj) * 0.5);
+		dots.y = saturate(0.5 - dot(v_in[2].normal_obj, v_in[0].normal_obj) * 0.5);
+		dots.z = saturate(0.5 - dot(v_in[0].normal_obj, v_in[1].normal_obj) * 0.5);
 		dots = sqrt(dots); // TODO Ускорить?
 
-		o.edge[0] = max(0.1, _Tsltn_Uni + _Tsltn_Nrm * dots.x);
-		o.edge[1] = max(0.1, _Tsltn_Uni + _Tsltn_Nrm * dots.y);
-		o.edge[2] = max(0.1, _Tsltn_Uni + _Tsltn_Nrm * dots.z);
+		v_out.edge[0] = max(0.1, _Tsltn_Uni + _Tsltn_Nrm * dots.x);
+		v_out.edge[1] = max(0.1, _Tsltn_Uni + _Tsltn_Nrm * dots.y);
+		v_out.edge[2] = max(0.1, _Tsltn_Uni + _Tsltn_Nrm * dots.z);
 
-		dsntgrt_hullconst(o.edge, v[0], v[1], v[2]);
+		dsntgrt_hullconst(v_out.edge, v_in[0], v_in[1], v_in[2]);
 
-		// o.edge[0] += 2;
-		// o.edge[1] += 2;
-		// o.edge[2] += 2;
+		// v_out.edge[0] += 2;
+		// v_out.edge[1] += 2;
+		// v_out.edge[2] += 2;
 
-		o.inside = (o.edge[0] + o.edge[1] + o.edge[2]) / 3.0 * _Tsltn_Inside;
+		v_out.inside = (v_out.edge[0] + v_out.edge[1] + v_out.edge[2]) / 3.0 * _Tsltn_Inside;
 	}
-	return o;
+	return v_out;
 }
 
 #if defined(TESS_D_QUAD)
@@ -119,149 +123,148 @@ HULL_OUT hull (InputPatch<HULL_IN, 3> v, uint id : SV_OutputControlPointID) {
 #else
 	#error "TESS_D_???"
 #endif
-DOMAIN_OUT domain (TessellationFactors tessFactors, const OutputPatch<DOMAIN_IN,3> vi, float3 bary : SV_DomainLocation) {
-	DOMAIN_OUT o;
+DOMAIN_OUT domain (TessellationFactors tessFactors, const OutputPatch<DOMAIN_IN,3> v_in, float3 bary : SV_DomainLocation) {
+	DOMAIN_OUT v_out;
 
-	o.uv0 = DOMAIN_INTERPOLATE_3D(vi, uv0, bary);
-	//o.vertex = DOMAIN_INTERPOLATE_3D(vi, vertex, bary);
-	o.normal = normalize(DOMAIN_INTERPOLATE_3D(vi, normal, bary));
+	v_out.uv0 = DOMAIN_INTERPOLATE_3D(v_in, uv0, bary);
+	v_out.normal_obj = normalize(DOMAIN_INTERPOLATE_3D(v_in, normal_obj, bary));
 
 	#if defined(KAWAFLT_PASS_FORWARD)
-		o.uv1 = DOMAIN_INTERPOLATE_3D(vi, uv1, bary);
-		o.normalDir = normalize(DOMAIN_INTERPOLATE_3D(vi, normalDir, bary));
-		o.tangentDir = normalize(DOMAIN_INTERPOLATE_3D(vi, tangentDir, bary));
-		o.bitangentDir = normalize(DOMAIN_INTERPOLATE_3D(vi, bitangentDir, bary));
+		v_out.uv1 = DOMAIN_INTERPOLATE_3D(v_in, uv1, bary);
+		v_out.tangent_obj = normalize(DOMAIN_INTERPOLATE_3D(v_in, tangent_obj, bary));
+		v_out.bitangent_obj = normalize(DOMAIN_INTERPOLATE_3D(v_in, bitangent_obj, bary));
 		#if defined(KAWAFLT_PASS_FORWARDBASE) && defined(SHADE_KAWAFLT)
-			o.vertexlight_on = vi[0].vertexlight_on;
+			v_out.vertexlight_on = v_in[0].vertexlight_on;
 		#endif
 	#endif
 
 	// Phong
-	o.vertex = DOMAIN_INTERPOLATE_3D(vi, vertex, bary);
-	// float3 proj_0 = dot(vi[0].vertex - o.vertex.xyz, vi[0].normal) * vi[0].normal;
-	// float3 proj_1 = dot(vi[1].vertex - o.vertex.xyz, vi[1].normal) * vi[1].normal;
-	// float3 proj_2 = dot(vi[2].vertex - o.vertex.xyz, vi[2].normal) * vi[2].normal;
+	v_out.vertex = DOMAIN_INTERPOLATE_3D(v_in, vertex, bary);
+	// float3 proj_0 = dot(v_in[0].vertex - v_out.vertex.xyz, v_in[0].normal) * v_in[0].normal;
+	// float3 proj_1 = dot(v_in[1].vertex - v_out.vertex.xyz, v_in[1].normal) * v_in[1].normal;
+	// float3 proj_2 = dot(v_in[2].vertex - v_out.vertex.xyz, v_in[2].normal) * v_in[2].normal;
 	// float3 vecOffset = bary.x * proj_0 + bary.y * proj_1 + bary.z * proj_2;
-	// o.vertex.xyz += 0.6666 * vecOffset;
+	// v_out.vertex.xyz += 0.6666 * vecOffset;
 
 	// Spherize
-	// o.vertex = DOMAIN_INTERPOLATE_3D(vi, vertex, bary);
-	// o.vertex.xyz = normalize(o.vertex.xyz) * ( length(vi[0].vertex.xyz) * bary.x + length(vi[1].vertex.xyz) * bary.y + length(vi[2].vertex.xyz) * bary.z );
-	// // o.vertex.xyz = normalize(o.vertex.xyz)* ( length(vi[0].vertex.xyz) + length(vi[1].vertex.xyz) + length(vi[2].vertex.xyz) ) / 3.0;
+	// v_out.vertex = DOMAIN_INTERPOLATE_3D(v_in, vertex, bary);
+	// v_out.vertex.xyz = normalize(v_out.vertex.xyz) * ( length(v_in[0].vertex.xyz) * bary.x + length(v_in[1].vertex.xyz) * bary.y + length(v_in[2].vertex.xyz) * bary.z );
+	// // v_out.vertex.xyz = normalize(v_out.vertex.xyz)* ( length(v_in[0].vertex.xyz) + length(v_in[1].vertex.xyz) + length(v_in[2].vertex.xyz) ) / 3.0;
 
 
 	#if defined(NEED_CULL)
-		o.cull = vi[0].cull && vi[1].cull && vi[2].cull;
+		v_out.cull = v_in[0].cull && v_in[1].cull && v_in[2].cull;
 	#endif
 
-	return o;
+	return v_out;
 }
 
 
 #if defined(OUTLINE_OFF)
 	[maxvertexcount(3)]
+	[instance(1)]
 #else
-	[maxvertexcount(6)]
+	[maxvertexcount(3)]
+	[instance(2)]
 #endif
-void geom(triangle GEOMETRY_IN IN[3], in uint p_id : SV_PrimitiveID, inout TriangleStream<GEOMETRY_OUT> tristream) {
+void geom(triangle GEOMETRY_IN v_in[3], uint p_id : SV_PrimitiveID, uint g_id : SV_GSInstanceID, inout TriangleStream<GEOMETRY_OUT> tristream) {
 	// This is not correct, but it's should work because every vert of triange should be from one instance.
-	UNITY_SETUP_INSTANCE_ID(IN[0]);
-	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN[0]);
-	GEOMETRY_OUT OUT[3];
+	UNITY_SETUP_INSTANCE_ID(v_in[0]);
+	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(v_in[0]);
+	GEOMETRY_OUT v_out[3];
 	UNITY_UNROLL for (int i1 = 0; i1 < 3; i1++) {
-		// UNITY_INITIALIZE_OUTPUT(GEOMETRY_OUT, OUT[i1]);
-		UNITY_TRANSFER_INSTANCE_ID(IN[i1], OUT[i1]);
-		UNITY_TRANSFER_VERTEX_OUTPUT_STEREO(IN[i1], OUT[i1]);
+		// UNITY_INITIALIZE_OUTPUT(GEOMETRY_OUT, v_out[i1]);
+		UNITY_TRANSFER_INSTANCE_ID(v_in[i1], v_out[i1]);
+		UNITY_TRANSFER_VERTEX_OUTPUT_STEREO(v_in[i1], v_out[i1]);
 	}
 
-	bool dropFace = false;
+	bool is_outline = g_id == 1;
+
+	#if defined(NEED_CULL)
+		// Удаление треугольника, если все вертексы к удалению
+		if (v_in[0].cull && v_in[1].cull && v_in[2].cull) return;
+	#endif
 
 	//uint p_id = 1;
 	uint rnd_tri = rnd_init_noise_uint(p_id);
 	rnd_tri = rnd_apply_uint(rnd_tri, p_id);
-
 	// FIXME temporary salt with vtx ids for randomness in tessellated sub-primitives
 	// FIMME a lot of instructions used here, ouff
-	rnd_tri = rnd_apply_uint3(rnd_tri, asuint(IN[0].vertex.xyz));
-	rnd_tri = rnd_apply_uint3(rnd_tri, asuint(IN[1].vertex.xyz));
-	rnd_tri = rnd_apply_uint3(rnd_tri, asuint(IN[1].vertex.xyz));
+	rnd_tri = rnd_apply_uint3(rnd_tri, asuint(v_in[0].vertex.xyz));
+	rnd_tri = rnd_apply_uint3(rnd_tri, asuint(v_in[1].vertex.xyz));
+	rnd_tri = rnd_apply_uint3(rnd_tri, asuint(v_in[1].vertex.xyz));
 
-	// IN: (vertex) -> (vertex); OUT: () -> (dsntgrtVertexRotated)
-	dsntgrt_geometry(IN, OUT, rnd_tri, dropFace); 
-
-	if (dropFace) return;
-
-	/* Transforms finished here */
+	bool drop_face = false;
+	// (v_in[i].vertex, rnd) -> (v_in[i].vertex, v_out[i].dsntgrt_tint, rnd, drop_face)
+	dsntgrt_geometry(v_in, v_out, rnd_tri, drop_face); 
+	if (drop_face) return;
 	
-	// FrustumCull
-	OUT[0].posWorld = mul(unity_ObjectToWorld, IN[0].vertex);
-	OUT[1].posWorld = mul(unity_ObjectToWorld, IN[1].vertex);
-	OUT[2].posWorld = mul(unity_ObjectToWorld, IN[2].vertex);
-	dropFace = dropFace || UnityWorldViewFrustumCull(OUT[0].posWorld, OUT[1].posWorld, OUT[2].posWorld, 0.0);
-	if (dropFace) return;
+	v_out[0].pos_world = mul(unity_ObjectToWorld, v_in[0].vertex);
+	v_out[1].pos_world = mul(unity_ObjectToWorld, v_in[1].vertex);
+	v_out[2].pos_world = mul(unity_ObjectToWorld, v_in[2].vertex);
+
+	// После смещающих модов можно сделать проверку на вылет за экран для оптимиации
+	if (UnityWorldViewFrustumCull(v_out[0].pos_world, v_out[1].pos_world, v_out[2].pos_world, 0.0)) return;
 	
-	// Prepare main triangle export
 	UNITY_UNROLL for (int i2 = 0; i2 < 3; i2++) {
-		// Pass-through
-		OUT[i2].uv0 = IN[i2].uv0;
-		#if defined(NEED_CULL)
-			OUT[i2].cull = IN[i2].cull;
-		#endif
+		v_out[i2].normal_world = normalize(UnityObjectToWorldNormal(v_in[i2].normal_obj));
+
+		// Деформация для аутлайна
+		// (v_out.pos_world, v_out.normal_world) -> (v_out.pos_world, v_out.normal_world, v_out.is_outline)
+		outline_geometry_apply_offset(v_out[i2], is_outline);
+
+		// Модификация в ворлд-спейсе завершена, можно обсчитывать клип-спейс и прочее
+
+		v_out[i2].uv0 = v_in[i2].uv0;
+		v_out[i2].pos = UnityWorldToClipPos(v_out[i2].pos_world);
+
 		#if defined(KAWAFLT_PASS_FORWARD)
-			OUT[i2].uv1 = IN[i2].uv1;
-			// OUT[i].normal = IN[i].normal;
-			OUT[i2].vertex = IN[i2].vertex;
-			OUT[i2].normalDir = IN[i2].normalDir;
-			OUT[i2].tangentDir = IN[i2].tangentDir;
-			OUT[i2].bitangentDir = IN[i2].bitangentDir;
-		#endif
-		
-		// Calculate new values
-		//UNITY_SETUP_INSTANCE_ID(IN[i2]);
-		OUT[i2].pos = UnityObjectToClipPos(IN[i2].vertex); 
-		// OUT[i2].posWorld = mul(unity_ObjectToWorld, IN[i2].vertex);
-		screencoords_fragment_in(OUT[i2]);
-		#if defined(KAWAFLT_PASS_FORWARD)
+			v_out[i2].uv1 = v_in[i2].uv1;
+
+			v_out[i2].vertex = v_in[i2].vertex;
+			v_out[i2].tangent_world = normalize(UnityObjectToWorldDir(v_in[i2].tangent_obj));
+			v_out[i2].bitangent_world = normalize(UnityObjectToWorldDir(v_in[i2].bitangent_obj));
+
+			#if defined(KAWAFLT_F_MATCAP_ON)
+				half3x3 tangent_obj_basis = half3x3(v_in[i2].tangent_obj, v_in[i2].bitangent_obj, v_in[i2].normal_obj);
+				v_out[i2].matcap_x = mul(tangent_obj_basis, half3(UNITY_MATRIX_IT_MV[0].xyz));
+				v_out[i2].matcap_y = mul(tangent_obj_basis, half3(UNITY_MATRIX_IT_MV[1].xyz));
+			#endif
+
 			bool vertexlight_on = false;
 			#if defined(KAWAFLT_PASS_FORWARDBASE) && defined(SHADE_KAWAFLT)
-				vertexlight_on = IN[i2].vertexlight_on;
+				vertexlight_on = v_in[i2].vertexlight_on;
 			#endif
-			float3 wsvd = KawaWorldSpaceViewDir(OUT[i2].posWorld.xyz);
-			kawaflt_fragment_in(OUT[i2], vertexlight_on, wsvd);
-			UNITY_TRANSFER_FOG(OUT[i2], OUT[i2].pos);
-			#if defined(OUTLINE_ON)
-				OUT[i2].is_outline = false;
-			#endif
+			float3 wsvd = KawaWorldSpaceViewDir(v_out[i2].pos_world.xyz);
+			kawaflt_fragment_in(v_out[i2], vertexlight_on, wsvd);
+
+			prefrag_transfer_shadow(v_in[i2].vertex, v_out[i2]); // v_out[i2].pos 
+			UNITY_TRANSFER_FOG(v_out[i2], v_out[i2].pos);
 		#endif
 
-		geom_proxy_calc_shadow(IN[i2], OUT[i2]);
-		geom_proxy_shadowcaster_nopos(IN[i2], OUT[i2]);
+		// (v_out.pos) -> (v_out.pos_screen)
+		screencoords_fragment_in(v_out[i2]);
+		// (v_out.pos_world) -> (v_out.dstfd_distance)
+		dstfade_frament_in(v_out[i2]);
 
-		dstfade_frament_in(OUT[i2]);
-		//#endif
+		prefrag_shadowcaster_pos(v_in[i2].vertex, v_in[i2].normal_obj, v_out[i2].pos);
 	}
 
-	pcw_geometry_out(OUT, rnd_tri);
+	pcw_geometry_out(v_out, rnd_tri);
 
-	UNITY_UNROLL for (int i3 = 0; i3 < 3; i3++) {
-		tristream.Append(OUT[i3]);
+	if (is_outline) {
+		// Обратный порядок
+		tristream.Append(v_out[2]);
+		tristream.Append(v_out[1]);
+		tristream.Append(v_out[0]);
+	} else {
+		// Прямой порядок
+		tristream.Append(v_out[0]);
+		tristream.Append(v_out[1]);
+		tristream.Append(v_out[2]);
 	}
 
 	tristream.RestartStrip();
-	
-	#if defined(KAWAFLT_PASS_FORWARD) && defined(OUTLINE_ON)
-		// Loop in reversed order
-		UNITY_UNROLL for (int i4 = 2; i4 >= 0; i4--) {
-			// Copy and rewrite for outline
-			g2f out_tln = OUT[i4];
-			outline_geometry_apply_offset(out_tln);
-			screencoords_fragment_in(out_tln);
-			UNITY_TRANSFER_FOG(out_tln, out_tln.pos);
-			// Other values should stay the same
-			tristream.Append(out_tln);
-		}
-		tristream.RestartStrip(); 
-	#endif
 }
 
 

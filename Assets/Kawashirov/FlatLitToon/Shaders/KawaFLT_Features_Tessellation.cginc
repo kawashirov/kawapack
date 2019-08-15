@@ -5,7 +5,7 @@
 #include "Tessellation.cginc"
 
 /* Infinity War features */
-// (IN[i].vertex, rnd) -> (IN[i].vertex, OUT[i].dsntgrtVertexRotated, rnd, dropFace)
+// (IN[i].vertex, rnd) -> (IN[i].vertex, OUT[i].dsntgrtVertexRotated, rnd, drop_face)
 inline void dsntgrt_hullconst(inout float edge[3], HULL_IN v0, HULL_IN v1, HULL_IN v2) {
 	#if defined(DSNTGRT_ON)
 		// Делаем тест на плоскость _Dsntgrt_Plane

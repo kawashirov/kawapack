@@ -14,12 +14,12 @@ struct v2f {
 
 	// Shared values
 	float4 pos : SV_POSITION;
-	float2 uv0 : TEXCOORD1;
-	
-	float4 posWorld : KAWASMNT_POS_WORLD;
+	half2 uv0 : TEXCOORD1;
+	float4 pos_world : KAWASMNT_POS_WORLD;
+	half3 normal_world : KAWASMNT_NORMAL_WORLD;
 
 	#if defined(RANDOM_MIX_COORD) || defined(RANDOM_SEED_TEX)
-		float4 screenPos : KAWASMNT_SCREENPOS;
+		float4 pos_screen : KAWASMNT_SCREENPOS;
 	#endif
 
 	#if defined(NEED_CULL)
@@ -28,10 +28,13 @@ struct v2f {
 	
 	// Forward-only
 	#if defined(KAWAFLT_PASS_FORWARD)
-		float2 uv1 : TEXCOORD2;
-		half3 normalDir : KAWASMNT_NORMAL_DIR;
-		half3 tangentDir : KAWASMNT_TANGENT_DIR;
-		half3 bitangentDir : KAWASMNT_BITANGENT_DIR;
+		half2 uv1 : TEXCOORD2;
+		half3 tangent_world : KAWASMNT_TANGENT_WORLD;
+		half3 bitangent_world : KAWASMNT_BITANGENT_WORLD;
+		#if defined(KAWAFLT_F_MATCAP_ON)
+			half3 matcap_x : KAWASMNT_MATCAP_X;
+			half3 matcap_y : KAWASMNT_MATCAP_Y;
+		#endif
 		#if defined(KAWAFLT_PASS_FORWARDBASE) && defined(SHADE_KAWAFLT)
 			half3 vertexlight : KAWASMNT_VERTEXLIGHT;
 			#if defined(UNITY_SHOULD_SAMPLE_SH) && (defined(SHADE_KAWAFLT_LOG) || defined(SHADE_KAWAFLT_SINGLE))
@@ -42,13 +45,8 @@ struct v2f {
 		UNITY_FOG_COORDS(4)
 	#endif
 	
-	// ShadowCaster-only
-	#if defined(KAWAFLT_PASS_SHADOWCASTER)
-		V2F_SHADOW_CASTER_NOPOS // TEXCOORD0
-	#endif
-
 	#if defined(DSTFD_ON)
-		float3 dstfdDistance : DSTFD_DISTANCE;
+		float3 dstfd_distance : DSTFD_DISTANCE;
 	#endif
 };
 

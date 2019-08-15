@@ -14,19 +14,14 @@ struct v2g {
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 	UNITY_VERTEX_OUTPUT_STEREO
 
-	float2 uv0 : TEXCOORD0;
+	half2 uv0 : TEXCOORD0;
 	float4 vertex : KAWASMNT_VERTEX;
-	half3 normal : KAWASMNT_NORMAL;
+	half3 normal_obj : KAWASMNT_NORMAL_OBJ;
 	
 	#if defined(KAWAFLT_PASS_FORWARD)
-		// Forward-specific
 		float2 uv1 : TEXCOORD1;
-		// float4 tangent : KAWASMNT_TANGENT;
-		//float4 posWorld : KAWASMNT_POS_WORLD;
-		half3 normalDir : KAWASMNT_NORMAL_DIR;
-		half3 tangentDir : KAWASMNT_TANGENT_DIR;
-		half3 bitangentDir : KAWASMNT_BITANGENT_DIR;
-		//UNITY_SHADOW_COORDS(2)
+		half3 tangent_obj : KAWASMNT_TANGENT_OBJ;
+		half3 bitangent_obj : KAWASMNT_BITANGENT_OBJ;
 		#if defined(KAWAFLT_PASS_FORWARDBASE) && defined(SHADE_KAWAFLT)
 			nointerpolation bool vertexlight_on : KAWASMNT_VERTEXLIGHT_ON;
 		#endif
@@ -42,28 +37,24 @@ struct g2f {
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 	UNITY_VERTEX_OUTPUT_STEREO
 
-	// Shared values
 	float4 pos : SV_POSITION;
-	float2 uv0 : TEXCOORD1;
-	
-	float4 posWorld : KAWASMNT_POS_WORLD;
+	half2 uv0 : TEXCOORD1;
+	float4 pos_world : KAWASMNT_POS_WORLD;
+	half3 normal_world : KAWASMNT_NORMAL_WORLD;
 
 	#if defined(RANDOM_MIX_COORD) || defined(RANDOM_SEED_TEX)
-		float4 screenPos : KAWASMNT_SCREENPOS;
-		// float2 screenCoords : KAWASMNT_SCREENCOORDS;
+		float4 pos_screen : KAWASMNT_SCREENPOS;
 	#endif
 
-	#if defined(NEED_CULL)
-		nointerpolation bool cull : KAWASMNT_CULL;
-	#endif
-
-	// Forward-only
 	#if defined(KAWAFLT_PASS_FORWARD)
-		float2 uv1 : TEXCOORD2;
-		half3 normalDir : KAWASMNT_NORMAL_DIR;
-		half3 tangentDir : KAWASMNT_TANGENT_DIR;
-		half3 bitangentDir : KAWASMNT_BITANGENT_DIR;
+		half2 uv1 : TEXCOORD2;
+		half3 tangent_world : KAWASMNT_TANGENT_WORLD;
+		half3 bitangent_world : KAWASMNT_BITANGENT_WORLD;
 		float4 vertex : KAWASMNT_VERTEX;
+		#if defined(KAWAFLT_F_MATCAP_ON)
+			half3 matcap_x : KAWASMNT_MATCAP_X;
+			half3 matcap_y : KAWASMNT_MATCAP_Y;
+		#endif
 		#if defined(KAWAFLT_PASS_FORWARDBASE) && defined(SHADE_KAWAFLT)
 			half3 vertexlight : KAWASMNT_VERTEXLIGHT;
 			#if defined(UNITY_SHOULD_SAMPLE_SH) && (defined(SHADE_KAWAFLT_LOG) || defined(SHADE_KAWAFLT_SINGLE))
@@ -71,27 +62,22 @@ struct g2f {
 			#endif
 		#endif
 		#if defined(OUTLINE_ON)
-			bool is_outline : KAWASMNT_OUTLINE;
+			nointerpolation bool is_outline : KAWASMNT_OUTLINE;
 		#endif
 		SHADOW_COORDS(3)
 		UNITY_FOG_COORDS(4)
 	#endif
-	
-	// ShadowCaster-only
-	#if defined(KAWAFLT_PASS_SHADOWCASTER)
-		V2F_SHADOW_CASTER_NOPOS // TEXCOORD0
-	#endif
 
 	#if defined(DSTFD_ON)
-		 float3 dstfdDistance : DSTFD_DISTANCE;
+		 float3 dstfd_distance : DSTFD_DISTANCE;
 	#endif
 	
 	#if defined(DSNTGRT_ON)
-		half dsntgrtFactor : DSNTGRT_FACTOR;
+		half dsntgrt_tint : DSNTGRT_FACTOR;
 	#endif
 	
 	#if defined(PCW_ON)
-		half4 pcwColor : PCW_COLOR;
+		half4 pcw_color : PCW_COLOR;
 	#endif
 };
 

@@ -3,23 +3,24 @@
 
 #include "KawaRND.cginc"
 
-/* PolyColorWave features */
+/* Offset feature */
 
-// (v.normalDir, v.posWorld) -> (v.posWorld, v.vertex, v.pos, v.normalDir, v.is_outline)
-inline void outline_geometry_apply_offset(inout GEOMETRY_OUT v) {
+// (v_out.pos_world, v_out.normal_world) -> (v_out.pos_world, v_out.normal_world, v_out.is_outline)
+inline void outline_geometry_apply_offset(inout GEOMETRY_OUT v_out, bool is_outline) {
+	// Меняет GEOMETRY_IN прежде, чем другие моды начнут что-то делать.
 	#if defined(KAWAFLT_PASS_FORWARD) && defined(OUTLINE_ON)
-		half3 offset_normal = v.normalDir * (_outline_width * 0.01h);
-		half3 offset_bias = KawaWorldSpaceViewDir(v.posWorld);
-		offset_bias = normalize(offset_bias) * (_outline_bias * 0.01h);
-
-		v.posWorld.xyz = v.posWorld.xyz + offset_normal - offset_bias;
-		v.vertex.xyz = mul(unity_WorldToObject, float4(v.posWorld.xyz, 1)).xyz;
-		v.pos = UnityObjectToClipPos(v.vertex);
-		v.normalDir = -v.normalDir;
-		v.is_outline = true; 
+		if (is_outline) {
+			half3 wsvd = normalize(KawaWorldSpaceViewDir(v_out.pos_world));
+			half3 offset_world = v_out.normal_world * (_outline_width * 0.01h) - wsvd * (_outline_bias * 0.01h);
+			v_out.pos_world.xyz += offset_world;
+			v_out.normal_world *= -1;
+		}
+		v_out.is_outline = is_outline;
 	#endif
 }
 
+
+/* PolyColorWave feature */
 
 #if defined(PCW_ON)
 	inline float pcw_wave_intensity(float time_offset) {
@@ -43,7 +44,7 @@ inline void outline_geometry_apply_offset(inout GEOMETRY_OUT v) {
 #endif
 
 
-// (OUT[i].uv0, OUT[i].uv1, OUT[i].vertex, rnd) -> (OUT[i].pcwColor, rnd)
+// (OUT[i].uv0, OUT[i].uv1, OUT[i].vertex, rnd) -> (OUT[i].pcw_color, rnd)
 inline void pcw_geometry_out(inout GEOMETRY_OUT OUT[3], inout uint rnd) {
 	#if defined(PCW_ON)
 		float2 uv0Mid = (OUT[0].uv0 + OUT[1].uv0 + OUT[2].uv0) / 3.0;
@@ -58,15 +59,15 @@ inline void pcw_geometry_out(inout GEOMETRY_OUT OUT[3], inout uint rnd) {
 		float wave = pcw_wave_intensity(wave_offset);
 		half4 final_color = half4(lerp(_PCW_Color.rgb, rainbow_color, _PCW_Mix), _PCW_Color.a * wave);
 		UNITY_UNROLL for (int j = 0; j < 3; j++) {
-			OUT[j].pcwColor = final_color;
+			OUT[j].pcw_color = final_color;
 		}
 	#endif
 }
 
 
 /* Infinity War features */
-// (IN[i].vertex, rnd) -> (IN[i].vertex, OUT[i].dsntgrtFactor, rnd, dropFace)
-inline void dsntgrt_geometry(inout GEOMETRY_IN IN[3], inout GEOMETRY_OUT OUT[3], inout uint rnd, inout bool dropFace) {
+// (IN[i].vertex, rnd) -> (IN[i].vertex, OUT[i].dsntgrt_tint, rnd, drop_face)
+inline void dsntgrt_geometry(inout GEOMETRY_IN IN[3], inout GEOMETRY_OUT OUT[3], inout uint rnd, inout bool drop_face) {
 	// Geometry stage code about Infinity War encapsulated here
 	#if defined(DSNTGRT_ON)
 		float3 pos_mid = (IN[0].vertex.xyz + IN[1].vertex.xyz + IN[2].vertex.xyz) / 3.0;
@@ -86,7 +87,7 @@ inline void dsntgrt_geometry(inout GEOMETRY_IN IN[3], inout GEOMETRY_OUT OUT[3],
 
 		if (factor_compress > 0.999f) {
 			// Если фактор стал больше единицы, значит вертексы сожмутся в точку и фейс не будет нужен
-			//dropFace = true;
+			//drop_face = true;
 		}
 
 		UNITY_UNROLL for (int j2 = 2; j2 >= 0; j2--) {
@@ -94,32 +95,11 @@ inline void dsntgrt_geometry(inout GEOMETRY_IN IN[3], inout GEOMETRY_OUT OUT[3],
 			float plane_distance_v = dot(float4(IN[j2].vertex.xyz, 1.0), _Dsntgrt_Plane);
 			float factor_tint = _Dsntgrt_TriTintFar > 0.001f ? saturate(plane_distance_v / _Dsntgrt_TriTintFar) : 1.001f;
 			factor_tint = factor_tint * factor_tint * (3.0f - 2.0f * factor_tint); // H01
-			OUT[j2].dsntgrtFactor = factor_tint;
+			OUT[j2].dsntgrt_tint = factor_tint;
 
 			IN[j2].vertex.xyz = lerp(IN[j2].vertex.xyz, pos_mid.xyz, factor_compress) + offset_normal;
 		}
 	#endif
 }
-
-/* General */
-
-inline void geom_proxy_shadowcaster_nopos(in v2g v, inout g2f o) {
-	// В рот ебал разрабов Юнити
-	// Проксируем хуёвый макрос в функцию, потому что он не работает если g2f не называется `v`, макрос требует `v.vertex` и `v.normal`
-	// Пересчёт `pos` нужен для того, что в режиме SHADOWS_DEPTH сдвинуть объекты по Z оси пространства экрана, что бы приминить unity_LightShadowBias.
-	#if defined(KAWAFLT_PASS_SHADOWCASTER)
-		TRANSFER_SHADOW_CASTER_NOPOS(o, o.pos);
-	#endif
-}
-
-inline void geom_proxy_calc_shadow(in v2g v, inout g2f o) {
-	// В рот ебал разрабов Юнити
-	// Проксируем хуёвый макрос в функцию, потому что он не работает если v2f/g2f не называется `v`, макрос требует `v.vertex`
-	#if defined(KAWAFLT_PASS_FORWARD)
-		TRANSFER_SHADOW(o);
-	#endif // KAWAFLT_PASS_FORWARD
-}
-
-
 
 #endif // KAWAFLT_FEATURES_GEOMETRY_INCLUDED
