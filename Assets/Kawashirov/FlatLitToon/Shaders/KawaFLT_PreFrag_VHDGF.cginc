@@ -190,9 +190,9 @@ void geom(triangle GEOMETRY_IN v_in[3], uint p_id : SV_PrimitiveID, uint g_id : 
 	rnd_tri = rnd_apply_uint(rnd_tri, p_id);
 	// FIXME temporary salt with vtx ids for randomness in tessellated sub-primitives
 	// FIMME a lot of instructions used here, ouff
-	rnd_tri = rnd_apply_uint3(rnd_tri, asuint(v_in[0].vertex.xyz));
-	rnd_tri = rnd_apply_uint3(rnd_tri, asuint(v_in[1].vertex.xyz));
-	rnd_tri = rnd_apply_uint3(rnd_tri, asuint(v_in[1].vertex.xyz));
+	rnd_tri = rnd_apply_uint2(rnd_tri, asuint(v_in[0].uv0));
+	rnd_tri = rnd_apply_uint2(rnd_tri, asuint(v_in[1].uv0));
+	rnd_tri = rnd_apply_uint2(rnd_tri, asuint(v_in[1].uv0));
 
 	bool drop_face = false;
 	// (v_in[i].vertex, rnd) -> (v_in[i].vertex, v_out[i].dsntgrt_tint, rnd, drop_face)

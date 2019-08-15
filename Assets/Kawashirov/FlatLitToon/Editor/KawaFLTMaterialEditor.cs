@@ -412,9 +412,11 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 			using (new EditorGUI.IndentLevelScope()) {
 				if (f_InfinityWarDecimation) {
 					EditorGUILayout.LabelField("I don't feel so good...");
-					EditorGUILayout.LabelField("General equation of a Plane (XYZ is normal, W is offset):");
+					//EditorGUILayout.LabelField("General equation of a Plane (XYZ is normal, W is offset):");
+					EditorGUILayout.LabelField("Particles Front");
 					using (new EditorGUI.IndentLevelScope()) {
-						this.ShaderProperty(this.FindProperty("_Dsntgrt_Plane"), "");
+						this.ShaderProperty(this.FindProperty("_Dsntgrt_Plane"), "General equation of a Plane (XYZ is normal, W is offset)");
+						this.ShaderProperty(this.FindProperty("_Dsntgrt_PlaneDistRandomness"), "Randomness");
 					}
 					EditorGUILayout.LabelField("Spread");
 					using (new EditorGUI.IndentLevelScope()) {

@@ -74,9 +74,11 @@ inline void dsntgrt_geometry(inout GEOMETRY_IN IN[3], inout GEOMETRY_OUT OUT[3],
 
 		_Dsntgrt_Plane.xyz = normalize(_Dsntgrt_Plane.xyz);
 		float3 plane_normal = _Dsntgrt_Plane.xyz;
-		float plane_distance_mid = max(0, dot(float4(pos_mid, 1.0f), _Dsntgrt_Plane));
+		float plane_distance_random = -rnd_next_float_01(rnd) * _Dsntgrt_PlaneDistRandomness;
+		float plane_distance_mid = max(0, dot(float4(pos_mid, 1.0f), _Dsntgrt_Plane) + plane_distance_random);
 
-		float3 offset_normal = lerp(plane_normal, rnd_next_direction3(rnd), _Dsntgrt_TriSpreadRandomness);
+		float3 random_normal = rnd_next_direction3(rnd);
+		float3 offset_normal = lerp(plane_normal, random_normal, _Dsntgrt_TriSpreadRandomness);
 		// polynomial y = x^2 * a + x * b + c = x * (x * a + b) + c;  
 		float offset_ammount = plane_distance_mid * (plane_distance_mid * _Dsntgrt_TriSpreadAccel + _Dsntgrt_TriSpreadSpeed);
 		offset_normal = offset_normal * offset_ammount;
@@ -92,7 +94,7 @@ inline void dsntgrt_geometry(inout GEOMETRY_IN IN[3], inout GEOMETRY_OUT OUT[3],
 
 		UNITY_UNROLL for (int j2 = 2; j2 >= 0; j2--) {
 			// Фактор потемнения считаетс яот вершин, что бы обеспечить плавность.
-			float plane_distance_v = dot(float4(IN[j2].vertex.xyz, 1.0), _Dsntgrt_Plane);
+			float plane_distance_v = max(0, dot(float4(IN[j2].vertex.xyz, 1.0), _Dsntgrt_Plane) + plane_distance_random);
 			float factor_tint = _Dsntgrt_TriTintFar > 0.001f ? saturate(plane_distance_v / _Dsntgrt_TriTintFar) : 1.001f;
 			factor_tint = factor_tint * factor_tint * (3.0f - 2.0f * factor_tint); // H01
 			OUT[j2].dsntgrt_tint = factor_tint;

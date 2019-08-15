@@ -554,6 +554,7 @@ namespace Kawashirov.FLT
 				this.needRandomVert = true;
 				shader.Define("DSNTGRT_ON 1");
 				shader.properties.Add(new PropertyVector() { name = "_Dsntgrt_Plane", defualt = Vector4.zero });
+				shader.properties.Add(new PropertyFloat() { name = "_Dsntgrt_PlaneDistRandomness", defualt = 0, range = new Vector2(0, 10), power = 10 });
 				shader.properties.Add(new PropertyFloat() { name = "_Dsntgrt_TriSpreadRandomness", defualt = 0.5f, range = new Vector2(0, 1) });
 				shader.properties.Add(new PropertyFloat() { name = "_Dsntgrt_TriSpreadSpeed", defualt = 1, range = new Vector2(0, 15), power = 5 });
 				shader.properties.Add(new PropertyFloat() { name = "_Dsntgrt_TriSpreadAccel", defualt = 1, range = new Vector2(0, 15), power = 5 });

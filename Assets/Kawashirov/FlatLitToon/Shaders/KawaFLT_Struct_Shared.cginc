@@ -219,6 +219,7 @@ uniform float4 _Color;
 #define DSNTGRT_RND_SEED 26842
 #if defined(DSNTGRT_ON)
 	uniform float4 _Dsntgrt_Plane;
+	uniform float _Dsntgrt_PlaneDistRandomness;
 	uniform float4 _Dsntgrt_Tint;
 	uniform float _Dsntgrt_TriSpreadRandomness;
 	uniform float _Dsntgrt_TriSpreadSpeed;
