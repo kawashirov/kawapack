@@ -1,10 +1,9 @@
-﻿using UnityEditor;
-using UnityEngine;
-using System.Collections.Generic;
-using System;
-using Kawashirov.FLT;
-using static Kawashirov.FLT.Commons;
+﻿using System;
 using System.Reflection;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEditor;
+using Kawashirov.FLT;
 
 // Имя файла длжно совпадать с именем типа.
 // https://forum.unity.com/threads/solved-blank-scriptableobject-on-import.511527/
@@ -66,8 +65,8 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 
 	protected void OnGUI_BlendMode()
 	{
-		var debug = MaterialTagBoolCheck(this.target, "KawaFLT_Feature_Debug");
-		var instancing = MaterialTagBoolCheck(this.target, "KawaFLT_Feature_Instancing");
+		var debug = Commons.MaterialTagBoolCheck(this.target, "KawaFLT_Feature_Debug");
+		var instancing = Commons.MaterialTagBoolCheck(this.target, "KawaFLT_Feature_Instancing");
 
 		if (instancing && debug) {
 			this.EnableInstancingField();
@@ -86,13 +85,13 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 
 
 	protected void OnGUI_Tessellation() {
-		var tessellation = MaterialTagBoolCheck(this.target, KawaFLT_Feature_Tessellation);
+		var tessellation = Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_Tessellation);
 		using (new EditorGUI.DisabledScope(!tessellation)) {
 			if (tessellation) {
 				EditorGUILayout.LabelField("Tessellation", "Enabled");
 				using (new EditorGUI.IndentLevelScope()) {
-					var partitioning = MaterialTagEnumGet<TessPartitioning>(this.target, KawaFLT_Feature_Partitioning);
-					var domain = MaterialTagEnumGet<TessDomain>(this.target, KawaFLT_Feature_Domain);
+					var partitioning = Commons.MaterialTagEnumGet<TessPartitioning>(this.target, Commons.KawaFLT_Feature_Partitioning);
+					var domain = Commons.MaterialTagEnumGet<TessDomain>(this.target, Commons.KawaFLT_Feature_Domain);
 					EditorGUILayout.LabelField("Partitioning", Enum.GetName(typeof(TessPartitioning), partitioning));
 					EditorGUILayout.LabelField("Domain", Enum.GetName(typeof(TessDomain), domain));
 
@@ -108,7 +107,7 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 
 	protected void OnGUI_Random()
 	{
-		var random = MaterialTagBoolCheck(this.target, KawaFLT_Feature_Random);
+		var random = Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_Random);
 
 		using (new EditorGUI.DisabledScope(!random)) {
 			if (random) {
@@ -139,10 +138,10 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 		EditorGUILayout.LabelField("General Rendering Features");
 		using (new EditorGUI.IndentLevelScope()) {
 
-			var f_mainTex = MaterialTagEnumGet<MainTexKeywords>(this.target, KawaFLT_Feature_MainTex);
-			var f_cutout = MaterialTagEnumGetSafe<CutoutMode>(this.target, KawaFLT_Feature_Cutout);
+			var f_mainTex = Commons.MaterialTagEnumGet<MainTexKeywords>(this.target, Commons.KawaFLT_Feature_MainTex);
+			var f_cutout = Commons.MaterialTagEnumGetSafe<CutoutMode>(this.target, Commons.KawaFLT_Feature_Cutout);
 
-			var f_normalMap = MaterialTagBoolCheck(this.target, KawaFLT_Feature_NormalMap);
+			var f_normalMap = Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_NormalMap);
 
 			using (new EditorGUI.DisabledScope(f_mainTex == MainTexKeywords.NoMainTex)) {
 				var label = "Albedo (MainTex)";
@@ -202,10 +201,10 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 				}
 			}
 
-			var f_emission = MaterialTagBoolCheck(this.target, KawaFLT_Feature_Emission);
+			var f_emission = Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_Emission);
 			using (new EditorGUI.DisabledScope(!f_emission)) {
 				if (f_emission) {
-					var f_emissionMode = MaterialTagEnumGet<EmissionMode>(this.target, KawaFLT_Feature_EmissionMode);
+					var f_emissionMode = Commons.MaterialTagEnumGet<EmissionMode>(this.target, Commons.KawaFLT_Feature_EmissionMode);
 					EditorGUILayout.LabelField("Emission", Enum.GetName(typeof(EmissionMode), f_emissionMode));
 					using (new EditorGUI.IndentLevelScope()) {
 						using (new EditorGUI.DisabledScope(f_emissionMode != EmissionMode.AlbedoMask)) {
@@ -296,10 +295,10 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 
 	protected void OnGUI_Shading()
 	{
-		var shading = MaterialTagEnumGet<ShadingMode>(this.target, KawaFLT_Feature_Shading);
+		var shading = Commons.MaterialTagEnumGet<ShadingMode>(this.target, Commons.KawaFLT_Feature_Shading);
 		EditorGUILayout.LabelField("Shading", Enum.GetName(typeof(ShadingMode), shading));
 		using (new EditorGUI.IndentLevelScope()) {
-			EditorGUILayout.HelpBox(shadingModeDesc[shading], MessageType.Info);
+			EditorGUILayout.HelpBox(Commons.shadingModeDesc[shading], MessageType.Info);
 			if (shading == ShadingMode.CubedParadoxFLT) {
 				this.ShaderProperty(this.FindProperty("_Sh_Cbdprdx_Shadow"), "Shadow");
 			} else if (shading == ShadingMode.KawashirovFLTSingle) {
@@ -335,12 +334,12 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 
 	protected void OnGUI_DistanceFade()
 	{
-		var f_distanceFade = MaterialTagBoolCheck(this.target, KawaFLT_Feature_DistanceFade);
+		var f_distanceFade = Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_DistanceFade);
 		using (new EditorGUI.DisabledScope(!f_distanceFade)) {
 			EditorGUILayout.LabelField("VF Feature: Distance Fade", f_distanceFade ? "Enabled" : "Disabled");
 			using (new EditorGUI.IndentLevelScope()) {
 				if (f_distanceFade) {
-					var f_DistanceFadeMode = MaterialTagEnumGet<DistanceFadeMode>(this.target, KawaFLT_Feature_DistanceFadeMode);
+					var f_DistanceFadeMode = Commons.MaterialTagEnumGet<DistanceFadeMode>(this.target, Commons.KawaFLT_Feature_DistanceFadeMode);
 					EditorGUILayout.LabelField("Mode", Enum.GetName(typeof(DistanceFadeMode), f_DistanceFadeMode));
 
 					this.ShaderProperty(this.FindProperty("_DstFd_Axis"), "Axis weights");
@@ -370,12 +369,12 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 
 	protected void OnGUI_FPS()
 	{
-		var f_FPS = MaterialTagBoolCheck(this.target, KawaFLT_Feature_FPS);
+		var f_FPS = Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_FPS);
 		using (new EditorGUI.DisabledScope(!f_FPS)) {
 			EditorGUILayout.LabelField("VF Feature: FPS Indication", f_FPS ? "Enabled" : "Disabled");
 			using (new EditorGUI.IndentLevelScope()) {
 				if (f_FPS) {
-					var f_FPSMode = MaterialTagEnumGet<FPSMode>(this.target, KawaFLT_Feature_FPSMode);
+					var f_FPSMode = Commons.MaterialTagEnumGet<FPSMode>(this.target, Commons.KawaFLT_Feature_FPSMode);
 					EditorGUILayout.LabelField("Mode", Enum.GetName(typeof(FPSMode), f_FPSMode));
 
 					this.ShaderProperty(this.FindProperty("_FPS_TLo"), "Low FPS tint");
@@ -387,12 +386,12 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 
 	private void OnGUI_Outline()
 	{
-		var f_Outline = MaterialTagBoolCheck(this.target, KawaFLT_Feature_Outline);
+		var f_Outline = Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_Outline);
 		using (new EditorGUI.DisabledScope(!f_Outline)) {
 			EditorGUILayout.LabelField("VGF Feature: Outline", f_Outline ? "Enabled" : "Disabled");
 			using (new EditorGUI.IndentLevelScope()) {
 				if (f_Outline) {
-					var f_FPSMode = MaterialTagEnumGet<OutlineMode>(this.target, KawaFLT_Feature_OutlineMode);
+					var f_FPSMode = Commons.MaterialTagEnumGet<OutlineMode>(this.target, Commons.KawaFLT_Feature_OutlineMode);
 					EditorGUILayout.LabelField("Mode", Enum.GetName(typeof(FPSMode), f_FPSMode));
 
 					this.ShaderProperty(this.FindProperty("_outline_width"), "Outline width (cm)");
@@ -405,8 +404,8 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 
 	private void OnGUI_InfinityWarDecimation()
 	{
-		var f_InfinityWarDecimation = MaterialTagBoolCheck(this.target, KawaFLT_Feature_InfinityWarDecimation);
-		var f_Tessellation = MaterialTagBoolCheck(this.target, KawaFLT_Feature_Tessellation);
+		var f_InfinityWarDecimation = Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_InfinityWarDecimation);
+		var f_Tessellation = Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_Tessellation);
 		using (new EditorGUI.DisabledScope(!f_InfinityWarDecimation)) {
 			EditorGUILayout.LabelField("VGF Feature: Infinity War Decimation", f_InfinityWarDecimation ? "Enabled" : "Disabled");
 			using (new EditorGUI.IndentLevelScope()) {
@@ -442,12 +441,12 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 
 	private void OnGUI_PolyColorWave()
 	{
-		var f_PCW = MaterialTagBoolCheck(this.target, KawaFLT_Feature_PCW);
+		var f_PCW = Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_PCW);
 		using (new EditorGUI.DisabledScope(!f_PCW)) {
 			EditorGUILayout.LabelField("VGF Feature: Poly Color Wave", f_PCW ? "Enabled" : "Disabled");
 			using (new EditorGUI.IndentLevelScope()) {
 				if (f_PCW) {
-					var f_PCWMode = MaterialTagEnumGet<PolyColorWaveMode>(this.target, KawaFLT_Feature_PCWMode);
+					var f_PCWMode = Commons.MaterialTagEnumGet<PolyColorWaveMode>(this.target, Commons.KawaFLT_Feature_PCWMode);
 					EditorGUILayout.LabelField("Mode", Enum.GetName(typeof(PolyColorWaveMode), f_PCWMode));
 
 					var time_low = this.FindProperty("_PCW_WvTmLo");
@@ -555,7 +554,7 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 		}
 
 		try {
-			var generator_guid = MaterialTagGet(this.target, KawaFLT_GenaratorGUID);
+			var generator_guid = Commons.MaterialTagGet(this.target, Commons.KawaFLT_GenaratorGUID);
 			var generator_path = AssetDatabase.GUIDToAssetPath(generator_guid);
 			var generator_obj = AssetDatabase.LoadAssetAtPath<Generator>(generator_path);
 			using (new EditorGUI.DisabledScope(generator_obj == null)) {

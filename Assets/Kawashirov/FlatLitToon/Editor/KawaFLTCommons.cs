@@ -1,11 +1,10 @@
-using UnityEditor;
-using UnityEngine;
-using UnityEngine.Rendering;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System;
 using System.Text;
-
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEditor;
 
 namespace Kawashirov.FLT {
 
@@ -145,10 +144,15 @@ namespace Kawashirov.FLT {
 				? false
 				: tag_v.Split(',').ToList<string>().Any(v => string.Equals(value, v, StringComparison.InvariantCultureIgnoreCase));
 		}
-		
-		public static bool MaterialTagBoolCheck(object material, string tag) => MaterialTagCheck(material, tag, "True");
 
-		public static bool MaterialTagEnumCheck<E>(object material, string tag, E value) => MaterialTagCheck(material, tag, Enum.GetName(typeof(E), value));
+		public static bool MaterialTagBoolCheck(object material, string tag) {
+			return MaterialTagCheck(material, tag, "True");
+		}
+
+		public static bool MaterialTagEnumCheck<E>(object material, string tag, E value)
+		{
+			return MaterialTagCheck(material, tag, Enum.GetName(typeof(E), value));
+		}
 
 		public static E MaterialTagEnumGet<E>(object material, string tag) where E : struct
 		{
