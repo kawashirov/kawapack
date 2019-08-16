@@ -2,16 +2,17 @@
 #define KAWAFLT_PREFRAG_VF_INCLUDED
 
 #include ".\KawaFLT_Struct_VF.cginc"
+#include "KawaRND.cginc"
+#include "UnityInstancing.cginc"
 #include ".\KawaFLT_Features_Lightweight.cginc"
 #include ".\KawaFLT_PreFrag_Shared.cginc"
 
-#include "UnityInstancing.cginc"
-#include "KawaRND.cginc"
 
 VERTEX_OUT vert(appdata_full v_in) {
 	UNITY_SETUP_INSTANCE_ID(v_in);
 	VERTEX_OUT v_out;
-	UNITY_INITIALIZE_OUTPUT(VERTEX_OUT, v_out);
+	//UNITY_INITIALIZE_OUTPUT(VERTEX_OUT, v_out);
+	v_out = (VERTEX_OUT) 0xabcdef; // FIXME
 	UNITY_TRANSFER_INSTANCE_ID(v_in, v_out);
 	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(v_out);
 
@@ -23,6 +24,7 @@ VERTEX_OUT vert(appdata_full v_in) {
 
 	v_out.pos = UnityObjectToClipPos(v_in.vertex); 
 	v_out.pos_world = mul(unity_ObjectToWorld, v_in.vertex);
+	v_out.normal_world = normalize(UnityObjectToWorldNormal(normal_obj));
 
 	screencoords_fragment_in(v_out);
 	
@@ -30,7 +32,6 @@ VERTEX_OUT vert(appdata_full v_in) {
 		v_out.uv1 = v_in.texcoord1;
 
 		// Тангентное-пространство в координатах 
-		v_out.normal_world = normalize(UnityObjectToWorldNormal(normal_obj));
 		half tangent_w = v_in.tangent.w; // Определяет леворукость/праворукость/зеркальность?
 		half3 tangent_obj = normalize(v_in.tangent.xyz);
 		half3 bitangent_obj = normalize(cross(normal_obj, tangent_obj) * tangent_w);
@@ -53,7 +54,12 @@ VERTEX_OUT vert(appdata_full v_in) {
 		float3 wsvd = KawaWorldSpaceViewDir(v_out.pos_world.xyz);
 		kawaflt_fragment_in(v_out, /* compile-time */ vertexlight, wsvd);
 
-		prefrag_transfer_shadow(v_in.vertex, v_out); // v_out.pos
+		// (vertex_obj, v_out.pos) -> (v_out._ShadowCoord)
+		#if defined(SHADOWS_SHADOWMASK)
+			v_out._ShadowCoord = (float4) 0xabcdef;
+		#endif
+
+		prefrag_transfer_shadow(v_in.vertex, v_out);
 		UNITY_TRANSFER_FOG(v_out, v_out.pos);
 	#endif
 	

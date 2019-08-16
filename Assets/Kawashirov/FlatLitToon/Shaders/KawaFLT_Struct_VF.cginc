@@ -41,7 +41,7 @@ struct v2f {
 				half3 ambient : KAWASMNT_AMBIENT;
 			#endif
 		#endif
-		SHADOW_COORDS(3)
+		UNITY_SHADOW_COORDS(1337)
 		UNITY_FOG_COORDS(4)
 	#endif
 	

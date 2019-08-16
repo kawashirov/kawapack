@@ -56,7 +56,7 @@ struct g2f {
 		#if defined(OUTLINE_ON)
 			nointerpolation bool is_outline : KAWASMNT_OUTLINE;
 		#endif
-		SHADOW_COORDS(3)
+		UNITY_SHADOW_COORDS(3)
 		UNITY_FOG_COORDS(4)
 	#endif
 

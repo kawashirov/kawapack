@@ -2,13 +2,12 @@
 #define KAWAFLT_VERT_GEOMETRY_INCLUDED
 
 #include ".\KawaFLT_Struct_VGF.cginc"
-#include ".\KawaFLT_Features_Lightweight.cginc"
-#include ".\KawaFLT_Features_Geometry.cginc"
-#include ".\KawaFLT_PreFrag_Shared.cginc"
-
 #include "Tessellation.cginc"
 #include "UnityInstancing.cginc"
 #include "KawaRND.cginc"
+#include ".\KawaFLT_Features_Lightweight.cginc"
+#include ".\KawaFLT_Features_Geometry.cginc"
+#include ".\KawaFLT_PreFrag_Shared.cginc"
 
 /* General */
 
@@ -21,7 +20,6 @@ VERTEX_OUT vert(appdata_full v_in) {
 	
 	v_out.uv0 = v_in.texcoord;
 	v_out.vertex = v_in.vertex;
-	// Не знаю как и зачем, но нормали используются в shadow caster
 	v_out.normal_obj = normalize(v_in.normal);
 	
 	#if defined(KAWAFLT_PASS_FORWARD)
@@ -60,7 +58,7 @@ void geom(triangle GEOMETRY_IN v_in[3], in uint p_id : SV_PrimitiveID, uint g_id
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(v_in[0]);
 	GEOMETRY_OUT v_out[3];
 	UNITY_UNROLL for (int i1 = 0; i1 < 3; i1++) {
-		// UNITY_INITIALIZE_OUTPUT(GEOMETRY_OUT, v_out[i1]);
+		UNITY_INITIALIZE_OUTPUT(GEOMETRY_OUT, v_out[i1]);
 		UNITY_TRANSFER_INSTANCE_ID(v_in[i1], v_out[i1]);
 		UNITY_TRANSFER_VERTEX_OUTPUT_STEREO(v_in[i1], v_out[i1]);
 	}
@@ -121,7 +119,8 @@ void geom(triangle GEOMETRY_IN v_in[3], in uint p_id : SV_PrimitiveID, uint g_id
 			float3 wsvd = KawaWorldSpaceViewDir(v_out[i2].pos_world.xyz);
 			kawaflt_fragment_in(v_out[i2], vertexlight_on, wsvd);
 
-			prefrag_transfer_shadow(v_in[i2].vertex, v_out[i2]); // v_out[i2].pos
+			// (vertex_obj, v_out.pos) -> (v_out._ShadowCoord)
+			prefrag_transfer_shadow(v_in[i2].vertex, v_out[i2]);
 			UNITY_TRANSFER_FOG(v_out[i2], v_out[i2].pos);
 		#endif
 

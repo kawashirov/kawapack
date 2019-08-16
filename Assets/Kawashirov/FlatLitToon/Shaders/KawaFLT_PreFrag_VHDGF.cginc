@@ -2,14 +2,14 @@
 #define KAWAFLT_PREFRAG_VHDGF_INCLUDED
 
 #include ".\KawaFLT_Struct_VHDGF.cginc"
+#include "Tessellation.cginc"
+#include "UnityInstancing.cginc"
+#include "KawaRND.cginc"
 #include ".\KawaFLT_Features_Lightweight.cginc"
 #include ".\KawaFLT_Features_Geometry.cginc"
 #include ".\KawaFLT_Features_Tessellation.cginc"
 #include ".\KawaFLT_PreFrag_Shared.cginc"
 
-#include "Tessellation.cginc"
-#include "UnityInstancing.cginc"
-#include "KawaRND.cginc"
 
 /* General */
 
@@ -238,7 +238,8 @@ void geom(triangle GEOMETRY_IN v_in[3], uint p_id : SV_PrimitiveID, uint g_id : 
 			float3 wsvd = KawaWorldSpaceViewDir(v_out[i2].pos_world.xyz);
 			kawaflt_fragment_in(v_out[i2], vertexlight_on, wsvd);
 
-			prefrag_transfer_shadow(v_in[i2].vertex, v_out[i2]); // v_out[i2].pos 
+			// (vertex_obj, v_out.pos) -> (v_out._ShadowCoord)
+			prefrag_transfer_shadow(v_in[i2].vertex, v_out[i2]);
 			UNITY_TRANSFER_FOG(v_out[i2], v_out[i2].pos);
 		#endif
 

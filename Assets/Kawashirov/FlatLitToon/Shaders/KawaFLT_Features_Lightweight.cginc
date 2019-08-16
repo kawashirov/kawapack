@@ -25,23 +25,23 @@ inline void fps_vertex(inout VERTEX_IN v_in, inout VERTEX_OUT v_out) {
 
 		uint fps_digit = v_pos == 0 ? fps_digit_0 : fps_digit_1;
 		if (fps_digit != v_digit) {
-			v_out.cull = true;
 			#if defined(PIPELINE_VF)
 				// TODO
 				v_in.vertex = float4(0,0,0,0);
 				// Без геометри стейджа у нас нет возможность сбрасывать примитивы,
 				// по этому сжимаем в 0 что бы минимизировать растризацию
 			#endif
-		} else {
-			v_out.cull = false;
 		}
+		#if defined(NEED_CULL)
+			v_out.cull = fps_digit != v_digit;
+		#endif
 	#endif
 }
 
 
 /* KawaFLT */
 
-// (v.normalDir) -> (v.vertexlight, v.vertexlight_uv, v.vertexlight_a, v.ambient)
+// (v.normalDir) -> (v.vertexlight, v.ambient)
 inline void kawaflt_fragment_in(inout FRAGMENT_IN v, bool vertexlight_on, float3 wsvd) {
 	#if defined(KAWAFLT_PASS_FORWARDBASE) && defined(SHADE_KAWAFLT)
 		v.vertexlight = half3(0,0,0);

@@ -27,12 +27,13 @@ struct __prefrag_transfer_shadow__ {
 	float4 vertex : POSITION;
 };
 
+// (vertex_obj, v_out.pos) -> (v_out._ShadowCoord)
 inline void prefrag_transfer_shadow(float4 vertex_obj, inout FRAGMENT_IN v_out) {
 	#if defined(KAWAFLT_PASS_FORWARD)
 		__prefrag_transfer_shadow__ v;
 		v.vertex = vertex_obj;
 		// Макро юнити обращается к v.vertex, здорово, правда?
-		TRANSFER_SHADOW(v_out);  
+		UNITY_TRANSFER_SHADOW(v_out, float2(0,0));  
 	#endif
 }
 

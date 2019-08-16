@@ -519,6 +519,8 @@ namespace Kawashirov.FLT {
 					sb.Append(renderer).Append(' ');
 				sb.Append('\n');
 			}
+			if (this.enable_d3d11_debug_symbols)
+				sb.Append("#pragma enable_d3d11_debug_symbols\n");
 			if (this.multi_compile_fwdbase)
 				sb.Append("#pragma multi_compile_fwdbase\n");
 			if (this.multi_compile_fwdadd_fullshadows)
