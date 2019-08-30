@@ -75,8 +75,8 @@ void geom(triangle GEOMETRY_IN v_in[3], in uint p_id : SV_PrimitiveID, uint g_id
 	rnd_tri = rnd_apply_uint(rnd_tri, p_id);
 
 	bool drop_face = false;
-	// v_in: (vertex) -> (vertex); v_out: () -> (dsntgrtVertexRotated)
-	dsntgrt_geometry(v_in, v_out, rnd_tri, drop_face); 
+	// (v_in.vertex, rnd) -> (v_in.vertex, v_out.iwd_tint, rnd, drop_face)
+	iwd_geometry(v_in, v_out, rnd_tri, drop_face); 
 	if (drop_face) return;
 
 	// Модификация vertex в обджект-спейсе завершена, можно начинать работу в ворлд-спейсе

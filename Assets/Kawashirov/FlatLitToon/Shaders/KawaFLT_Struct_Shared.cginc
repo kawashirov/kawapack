@@ -216,20 +216,29 @@ uniform float4 _Color;
 */
 
 // Feature strings:
-#define DSNTGRT_RND_SEED 26842
-#if defined(DSNTGRT_ON)
-	uniform float4 _Dsntgrt_Plane;
-	uniform float _Dsntgrt_PlaneDistRandomness;
-	uniform float4 _Dsntgrt_Tint;
-	uniform float _Dsntgrt_TriSpreadRandomness;
-	uniform float _Dsntgrt_TriSpreadSpeed;
-	uniform float _Dsntgrt_TriSpreadAccel;
-	//uniform float _Dsntgrt_TriDecayNear;
-	uniform float _Dsntgrt_TriDecayFar;
-	uniform float _Dsntgrt_TriTintFar;
-	uniform float _Dsntgrt_TriPowerAdjust;
+#define IWD_RND_SEED 26842
+#if defined(IWD_ON)
+	uniform float4 _IWD_Plane;
+	uniform float _IWD_PlaneDistRandomness;
+
+	uniform float _IWD_DirRandomWeight;
+	uniform float _IWD_DirPlaneWeight;
+	uniform float _IWD_DirNormalWeight;
+	uniform float _IWD_DirObjectWeight;
+	uniform float4 _IWD_DirObjectVector;
+	uniform float _IWD_DirWorldWeight;
+	uniform float4 _IWD_DirWorldVector;
+
+	uniform float _IWD_MoveSpeed;
+	uniform float _IWD_MoveAccel;
+
+	uniform float4 _IWD_TintColor;
+	uniform float _IWD_TintFar;
+
+	uniform float _IWD_CmprssFar;
+
 	#if defined(KAWAFLT_F_TESSELLATION)
-		uniform float _Dsntgrt_Tsltn;
+		uniform float _IWD_Tsltn;
 	#endif
 #endif
 

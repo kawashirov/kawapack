@@ -551,21 +551,26 @@ namespace Kawashirov.FLT
 			shader.TagBool(Commons.KawaFLT_Feature_InfinityWarDecimation, this.infinityWarDecimation);
 			if (this.infinityWarDecimation && (this.complexity == ShaderComplexity.VGF || this.complexity == ShaderComplexity.VHDGF)) {
 				this.needRandomVert = true;
-				shader.Define("DSNTGRT_ON 1");
-				shader.properties.Add(new PropertyVector() { name = "_Dsntgrt_Plane", defualt = Vector4.zero });
-				shader.properties.Add(new PropertyFloat() { name = "_Dsntgrt_PlaneDistRandomness", defualt = 0, range = new Vector2(0, 10), power = 10 });
-				shader.properties.Add(new PropertyFloat() { name = "_Dsntgrt_TriSpreadRandomness", defualt = 0.5f, range = new Vector2(0, 1) });
-				shader.properties.Add(new PropertyFloat() { name = "_Dsntgrt_TriSpreadSpeed", defualt = 1, range = new Vector2(0, 15), power = 5 });
-				shader.properties.Add(new PropertyFloat() { name = "_Dsntgrt_TriSpreadAccel", defualt = 1, range = new Vector2(0, 15), power = 5 });
-				shader.properties.Add(new PropertyFloat() { name = "_Dsntgrt_TriDecayFar", defualt = 0.5f, range = new Vector2(0, 10), power = 5 });
-				shader.properties.Add(new PropertyFloat() { name = "_Dsntgrt_TriTintFar", defualt = 0.5f, range = new Vector2(0, 10), power = 5 });
-				shader.properties.Add(new PropertyFloat() { name = "_Dsntgrt_TriPowerAdjust", defualt = 1, range = new Vector2(0.5f, 2) });
-				shader.properties.Add(new PropertyColor() { name = "_Dsntgrt_Tint", defualt = new Color(0.2f, 0.2f, 0.2f, 0.1f) });
-				if (this.complexity == ShaderComplexity.VHDGF) {
-					shader.properties.Add(new PropertyFloat() { name = "_Dsntgrt_Tsltn", defualt = 1, range = new Vector2(0, 10), power = 2 });
+				shader.Define("IWD_ON 1");
+				shader.properties.Add(new PropertyVector() { name = "_IWD_Plane", defualt = Vector4.zero });
+				shader.properties.Add(new PropertyFloat() { name = "_IWD_PlaneDistRandomness", defualt = 0, range = new Vector2(0, 10), power = 3 });
+				shader.properties.Add(new PropertyFloat() { name = "_IWD_DirRandomWeight", defualt = 0.5f, range = new Vector2(0, 10), power = 3 });
+				shader.properties.Add(new PropertyFloat() { name = "_IWD_DirPlaneWeight", defualt = 0.5f, range = new Vector2(0, 10), power = 3 });
+				shader.properties.Add(new PropertyFloat() { name = "_IWD_DirNormalWeight", defualt = 0.5f, range = new Vector2(0, 10), power = 3 });
+				shader.properties.Add(new PropertyFloat() { name = "_IWD_DirObjectWeight", defualt = 0.5f, range = new Vector2(0, 10), power = 3 });
+				shader.properties.Add(new PropertyVector() { name = "_IWD_DirObjectVector", defualt = Vector4.zero });
+				shader.properties.Add(new PropertyFloat() { name = "_IWD_DirWorldWeight", defualt = 0.5f, range = new Vector2(0, 10), power = 3 });
+				shader.properties.Add(new PropertyVector() { name = "_IWD_DirWorldVector", defualt = Vector4.zero });
+				shader.properties.Add(new PropertyFloat() { name = "_IWD_MoveSpeed", defualt = 1, range = new Vector2(0, 15), power = 5 });
+				shader.properties.Add(new PropertyFloat() { name = "_IWD_MoveAccel", defualt = 1, range = new Vector2(0, 15), power = 5 });
+				shader.properties.Add(new PropertyColor() { name = "_IWD_TintColor", defualt = new Color(0.2f, 0.2f, 0.2f, 0.1f) });
+				shader.properties.Add(new PropertyFloat() { name = "_IWD_TintFar", defualt = 0.5f, range = new Vector2(0, 10), power = 5 });
+				shader.properties.Add(new PropertyFloat() { name = "_IWD_CmprssFar", defualt = 0.5f, range = new Vector2(0, 10), power = 5 });
+				if (this.complexity == ShaderComplexity.VHDGF) { 
+					shader.properties.Add(new PropertyFloat() { name = "_IWD_Tsltn", defualt = 1, range = new Vector2(0, 10), power = 2 });
 				}
 			} else {
-				shader.Define("DSNTGRT_OFF 1");
+				shader.Define("IWD_OFF 1");
 			}
 		}
 

@@ -414,21 +414,34 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 					//EditorGUILayout.LabelField("General equation of a Plane (XYZ is normal, W is offset):");
 					EditorGUILayout.LabelField("Particles Front");
 					using (new EditorGUI.IndentLevelScope()) {
-						this.ShaderProperty(this.FindProperty("_Dsntgrt_Plane"), "General equation of a Plane (XYZ is normal, W is offset)");
-						this.ShaderProperty(this.FindProperty("_Dsntgrt_PlaneDistRandomness"), "Randomness");
+						EditorGUILayout.LabelField("General equation of a Plane (XYZ is normal, W is offset)");
+						this.ShaderProperty(this.FindProperty("_IWD_Plane"), "");
+						this.ShaderProperty(this.FindProperty("_IWD_PlaneDistRandomness"), "Randomness (W)");
 					}
-					EditorGUILayout.LabelField("Spread");
+					EditorGUILayout.LabelField("Particles Direction");
 					using (new EditorGUI.IndentLevelScope()) {
-						this.ShaderProperty(this.FindProperty("_Dsntgrt_TriSpreadRandomness"), "Direction Randomness");
-						this.ShaderProperty(this.FindProperty("_Dsntgrt_TriSpreadSpeed"), "Speed");
-						this.ShaderProperty(this.FindProperty("_Dsntgrt_TriSpreadAccel"), "Accel");
+						this.ShaderProperty(this.FindProperty("_IWD_DirRandomWeight"), "Random");
+						this.ShaderProperty(this.FindProperty("_IWD_DirPlaneWeight"), "Particles Front Plane");
+						this.ShaderProperty(this.FindProperty("_IWD_DirNormalWeight"), "Normal");
+						this.ShaderProperty(this.FindProperty("_IWD_DirObjectWeight"), "Object Space Vector");
+						using (new EditorGUI.IndentLevelScope()) {
+							this.ShaderProperty(this.FindProperty("_IWD_DirObjectVector"), "");
+						}
+						this.ShaderProperty(this.FindProperty("_IWD_DirWorldWeight"), "World Space Vector");
+						using (new EditorGUI.IndentLevelScope()) {
+							this.ShaderProperty(this.FindProperty("_IWD_DirWorldVector"), "");
+						}
 					}
-					this.ShaderProperty(this.FindProperty("_Dsntgrt_TriDecayFar"), "Compression Distance");
-					this.ShaderProperty(this.FindProperty("_Dsntgrt_TriTintFar"), "Tint Distance");
-					//this.ShaderProperty(this.FindProperty("_Dsntgrt_TriPowerAdjust"), "Power Adjust");
-					this.ShaderProperty(this.FindProperty("_Dsntgrt_Tint"), "Decay tint");
+					EditorGUILayout.LabelField("Particles Movement");
+					using (new EditorGUI.IndentLevelScope()) {
+						this.ShaderProperty(this.FindProperty("_IWD_MoveSpeed"), "Speed");
+						this.ShaderProperty(this.FindProperty("_IWD_MoveAccel"), "Accel");
+					}
+					this.ShaderProperty(this.FindProperty("_IWD_CmprssFar"), "Compression Distance");
+					this.ShaderProperty(this.FindProperty("_IWD_TintFar"), "Tint Distance");
+					this.ShaderProperty(this.FindProperty("_IWD_TintColor"), "Tint Color");
 					if (f_Tessellation) {
-						this.ShaderProperty(this.FindProperty("_Dsntgrt_Tsltn"), "Tessellation factor");
+						this.ShaderProperty(this.FindProperty("_IWD_Tsltn"), "Tessellation factor");
 					} else {
 						using (new EditorGUI.DisabledScope(true)) {
 							EditorGUILayout.LabelField("Tessellation factor", "Disabled");

@@ -75,7 +75,7 @@ TessellationFactors hullconst(InputPatch<HULL_IN,3> v_in) {
 		v_out.edge[1] = max(0.1, _Tsltn_Uni + _Tsltn_Nrm * dots.y);
 		v_out.edge[2] = max(0.1, _Tsltn_Uni + _Tsltn_Nrm * dots.z);
 
-		dsntgrt_hullconst(v_out.edge, v_in[0], v_in[1], v_in[2]);
+		iwd_hullconst(v_out.edge, v_in[0], v_in[1], v_in[2]);
 
 		// v_out.edge[0] += 2;
 		// v_out.edge[1] += 2;
@@ -195,8 +195,8 @@ void geom(triangle GEOMETRY_IN v_in[3], uint p_id : SV_PrimitiveID, uint g_id : 
 	rnd_tri = rnd_apply_uint2(rnd_tri, asuint(v_in[1].uv0));
 
 	bool drop_face = false;
-	// (v_in[i].vertex, rnd) -> (v_in[i].vertex, v_out[i].dsntgrt_tint, rnd, drop_face)
-	dsntgrt_geometry(v_in, v_out, rnd_tri, drop_face); 
+	// (v_in[i].vertex, rnd) -> (v_in[i].vertex, v_out[i].iwd_tint, rnd, drop_face)
+	iwd_geometry(v_in, v_out, rnd_tri, drop_face); 
 	if (drop_face) return;
 	
 	v_out[0].pos_world = mul(unity_ObjectToWorld, v_in[0].vertex);

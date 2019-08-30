@@ -25,8 +25,6 @@ namespace Kawashirov.FLT {
 
 	public enum OutlineMode { Tinted, Colored }
 
-	public enum DisintegrationMode { None, Pixel, Face, PixelAndFace }
-
 	public enum PolyColorWaveMode { Classic, KawaColorfulWaves }
 
 	static class Commons {
@@ -108,8 +106,6 @@ namespace Kawashirov.FLT {
 		public static readonly string[] FPSModeNames = Enum.GetNames(typeof(FPSMode));
 
 		public static readonly string[] outlineModeNames = Enum.GetNames(typeof(OutlineMode));
-
-		public static readonly string[] disintegrationModeNames = Enum.GetNames(typeof(DisintegrationMode));
 
 		public static readonly string[] polyColorWaveModeNames = Enum.GetNames(typeof(PolyColorWaveMode));
 

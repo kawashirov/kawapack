@@ -64,8 +64,8 @@ struct g2f {
 		 float3 dstfd_distance : DSTFD_DISTANCE;
 	#endif
 
-	#if defined(DSNTGRT_ON)
-		half dsntgrt_tint : DSNTGRT_FACTOR;
+	#if defined(IWD_ON)
+		half iwd_tint : IWD_FACTOR;
 	#endif
 
 	#if defined(PCW_ON)

@@ -30,17 +30,17 @@ inline uint frag_rnd_init(FRAGMENT_IN i) {
 
 /* Infinity War features */
 
-inline half4 dsntgrt_mix_albedo(half4 color, FRAGMENT_IN i) {
-	#if defined(DSNTGRT_ON)
-		color.rgb = lerp(color.rgb, _Dsntgrt_Tint.rgb, _Dsntgrt_Tint.a * i.dsntgrt_tint);
+inline half4 iwd_mix_albedo(half4 color, FRAGMENT_IN i) {
+	#if defined(IWD_ON)
+		color.rgb = lerp(color.rgb, _IWD_TintColor.rgb, _IWD_TintColor.a * i.iwd_tint);
 	#endif
 	return color;
 }
 
-inline half3 dsntgrt_mix_emission(half3 color, FRAGMENT_IN i) {
-	#if defined(DSNTGRT_ON)
+inline half3 iwd_mix_emission(half3 color, FRAGMENT_IN i) {
+	#if defined(IWD_ON)
 		// Затенение эмишона.
-		color = color * saturate(1.0 - _Dsntgrt_Tint.a * i.dsntgrt_tint);
+		color = color * saturate(1.0 - _IWD_TintColor.a * i.iwd_tint);
 	#endif
 	return color;
 }
@@ -133,7 +133,7 @@ inline half4 frag_forward_get_albedo(FRAGMENT_IN i, float2 texST) {
 
 	color = fps_mix(color);
 	color.rgb = pcw_mix(color.rgb, i, false); // Mix-in Poly Color Wave
-	color = dsntgrt_mix_albedo(color, i);
+	color = iwd_mix_albedo(color, i);
 
 	#if defined(KAWAFLT_PASS_FORWARD) && defined(OUTLINE_ON)
 		UNITY_FLATTEN if(i.is_outline) {
