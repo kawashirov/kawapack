@@ -1,0 +1,8 @@
+{
+    "name": "KawaEditor",
+    "references": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

@@ -1,11 +1,10 @@
 fileFormatVersion: 2
-guid: de19e14ff71e1eb4f98d0253d23d1a1c
+guid: 2790f9f2766c73e4085bc93ea2c5f187
 labels:
-- KawaFLT
+- Editor
 - Kawashirov
-ShaderImporter:
+AssemblyDefinitionImporter:
   externalObjects: {}
-  defaultTextures: []
   userData: 
   assetBundleName: 
   assetBundleVariant: 

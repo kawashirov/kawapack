@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEditor;
 using System.Security.Cryptography;
 
-public class CreateNoizeTex : MonoBehaviour
+internal class CreateNoizeTex : MonoBehaviour
 {
 	[MenuItem("GameObject/Create Noize Tex")]
 	static void DoIt()

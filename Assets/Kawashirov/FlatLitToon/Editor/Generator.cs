@@ -6,14 +6,19 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor;
 
+using EU = UnityEditor.EditorUtility;
+using UMC = Kawashirov.UnityMaterialCommons;
+using KCT = Kawashirov.KawaCommonsTags;
+using KFLTC = Kawashirov.FLT.Commons;
+
 // Имя файла длжно совпадать с именем типа.
 // https://forum.unity.com/threads/solved-blank-scriptableobject-on-import.511527/
 
-namespace Kawashirov.FLT  
+namespace Kawashirov.FLT 
 {
 	[CreateAssetMenu(menuName = "Kawashirov Flat Lit Toon Shader Generator")]
 	[Serializable]
-	public class Generator : ScriptableObject {
+	internal class Generator : ScriptableObject {
 		private static readonly string NAME_PATTERN = @"[a-zA-Z0-9_-]+";
 
 		public string shaderName = "";
@@ -65,7 +70,7 @@ namespace Kawashirov.FLT
 		{
 			var assets = AssetDatabase.FindAssets("KawaFLT_Struct_Shared");
 			if (assets.Length != 1) {
-				EditorUtility.DisplayDialog(
+				EU.DisplayDialog(
 					"Asset not found",
 					"Can not find KawaFLT_Struct_Shared.cginc: \n" + string.Join(",\n", assets),
 					"OK"
@@ -122,16 +127,16 @@ namespace Kawashirov.FLT
 				if (string.IsNullOrEmpty(self_guid)) {
 					Debug.LogWarningFormat("Generator {0} does not have GUID, so it will not be writen into shader.", this);
 				} else {
-					shader.tags[Commons.KawaFLT_GenaratorGUID] = self_guid;
+					shader.tags[KCT.GenaratorGUID] = self_guid; 
 				}
 			}
 
 			if (string.IsNullOrEmpty(shader.name)) {
-				EditorUtility.DisplayDialog("Invalid Shader Name", "Shader Name is Empty!", "OK");
+				EU.DisplayDialog("Invalid Shader Name", "Shader Name is Empty!", "OK");
 				return;
 			}
 			if (!Regex.Match(shader.name, NAME_PATTERN).Success) {
-				EditorUtility.DisplayDialog("Invalid Shader Name", "Shader Name should match " + NAME_PATTERN, "OK");
+				EU.DisplayDialog("Invalid Shader Name", "Shader Name should match " + NAME_PATTERN, "OK");
 				return;
 			}
 
@@ -193,15 +198,15 @@ namespace Kawashirov.FLT
 				f_instancing = false;
 			}
 
-			shader.TagBool(Commons.KawaFLT_Feature_Instancing, f_instancing);
-			shader.TagBool(Commons.Unity_Feature_DisableBatching, !f_batching);
-			shader.TagBool(Commons.Unity_Feature_ForceNoShadowCasting, this.forceNoShadowCasting);
-			shader.TagBool(Commons.Unity_Feature_IgnoreProjector, this.ignoreProjector);
+			shader.TagBool(KFLTC.F_Instancing, f_instancing);
+			shader.TagBool(UMC.DisableBatching, !f_batching);
+			shader.TagBool(UMC.ForceNoShadowCasting, this.forceNoShadowCasting);
+			shader.TagBool(UMC.IgnoreProjector, this.ignoreProjector);
 
 			switch (this.complexity) {
 				case ShaderComplexity.VHDGF:
-					shader.TagBool(Commons.KawaFLT_Feature_Geometry, true);
-					shader.TagBool(Commons.KawaFLT_Feature_Tessellation, true);
+					shader.TagBool(KFLTC.F_Geometry, true);
+					shader.TagBool(KFLTC.F_Tessellation, true);
 					shader.Include("KawaFLT_Struct_VHDGF.cginc");
 					shader.Include("KawaFLT_PreFrag_VHDGF.cginc");
 					shader.Define("KAWAFLT_PIPELINE_VHDGF 1");
@@ -209,16 +214,16 @@ namespace Kawashirov.FLT
 					shader.Define("KAWAFLT_F_TESSELLATION 1");
 					break;
 				case ShaderComplexity.VGF:
-					shader.TagBool(Commons.KawaFLT_Feature_Geometry, true);
-					shader.TagBool(Commons.KawaFLT_Feature_Tessellation, false);
+					shader.TagBool(KFLTC.F_Geometry, true);
+					shader.TagBool(KFLTC.F_Tessellation, false);
 					shader.Include("KawaFLT_Struct_VGF.cginc");
 					shader.Include("KawaFLT_PreFrag_VGF.cginc");
 					shader.Define("KAWAFLT_PIPELINE_VGF 1");
 					shader.Define("KAWAFLT_F_GEOMETRY 1");
 					break;
 				default:
-					shader.TagBool(Commons.KawaFLT_Feature_Geometry, false);
-					shader.TagBool(Commons.KawaFLT_Feature_Tessellation, false);
+					shader.TagBool(KFLTC.F_Geometry, false);
+					shader.TagBool(KFLTC.F_Tessellation, false);
 					shader.Include("KawaFLT_Struct_VF.cginc");
 					shader.Include("KawaFLT_PreFrag_VF.cginc");
 					shader.Define("KAWAFLT_PIPELINE_VF 1");
@@ -265,7 +270,7 @@ namespace Kawashirov.FLT
 			if (this.complexity != ShaderComplexity.VHDGF)
 				return;
 
-			shader.TagEnum(Commons.KawaFLT_Feature_Partitioning, this.tessPartitioning);
+			shader.TagEnum(KFLTC.F_Partitioning, this.tessPartitioning);
 			switch (this.tessPartitioning) {
 				case TessPartitioning.Integer:
 					shader.Define("TESS_P_INT 1");
@@ -281,7 +286,7 @@ namespace Kawashirov.FLT
 					break;
 			}
 
-			shader.TagEnum(Commons.KawaFLT_Feature_Domain, this.tessDomain);
+			shader.TagEnum(KFLTC.F_Domain, this.tessDomain);
 			switch (this.tessDomain) {
 				case TessDomain.Triangles:
 					shader.Define("TESS_D_TRI 1");
@@ -301,8 +306,8 @@ namespace Kawashirov.FLT
 			string q = null;
 			if (this.mode == BlendTemplate.Opaque) {
 				q = "Geometry";
-				shader.tags[Commons.Unity_RenderType] = "Opaque";
-				shader.tags[Commons.KawaFLT_RenderType] = "Opaque";
+				shader.tags[UMC.RenderType] = "Opaque";
+				shader.tags[KFLTC.RenderType] = "Opaque";
 				shader.forward.srcBlend = BlendMode.One;
 				shader.forward.dstBlend = BlendMode.Zero;
 				shader.forward.zWrite = true;
@@ -311,8 +316,8 @@ namespace Kawashirov.FLT
 				shader.forward_add.zWrite = false;
 			} else if (this.mode == BlendTemplate.Cutout) {
 				q = "AlphaTest";
-				shader.tags[Commons.Unity_RenderType] = "TransparentCutout";
-				shader.tags[Commons.KawaFLT_RenderType] = "Cutout";
+				shader.tags[UMC.RenderType] = "TransparentCutout";
+				shader.tags[KFLTC.RenderType] = "Cutout";
 				shader.Define("_ALPHATEST_ON 1");
 				shader.forward.srcBlend = BlendMode.One;
 				shader.forward.dstBlend = BlendMode.Zero;
@@ -322,8 +327,8 @@ namespace Kawashirov.FLT
 				shader.forward_add.zWrite = false;
 			} else if (this.mode == BlendTemplate.Fade || this.mode == BlendTemplate.FadeCutout) {
 				q = "Transparent";
-				shader.tags[Commons.Unity_RenderType] = "Transparent";
-				shader.tags[Commons.KawaFLT_RenderType] = "Fade";
+				shader.tags[UMC.RenderType] = "Transparent";
+				shader.tags[KFLTC.RenderType] = "Fade";
 				shader.Define("_ALPHABLEND_ON 1");
 				if (this.mode == BlendTemplate.FadeCutout) {
 					shader.Define("CUTOFF_FADE 1");
@@ -347,7 +352,7 @@ namespace Kawashirov.FLT
 			if (this.mode == BlendTemplate.Cutout && mainTex == MainTexKeywords.NoMainTex)
 				mainTex = MainTexKeywords.NoMask;
 
-			shader.TagEnum(Commons.KawaFLT_Feature_MainTex, mainTex);
+			shader.TagEnum(KFLTC.F_MainTex, mainTex);
 
 			switch (this.mainTex) {
 				case MainTexKeywords.NoMainTex:
@@ -408,20 +413,20 @@ namespace Kawashirov.FLT
 				prop_classic |= forward_mode == CutoutMode.Classic;
 				prop_range |= forward_mode == CutoutMode.RangeRandom;
 				prop_range |= forward_mode == CutoutMode.RangeRandomH01;
-				shader.TagEnum(Commons.KawaFLT_Feature_Cutout_Forward, forward_mode);
+				shader.TagEnum(KFLTC.F_Cutout_Forward, forward_mode);
 			}
 			if (shadow_on) {
 				prop_classic |= shadow_mode == CutoutMode.Classic;
 				prop_range |= shadow_mode == CutoutMode.RangeRandom;
 				prop_range |= shadow_mode == CutoutMode.RangeRandomH01;
-				shader.TagEnum(Commons.KawaFLT_Feature_Cutout_ShadowCaster, shadow_mode);
+				shader.TagEnum(KFLTC.F_Cutout_ShadowCaster, shadow_mode);
 			}
 
-			shader.TagBool(Commons.KawaFLT_Feature_Cutout_Classic, prop_classic);
+			shader.TagBool(KFLTC.F_Cutout_Classic, prop_classic);
 			if (prop_classic) {
 				shader.properties.Add(new PropertyFloat() { name = "_Cutoff", defualt = 0.5f, range = new Vector2(0, 1) });
 			}
-			shader.TagBool(Commons.KawaFLT_Feature_Cutout_RangeRandom, prop_range);
+			shader.TagBool(KFLTC.F_Cutout_RangeRandom, prop_range);
 			if (prop_range) {
 				shader.properties.Add(new PropertyFloat() { name = "_CutoffMin", defualt = 0.4f, range = new Vector2(0, 1) });
 				shader.properties.Add(new PropertyFloat() { name = "_CutoffMax", defualt = 0.6f, range = new Vector2(0, 1) });
@@ -451,10 +456,10 @@ namespace Kawashirov.FLT
 
 		private void ConfigureFeatureEmission(ref ShaderSetup shader)
 		{
-			shader.TagBool(Commons.KawaFLT_Feature_Emission, this.emission);
+			shader.TagBool(KFLTC.F_Emission, this.emission);
 			if (this.emission) {
 				shader.forward.defines.Add("_EMISSION");
-				shader.TagEnum(Commons.KawaFLT_Feature_EmissionMode, this.emissionMode);
+				shader.TagEnum(KFLTC.F_EmissionMode, this.emissionMode);
 				switch (this.emissionMode) {
 					case EmissionMode.AlbedoNoMask:
 						shader.forward.defines.Add("EMISSION_ALBEDO_NOMASK 1");
@@ -480,7 +485,7 @@ namespace Kawashirov.FLT
 
 		private void ConfigureFeatureNormalMap(ref ShaderSetup shader)
 		{
-			shader.TagBool(Commons.KawaFLT_Feature_NormalMap, this.bumpMap);
+			shader.TagBool(KFLTC.F_NormalMap, this.bumpMap);
 			if (this.bumpMap) {
 				shader.forward.defines.Add("_NORMALMAP");
 				shader.forward_add.defines.Add("_NORMALMAP");
@@ -491,7 +496,7 @@ namespace Kawashirov.FLT
 
 		private void ConfigureFeatureShading(ref ShaderSetup shader)
 		{
-			shader.TagEnum(Commons.KawaFLT_Feature_Shading, this.shading);
+			shader.TagEnum(KFLTC.F_Shading, this.shading);
 			switch (this.shading) {
 				case ShadingMode.CubedParadoxFLT:
 					shader.forward.defines.Add("SHADE_CUBEDPARADOXFLT 1");
@@ -534,11 +539,11 @@ namespace Kawashirov.FLT
 
 		private void ConfigureFeatureDistanceFade(ref ShaderSetup shader)
 		{
-			shader.TagBool(Commons.KawaFLT_Feature_DistanceFade, this.distanceFade);
+			shader.TagBool(KFLTC.F_DistanceFade, this.distanceFade);
 			if (this.distanceFade) {
 				shader.Define("DSTFD_ON 1");
 				this.needRandomFrag = true;
-				shader.TagEnum(Commons.KawaFLT_Feature_DistanceFadeMode, this.distanceFadeMode);
+				shader.TagEnum(KFLTC.F_DistanceFadeMode, this.distanceFadeMode);
 				switch (this.distanceFadeMode) {
 					case DistanceFadeMode.Range:
 						shader.Define("DSTFD_RANGE 1");
@@ -559,9 +564,9 @@ namespace Kawashirov.FLT
 
 		private void ConfigureFeatureFPS(ref ShaderSetup shader)
 		{
-			shader.TagBool(Commons.KawaFLT_Feature_FPS, this.FPS);
+			shader.TagBool(KFLTC.F_FPS, this.FPS);
 			if (this.FPS) {
-				shader.TagEnum(Commons.KawaFLT_Feature_FPSMode, this.FPSMode);
+				shader.TagEnum(KFLTC.F_FPSMode, this.FPSMode);
 				switch (this.FPSMode) {
 					case FPSMode.ColorTint:
 						shader.Define("FPS_COLOR 1");
@@ -582,10 +587,10 @@ namespace Kawashirov.FLT
 
 		private void ConfigureFeatureOutline(ref ShaderSetup shader)
 		{
-			shader.TagBool(Commons.KawaFLT_Feature_Outline, this.outline);
+			shader.TagBool(KFLTC.F_Outline, this.outline);
 			if (this.outline) {
 				shader.Define("OUTLINE_ON 1");
-				shader.TagEnum(Commons.KawaFLT_Feature_OutlineMode, this.outlineMode);
+				shader.TagEnum(KFLTC.F_OutlineMode, this.outlineMode);
 				if (this.outlineMode == OutlineMode.Colored) {
 					shader.Define("OUTLINE_COLORED 1");
 				} else if (this.outlineMode == OutlineMode.Tinted) {
@@ -601,7 +606,7 @@ namespace Kawashirov.FLT
 
 		private void ConfigureFeatureInfinityWarDecimation(ref ShaderSetup shader)
 		{
-			shader.TagBool(Commons.KawaFLT_Feature_IWD, this.iwd);
+			shader.TagBool(KFLTC.F_IWD, this.iwd);
 			if (this.iwd && (this.complexity == ShaderComplexity.VGF || this.complexity == ShaderComplexity.VHDGF)) {
 				this.needRandomVert = true;
 				shader.Define("IWD_ON 1");
@@ -629,11 +634,11 @@ namespace Kawashirov.FLT
 
 		private void ConfigureFeaturePolyColorWave(ref ShaderSetup shader)
 		{
-			shader.TagBool(Commons.KawaFLT_Feature_PCW, this.pcw);
+			shader.TagBool(KFLTC.F_PCW, this.pcw);
 			if (this.pcw) {
 				this.needRandomVert = true;
 				shader.Define("PCW_ON 1");
-				shader.TagEnum(Commons.KawaFLT_Feature_PCWMode, this.pcwMode);
+				shader.TagEnum(KFLTC.F_PCWMode, this.pcwMode);
 				if (this.pcw) {
 					shader.properties.Add(new PropertyFloat() { name = "_PCW_WvTmLo", defualt = 4 });
 					shader.properties.Add(new PropertyFloat() { name = "_PCW_WvTmAs", defualt = 0.25f });
@@ -664,7 +669,7 @@ namespace Kawashirov.FLT
 				shader.Define("RANDOM_FRAG 1");
 			}
 			if (this.needRandomVert || this.needRandomFrag) {
-				shader.TagBool(Commons.KawaFLT_Feature_Random, true);
+				shader.TagBool(KFLTC.F_Random, true);
 				shader.Define("RANDOM_SEED_TEX 1");
 				shader.properties.Add(new Property2D() { name = "_Rnd_Seed", defualt = "gray" });
 				if (this.rndMixTime) {
@@ -674,7 +679,7 @@ namespace Kawashirov.FLT
 					shader.Define("RANDOM_MIX_COORD 1");
 				}
 			} else {
-				shader.TagBool(Commons.KawaFLT_Feature_Random, false);
+				shader.TagBool(KFLTC.F_Random, false);
 			}
 		}
 

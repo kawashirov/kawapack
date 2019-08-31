@@ -1,6 +1,7 @@
 fileFormatVersion: 2
 guid: 1236562ab859c72448dd03e53e6e1dd3
 labels:
+- KawaFLT
 - Kawashirov
 ShaderImporter:
   externalObjects: {}

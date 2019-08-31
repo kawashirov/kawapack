@@ -1,176 +1,42 @@
 ﻿using System;
-using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using Kawashirov;
 using Kawashirov.FLT;
-using System.Linq;
+
+using MP = UnityEditor.MaterialProperty;
+using EGUIL = UnityEditor.EditorGUILayout;
+using DisabledScope = UnityEditor.EditorGUI.DisabledScope;
+using IndentLevelScope = UnityEditor.EditorGUI.IndentLevelScope;
+using GC = Kawashirov.GeneralCommons;
+using UMC = Kawashirov.UnityMaterialCommons;
+using KCT = Kawashirov.KawaCommonsTags;
+using KFLTC = Kawashirov.FLT.Commons;
 
 // Имя файла длжно совпадать с именем типа.
 // https://forum.unity.com/threads/solved-blank-scriptableobject-on-import.511527/
 // Тип не включен в неймспейс Kawashirov.FLT, т.к. эдитор указывается в файле .shader без указания неймспейса.
 
-public class KawaFLTMaterialEditor : MaterialEditor {
+internal class KawaFLTMaterialEditor : KawaMaterialEditor {
 
-	protected IDictionary<string, MaterialProperty> materialProperties;
-
-	protected static void HelpBoxRich(string msg)
-	{
-		var style = GUI.skin.GetStyle("HelpBox");
-		var rt = style.richText;
-		style.richText = true;
-		EditorGUILayout.TextArea(msg, style);
-		style.richText = rt;
-	}
+	protected IDictionary<string, MP> materialProperties;
 
 	protected static double gcd(double a, double b)
 	{
 		return a < b ? gcd(b, a) : Math.Abs(b) < 0.001 ? a : gcd(b, a - (Math.Floor(a / b) * b));
 	}
 
-	protected MaterialProperty FindProperty(string name)
-	{
-		//return GetMaterialProperty(this.targets, name);
-		//MaterialProperty mp = null;
-		//this.materialProperties.TryGetValue(name, out mp);
-		var mp = GetMaterialProperty(this.targets, name);
-		return mp != null && !string.IsNullOrEmpty(mp.name) && mp.targets != null && mp.targets.Length > 0 ? mp : null;
-	}
-
-	protected void TexturePropertySmol(GUIContent label, MaterialProperty prop)
-	{
-		// ЁБАНЫЕ ВЫ СУКА ЧЕРТИ РАЗРАБОТЧИКИ ЮНИТИ Я ВАС В РОТ ЕБАЛ
-		// КАКОГО ХУЯ ЧТО БЫ ПРОСТО ПОСТАВИТЬ ИКОНКУ С ТЕКСТУРОЙ СПРАВА, А НЕ СЛЕВА
-		// Я ДОЛЖЕН ПИДОРИТЬ СОДЕРЖИМОЕ ДЛЛОК ЧТО БЫ ПОНЯТЬ ЧЁ КАК РАБОТАЕТ
-		// И ВЫЗЫВАТЬ ВАШ ПИДОРСКИЙ ГОВНОКОД СЕРЕЗ РЕФЛЕКШЕНЫ?
-		// ЧЁ СЛОЖНО БЫЛО protected ВМЕСТО private ПОСТАВИТЬ?
-		// КАК Я БЛЯТЬ ЭКСТЕНДИТЬ ЭДИТОРЫ ДОЛЖЕН, СУКА?
-		try {
-			var flags = BindingFlags.Instance | BindingFlags.NonPublic;
-			var m1 = typeof(MaterialEditor).GetMethod("GetControlRectForSingleLine", flags);
-			var m2 = typeof(MaterialEditor).GetMethod("TexturePropertyBody", flags);
-
-			var rect = (Rect)m1.Invoke(this, new object[] { });
-
-			var rect_ctrl = EditorGUI.PrefixLabel(rect, label);
-
-			var min = Math.Min(rect_ctrl.height, rect_ctrl.width);
-			rect_ctrl.width = Math.Min(rect_ctrl.width, min);
-			rect_ctrl.height = Math.Min(rect_ctrl.height, min);
-
-			m2.Invoke(this, new object[] { rect_ctrl, prop });
-		} catch (Exception exc) {
-			// ЕЖЕЛИ ЧТО-ТО ПОШЛО НЕ ТАК
-			this.DefaultShaderProperty(prop, label.text);
-		}
-	}
-
-	protected void TexturePropertySmol(GUIContent label, MaterialProperty prop, bool compatibility)
-	{
-		this.TexturePropertySmol(label, prop);
-		if (compatibility) {
-			this.TextureCompatibilityWarning(prop);
-		}
-	}
-
-	protected void TexturePropertySmolDisabled(GUIContent label, MaterialProperty prop, bool compatibility = true)
-	{
-		using (new EditorGUI.DisabledScope(prop == null)) {
-			if (prop != null) {
-				this.TexturePropertySmol(label, prop, compatibility);
-			} else {
-				EditorGUILayout.LabelField(label, new GUIContent("Disabled"));
-			}
-		}
-
-	}
-
-	protected void ShaderPropertyDisabled(MaterialProperty property, string label = null)
-	{
-		if (string.IsNullOrEmpty(label) && property != null) {
-			label = property.name;
-		}
-		var gui_label = new GUIContent(label);
-		this.ShaderPropertyDisabled(property, gui_label);
-	}
-
-	protected void ShaderPropertyDisabled(MaterialProperty property, GUIContent label = null)
-	{
-		if (property != null) {
-			this.ShaderProperty(property, label);
-		} else {
-			using (new EditorGUI.DisabledScope(true)) {
-				EditorGUILayout.LabelField(label, new GUIContent("Disabled"));
-			}
-		}
-	}
-
-	protected static void LabelEnum<E>(string label, E value, Dictionary<E, string> display = null) where E : struct
-	{
-		string label2 = null;
-		if (display != null && display.Count > 0) {
-			display.TryGetValue(value, out label2);
-		}
-		if (string.IsNullOrEmpty(label2)) {
-			label2 = Enum.GetName(typeof(E), value);
-		}
-		EditorGUILayout.LabelField(label, label2);
-	}
-
-	protected static void LabelEnumDisabled<E>(string label, E? value, Dictionary<E, string> display = null) where E : struct
-	{
-		if (value.HasValue) {
-			LabelEnum(label, value.Value, display);
-		} else if (!string.IsNullOrEmpty(label)) {
-			using (new EditorGUI.DisabledScope(true)) {
-				EditorGUILayout.LabelField(label, "Disabled");
-			}
-		}
-	}
-
-	protected static void LabelEnumDisabledFromTag<E>(
-		string label, object material, string tag, Dictionary<E, string> display = null, E? defualt = null
-	) where E : struct
-	{
-		var e = Commons.MaterialTagEnumGetSafe(material, tag, defualt);
-		LabelEnumDisabled(label, e, display);
-	}
-
-	protected static void LabelEnumDisabledFromTagMixed<E>(
-		string label, IEnumerable<object> materials, string tag, Dictionary<E, string> display = null, E? defualt = null
-	) where E : struct
-	{
-		var values = new HashSet<E>();
-		foreach (var material in materials) {
-			var value = Commons.MaterialTagEnumGetSafe<E>(material, tag);
-			if (value.HasValue) {
-				values.Add(value.Value);
-			}
-		}
-		if (values.Count < 1 && defualt.HasValue) {
-			values.Add(defualt.Value);
-		}
-		if (values.Count < 1) {
-			using (new EditorGUI.DisabledScope(true)) {
-				EditorGUILayout.LabelField(label, "Disabled");
-			}
-		} else if (values.Count > 1) {
-			EditorGUILayout.LabelField(label, "Mixed Values");
-		} else {
-			LabelEnum(label, values.First(), display);
-		}
-	}
-
 	protected void OnGUI_BlendMode()
 	{
-		var debug = Commons.MaterialTagBoolCheck(this.target, "KawaFLT_Feature_Debug");
-		var instancing = Commons.MaterialTagBoolCheck(this.target, "KawaFLT_Feature_Instancing");
+		var debug = UMC.MaterialTagBoolCheck(this.target, "KawaFLT_Feature_Debug");
+		var instancing = UMC.MaterialTagBoolCheck(this.target, "KawaFLT_Feature_Instancing");
 
 		if (instancing && debug) {
 			this.EnableInstancingField();
 		} else {
-			using (new EditorGUI.DisabledScope(!instancing)) {
-				EditorGUILayout.LabelField("Instancing", instancing ? "Enabled" : "Disabled");
+			using (new DisabledScope(!instancing)) {
+				EGUIL.LabelField("Instancing", instancing ? "Enabled" : "Disabled");
 			}
 			foreach (var target in this.targets) {
 				var m = target as Material;
@@ -183,32 +49,31 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 
 
 	protected void OnGUI_Tessellation() {
-		// Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_Tessellation);
 		var _Tsltn_Uni = this.FindProperty("_Tsltn_Uni");
 		var _Tsltn_Nrm = this.FindProperty("_Tsltn_Nrm");
 		var _Tsltn_Inside = this.FindProperty("_Tsltn_Inside");
 		var tessellation = _Tsltn_Uni != null && _Tsltn_Nrm != null && _Tsltn_Inside != null;
-		using (new EditorGUI.DisabledScope(!tessellation)) {
+		using (new DisabledScope(!tessellation)) {
 			if (tessellation) {
-				EditorGUILayout.LabelField("Tessellation", "Enabled");
-				using (new EditorGUI.IndentLevelScope()) {
-					var partitioning = Commons.MaterialTagEnumGet<TessPartitioning>(this.target, Commons.KawaFLT_Feature_Partitioning);
-					var domain = Commons.MaterialTagEnumGet<TessDomain>(this.target, Commons.KawaFLT_Feature_Domain);
-					EditorGUILayout.LabelField("Partitioning", Enum.GetName(typeof(TessPartitioning), partitioning));
-					EditorGUILayout.LabelField("Domain", Enum.GetName(typeof(TessDomain), domain));
+				EGUIL.LabelField("Tessellation", "Enabled");
+				using (new IndentLevelScope()) {
+					var partitioning = UMC.MaterialTagEnumGet<TessPartitioning>(this.target, KFLTC.F_Partitioning);
+					var domain = UMC.MaterialTagEnumGet<TessDomain>(this.target, KFLTC.F_Domain);
+					EGUIL.LabelField("Partitioning", Enum.GetName(typeof(TessPartitioning), partitioning));
+					EGUIL.LabelField("Domain", Enum.GetName(typeof(TessDomain), domain));
 					this.ShaderProperty(_Tsltn_Uni, "Uniform factor");
 					this.ShaderProperty(_Tsltn_Nrm, "Factor from curvness");
 					this.ShaderProperty(_Tsltn_Inside, "Inside multiplier");
 				}
 			} else {
-				EditorGUILayout.LabelField("Tessellation", "Disabled");
+				EGUIL.LabelField("Tessellation", "Disabled");
 			}
 		}
 	}
 
 	protected void OnGUI_Random()
 	{
-		var random = Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_Random);
+		var random = UMC.MaterialTagBoolCheck(this.target, KFLTC.F_Random);
 
 
 		var _Rnd_Seed = this.FindProperty("_Rnd_Seed");
@@ -217,7 +82,7 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 		);
 		this.TexturePropertySmolDisabled(label, _Rnd_Seed);
 		if (_Rnd_Seed != null && _Rnd_Seed.textureValue == null){
-			EditorGUILayout.HelpBox(
+			EGUIL.HelpBox(
 				"No seed noise texture is set! " +
 				"Some of enabled features using Pseudo-Random Number Generator. " +
 				"This texture is required, and shader will not properly work without this.",
@@ -228,26 +93,26 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 
 	protected void OnGUI_Textures()
 	{
-		EditorGUILayout.LabelField("General Rendering Features");
-		using (new EditorGUI.IndentLevelScope()) {
+		EGUIL.LabelField("General Rendering Features");
+		using (new IndentLevelScope()) {
 
 			var _MainTex = this.FindProperty("_MainTex");
 			var _MainTex_label = new GUIContent("Albedo (Main Texture)", "Albedo Main Color Texture (RGBA)");
 			this.TexturePropertySmolDisabled(_MainTex_label, _MainTex);
 			if (_MainTex != null && _MainTex.textureValue == null) {
-				EditorGUILayout.HelpBox(
+				EGUIL.HelpBox(
 					"No albedo texture is set! Disable main tex feature in shader generator, if you don't need this.",
 					MessageType.Warning
 				);
 			}
 
-			using (new EditorGUI.IndentLevelScope()) {
+			using (new IndentLevelScope()) {
 				LabelEnumDisabledFromTagMixed<CutoutMode>(
-					"Forward Pass Cutout Mode", this.targets, Commons.KawaFLT_Feature_Cutout_Forward
+					"Forward Pass Cutout Mode", this.targets, KFLTC.F_Cutout_Forward
 				);
 
 				LabelEnumDisabledFromTagMixed<CutoutMode>(
-					"Shadow Caster Cutout Mode", this.targets, Commons.KawaFLT_Feature_Cutout_ShadowCaster
+					"Shadow Caster Cutout Mode", this.targets, KFLTC.F_Cutout_ShadowCaster
 				);
 
 				this.ShaderPropertyDisabled(this.FindProperty("_Cutoff"), "Cutout (Classic)");
@@ -260,7 +125,7 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 				var _ColorMask_label = new GUIContent("Color Mask", "Masks Color Tint (R)");
 				this.TexturePropertySmolDisabled(_ColorMask_label, _ColorMask);
 				if (_ColorMask != null && _ColorMask.textureValue == null) {
-					EditorGUILayout.HelpBox(
+					EGUIL.HelpBox(
 						"No color mask texture set! Disable main texture color mask feature in shader generator, if you don't need this.",
 						MessageType.Warning
 					);
@@ -272,18 +137,18 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 			var _EmissionColor = this.FindProperty("_EmissionColor");
 			var f_emission = _EmissionMask != null || _EmissionMap != null || _EmissionColor != null;
 			
-			using (new EditorGUI.DisabledScope(!f_emission)) {
-				EditorGUILayout.LabelField("Emission Feature", f_emission ? "Enabled" : "Disabled");
+			using (new DisabledScope(!f_emission)) {
+				EGUIL.LabelField("Emission Feature", f_emission ? "Enabled" : "Disabled");
 				if (f_emission) {
-					using (new EditorGUI.IndentLevelScope()) {
+					using (new IndentLevelScope()) {
 						LabelEnumDisabledFromTagMixed(
-							"Emission Mode", this.targets, Commons.KawaFLT_Feature_EmissionMode, Commons.emissionMode
+							"Emission Mode", this.targets, KFLTC.F_EmissionMode, KFLTC.emissionMode
 						);
 
 						var _EmissionMask_label = new GUIContent("Emission Mask", "Mask for Emission by Albedo Main Texture (R)");
 						this.TexturePropertySmolDisabled(_EmissionMask_label, _EmissionMask);
 						if (_EmissionMask != null && _EmissionMask.textureValue == null) {
-							EditorGUILayout.HelpBox(
+							EGUIL.HelpBox(
 								"No emission mask texture set! Disable emission mask feature in shader generator, if you don't need this.",
 								MessageType.Warning
 							);
@@ -292,7 +157,7 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 						var _EmissionMap_label = new GUIContent("Emission Texture", "Custom Emission Texture (RGB)");
 						this.TexturePropertySmolDisabled(_EmissionMap_label, _EmissionMap);
 						if (_EmissionMap != null && _EmissionMap.textureValue == null) {
-							EditorGUILayout.HelpBox(
+							EGUIL.HelpBox(
 								"No emission map texture set! Disable emission map feature in shader generator, if you don't need this.",
 								MessageType.Warning
 							);
@@ -302,7 +167,7 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 						var _EmissionColor_value = _EmissionColor.colorValue;
 						var intencity = (_EmissionColor_value.r + _EmissionColor_value.g + _EmissionColor_value.b) * _EmissionColor_value.a;
 						if (intencity < 0.05) {
-							EditorGUILayout.HelpBox(
+							EGUIL.HelpBox(
 								"Emission Color is too dark! disable emission feature in shader generator, if you don't need emission.",
 								MessageType.Warning
 							);
@@ -316,16 +181,16 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 			var label = new GUIContent("Normal Map", "Normal (Bump) Map Texture (RGB)");
 			this.TexturePropertySmolDisabled(label, _BumpMap);
 			if (_BumpMap != null && _BumpMap.textureValue == null) {
-				EditorGUILayout.HelpBox(
+				EGUIL.HelpBox(
 					"Normal map texture is not set! Disable normal feature in shader generator, if you don't need this.",
 					MessageType.Warning
 				);
 			}
-			using (new EditorGUI.IndentLevelScope()) {
+			using (new IndentLevelScope()) {
 				var _BumpScale = this.FindProperty("_BumpScale");
 				this.ShaderPropertyDisabled(_BumpScale, "Normal Map Scale");
 				if (_BumpScale != null && _BumpScale.floatValue < 0.05) {
-					EditorGUILayout.HelpBox(
+					EGUIL.HelpBox(
 						"Normal map scale value is close to zero! In this situation, may be it's better to disable normal feature in shader generator, if you don't need this?",
 						MessageType.Warning
 					);
@@ -336,23 +201,23 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 
 	protected void OnGUI_Shading()
 	{
-		var shading = Commons.MaterialTagEnumGet<ShadingMode>(this.target, Commons.KawaFLT_Feature_Shading);
-		EditorGUILayout.LabelField("Shading", Enum.GetName(typeof(ShadingMode), shading));
-		using (new EditorGUI.IndentLevelScope()) {
-			EditorGUILayout.HelpBox(Commons.shadingModeDesc[shading], MessageType.Info);
+		var shading = UMC.MaterialTagEnumGet<ShadingMode>(this.target, KFLTC.F_Shading);
+		EGUIL.LabelField("Shading", Enum.GetName(typeof(ShadingMode), shading));
+		using (new IndentLevelScope()) {
+			EGUIL.HelpBox(KFLTC.shadingModeDesc[shading], MessageType.Info);
 			if (shading == ShadingMode.CubedParadoxFLT) {
 				this.ShaderPropertyDisabled(this.FindProperty("_Sh_Cbdprdx_Shadow"), "Shadow");
 			} else if (shading == ShadingMode.KawashirovFLTSingle) {
 				this.ShaderPropertyDisabled(this.FindProperty("_Sh_Kwshrv_ShdBlnd"), "RT Shadows blending");
 
-				EditorGUILayout.LabelField("Sides threshold");
-				using (new EditorGUI.IndentLevelScope()) {
+				EGUIL.LabelField("Sides threshold");
+				using (new IndentLevelScope()) {
 					this.ShaderPropertyDisabled(this.FindProperty("_Sh_KwshrvSngl_TngntLo"), "Low");
 					this.ShaderPropertyDisabled(this.FindProperty("_Sh_KwshrvSngl_TngntHi"), "High");
 				}
 
-				EditorGUILayout.LabelField("Brightness");
-				using (new EditorGUI.IndentLevelScope()) {
+				EGUIL.LabelField("Brightness");
+				using (new IndentLevelScope()) {
 					this.ShaderPropertyDisabled(this.FindProperty("_Sh_KwshrvSngl_ShdLo"), "Back side (Shaded)");
 					this.ShaderPropertyDisabled(this.FindProperty("_Sh_KwshrvSngl_ShdHi"), "Front side (Lit)");
 				}
@@ -362,7 +227,7 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 				this.TexturePropertySmol(new GUIContent("Ramp Texture", "Ramp Texture (RGB)"), rampTex);
 				this.TextureCompatibilityWarning(rampTex);
 				if (rampTex.textureValue == null) {
-					EditorGUILayout.HelpBox(
+					EGUIL.HelpBox(
 						"Ramp texture is not set! This shading model will not work well unless proper ramp texture is set!",
 						MessageType.Error
 					);
@@ -380,12 +245,12 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 		var _DstFd_Far = this.FindProperty("_DstFd_Far");
 		var _DstFd_AdjustPower = this.FindProperty("_DstFd_AdjustPower");
 		var _DstFd_AdjustScale = this.FindProperty("_DstFd_AdjustScale");
-		var f_distanceFade = Commons.AnyNotNull(_DstFd_Axis, _DstFd_Near, _DstFd_Far, _DstFd_AdjustPower, _DstFd_AdjustScale);
-		using (new EditorGUI.DisabledScope(!f_distanceFade)) {
-			EditorGUILayout.LabelField("Distance Fade Feature", f_distanceFade ? "Enabled" : "Disabled");
-			using (new EditorGUI.IndentLevelScope()) {
+		var f_distanceFade = GC.AnyNotNull(_DstFd_Axis, _DstFd_Near, _DstFd_Far, _DstFd_AdjustPower, _DstFd_AdjustScale);
+		using (new DisabledScope(!f_distanceFade)) {
+			EGUIL.LabelField("Distance Fade Feature", f_distanceFade ? "Enabled" : "Disabled");
+			using (new IndentLevelScope()) {
 				if (f_distanceFade) {
-					LabelEnumDisabledFromTagMixed<DistanceFadeMode>("Mode", this.targets, Commons.KawaFLT_Feature_DistanceFadeMode);
+					LabelEnumDisabledFromTagMixed<DistanceFadeMode>("Mode", this.targets, KFLTC.F_DistanceFadeMode);
 					this.ShaderPropertyDisabled(_DstFd_Axis, "Axis weights");
 					this.ShaderPropertyDisabled(_DstFd_Near, "Near Distance");
 					this.ShaderPropertyDisabled(_DstFd_Far, "Far Distance");
@@ -401,12 +266,12 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 		// Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_FPS);
 		var _FPS_TLo = this.FindProperty("_FPS_TLo");
 		var _FPS_THi = this.FindProperty("_FPS_THi");
-		var f_FPS = Commons.AnyNotNull(_FPS_TLo, _FPS_THi);
-		using (new EditorGUI.DisabledScope(!f_FPS)) {
-			EditorGUILayout.LabelField("FPS Indication Feature", f_FPS ? "Enabled" : "Disabled");
-			using (new EditorGUI.IndentLevelScope()) {
+		var f_FPS = GC.AnyNotNull(_FPS_TLo, _FPS_THi);
+		using (new DisabledScope(!f_FPS)) {
+			EGUIL.LabelField("FPS Indication Feature", f_FPS ? "Enabled" : "Disabled");
+			using (new IndentLevelScope()) {
 				if (f_FPS) {
-					LabelEnumDisabledFromTagMixed<FPSMode>("Mode", this.targets, Commons.KawaFLT_Feature_FPSMode);
+					LabelEnumDisabledFromTagMixed<FPSMode>("Mode", this.targets, KFLTC.F_FPSMode);
 					this.ShaderPropertyDisabled(_FPS_TLo, "Low FPS tint");
 					this.ShaderPropertyDisabled(_FPS_THi, "High FPS tint");
 				}
@@ -420,12 +285,12 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 		var _outline_color = this.FindProperty("_outline_color");
 		var _outline_bias = this.FindProperty("_outline_bias");
 
-		var f_Outline = Commons.AnyNotNull(_outline_width,  _outline_color, _outline_bias);
-		using (new EditorGUI.DisabledScope(!f_Outline)) {
-			EditorGUILayout.LabelField("Outline Feature", f_Outline ? "Enabled" : "Disabled");
-			using (new EditorGUI.IndentLevelScope()) {
+		var f_Outline = GC.AnyNotNull(_outline_width,  _outline_color, _outline_bias);
+		using (new DisabledScope(!f_Outline)) {
+			EGUIL.LabelField("Outline Feature", f_Outline ? "Enabled" : "Disabled");
+			using (new IndentLevelScope()) {
 				if (f_Outline) {
-					LabelEnumDisabledFromTagMixed<OutlineMode>("Mode", this.targets, Commons.KawaFLT_Feature_OutlineMode);
+					LabelEnumDisabledFromTagMixed<OutlineMode>("Mode", this.targets, KFLTC.F_OutlineMode);
 					this.ShaderPropertyDisabled(_outline_width, "Outline width (cm)");
 					this.ShaderPropertyDisabled(_outline_color, "Outline Color (Tint)");
 					this.ShaderPropertyDisabled(_outline_bias, "Outline Z-Bias");
@@ -455,7 +320,7 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 		var _IWD_TintColor = this.FindProperty("_IWD_TintColor");
 		var _IWD_Tsltn = this.FindProperty("_IWD_Tsltn");
 
-		var f_InfinityWarDecimation = Commons.AnyNotNull(
+		var f_InfinityWarDecimation = GC.AnyNotNull(
 			_IWD_Plane, _IWD_PlaneDistRandomness,
 			_IWD_DirRandomWeight, _IWD_DirPlaneWeight, _IWD_DirNormalWeight, _IWD_DirObjectWeight, _IWD_DirWorldWeight,
 			_IWD_DirObjectVector, _IWD_DirWorldVector,
@@ -463,33 +328,33 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 			_IWD_CmprssFar, _IWD_TintFar, _IWD_TintColor, _IWD_Tsltn
 		);
 
-		using (new EditorGUI.DisabledScope(!f_InfinityWarDecimation)) {
-			EditorGUILayout.LabelField("Infinity War Decimation Feature", f_InfinityWarDecimation ? "Enabled" : "Disabled");
-			using (new EditorGUI.IndentLevelScope()) {
+		using (new DisabledScope(!f_InfinityWarDecimation)) {
+			EGUIL.LabelField("Infinity War Decimation Feature", f_InfinityWarDecimation ? "Enabled" : "Disabled");
+			using (new IndentLevelScope()) {
 				if (f_InfinityWarDecimation) {
-					EditorGUILayout.LabelField("I don't feel so good...");
-					EditorGUILayout.LabelField("Particles Front");
-					using (new EditorGUI.IndentLevelScope()) {
-						EditorGUILayout.LabelField("General equation of a Plane (XYZ is normal, W is offset)");
+					EGUIL.LabelField("I don't feel so good...");
+					EGUIL.LabelField("Particles Front");
+					using (new IndentLevelScope()) {
+						EGUIL.LabelField("General equation of a Plane (XYZ is normal, W is offset)");
 						this.ShaderPropertyDisabled(_IWD_Plane, "");
 						this.ShaderPropertyDisabled(_IWD_PlaneDistRandomness, "Randomness (W)");
 					}
-					EditorGUILayout.LabelField("Particles Direction");
-					using (new EditorGUI.IndentLevelScope()) {
+					EGUIL.LabelField("Particles Direction");
+					using (new IndentLevelScope()) {
 						this.ShaderPropertyDisabled(_IWD_DirRandomWeight, "Random");
 						this.ShaderPropertyDisabled(_IWD_DirPlaneWeight, "Particles Front Plane");
 						this.ShaderPropertyDisabled(_IWD_DirNormalWeight, "Normal");
 						this.ShaderPropertyDisabled(_IWD_DirObjectWeight, "Object Space Vector");
-						using (new EditorGUI.IndentLevelScope()) {
+						using (new IndentLevelScope()) {
 							this.ShaderPropertyDisabled(_IWD_DirObjectVector, "");
 						}
 						this.ShaderPropertyDisabled(_IWD_DirWorldWeight, "World Space Vector");
-						using (new EditorGUI.IndentLevelScope()) {
+						using (new IndentLevelScope()) {
 							this.ShaderPropertyDisabled(_IWD_DirWorldVector, "");
 						}
 					}
-					EditorGUILayout.LabelField("Particles Movement");
-					using (new EditorGUI.IndentLevelScope()) {
+					EGUIL.LabelField("Particles Movement");
+					using (new IndentLevelScope()) {
 						this.ShaderPropertyDisabled(_IWD_MoveSpeed, "Speed");
 						this.ShaderPropertyDisabled(_IWD_MoveAccel, "Accel");
 					}
@@ -520,17 +385,17 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 		var _PCW_RnbwBrghtnss = this.FindProperty("_PCW_RnbwBrghtnss");
 		var _PCW_Mix = this.FindProperty("_PCW_Mix");
 
-		var f_PCW = Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_PCW);
-		using (new EditorGUI.DisabledScope(!f_PCW)) {
-			EditorGUILayout.LabelField("Poly Color Wave Feature", f_PCW ? "Enabled" : "Disabled");
-			using (new EditorGUI.IndentLevelScope()) {
+		var f_PCW = UMC.MaterialTagBoolCheck(this.target, KFLTC.F_PCW);
+		using (new DisabledScope(!f_PCW)) {
+			EGUIL.LabelField("Poly Color Wave Feature", f_PCW ? "Enabled" : "Disabled");
+			using (new IndentLevelScope()) {
 				if (f_PCW) {
-					var f_PCWMode = Commons.MaterialTagEnumGet<PolyColorWaveMode>(this.target, Commons.KawaFLT_Feature_PCWMode);
-					EditorGUILayout.LabelField("Mode", Enum.GetName(typeof(PolyColorWaveMode), f_PCWMode));
+					var f_PCWMode = UMC.MaterialTagEnumGet<PolyColorWaveMode>(this.target, KFLTC.F_PCWMode);
+					EGUIL.LabelField("Mode", Enum.GetName(typeof(PolyColorWaveMode), f_PCWMode));
 
-					EditorGUILayout.LabelField("Wave timings:");
+					EGUIL.LabelField("Wave timings:");
 					float? time_period = null;
-					using (new EditorGUI.IndentLevelScope()) {
+					using (new IndentLevelScope()) {
 						this.ShaderPropertyDisabled(_PCW_WvTmLo, "Hidden");
 						this.ShaderPropertyDisabled(_PCW_WvTmAs, "Fade-in");
 						this.ShaderPropertyDisabled(_PCW_WvTmHi, "Shown");
@@ -539,15 +404,15 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 
 						this.ShaderPropertyDisabled(_PCW_WvTmRnd, "Random per tris");
 
-						EditorGUILayout.LabelField("Time offset from UV0 (XY) and UV1 (ZW):");
+						EGUIL.LabelField("Time offset from UV0 (XY) and UV1 (ZW):");
 						this.ShaderPropertyDisabled(_PCW_WvTmUV, "");
 
-						EditorGUILayout.LabelField("Time offset from mesh-space coords: ");
+						EGUIL.LabelField("Time offset from mesh-space coords: ");
 						this.ShaderPropertyDisabled(_PCW_WvTmVtx, "");
 					}
 
-					EditorGUILayout.LabelField("Wave coloring:");
-					using (new EditorGUI.IndentLevelScope()) {
+					EGUIL.LabelField("Wave coloring:");
+					using (new IndentLevelScope()) {
 						this.ShaderPropertyDisabled(_PCW_Em, "Emissiveness");
 						this.ShaderPropertyDisabled(_PCW_Color, "Color");
 						this.ShaderPropertyDisabled(_PCW_RnbwTm, "Rainbow time");
@@ -571,7 +436,7 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 	}
 
 	private float? OnGUI_PolyColorWave_WvTmHelper(
-		MaterialProperty _PCW_WvTmLo, MaterialProperty _PCW_WvTmAs, MaterialProperty _PCW_WvTmHi, MaterialProperty _PCW_WvTmDe
+		MP _PCW_WvTmLo, MP _PCW_WvTmAs, MP _PCW_WvTmHi, MP _PCW_WvTmDe
 	) {
 		if (
 			_PCW_WvTmLo != null && !_PCW_WvTmLo.hasMixedValue &&
@@ -595,7 +460,7 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 				AnimationUtility.SetKeyLeftTangentMode(time_curve, i, AnimationUtility.TangentMode.Linear);
 				AnimationUtility.SetKeyRightTangentMode(time_curve, i, AnimationUtility.TangentMode.Linear);
 			}
-			EditorGUILayout.CurveField("Preview amplitude (read-only)", time_curve);
+			EGUIL.CurveField("Preview amplitude (read-only)", time_curve);
 			HelpBoxRich(string.Format("Time for singe wave cycle: <b>{0:f}</b> sec. ", t4));
 
 			return t4;
@@ -608,7 +473,7 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 	{
 		base.OnEnable();
 
-		this.materialProperties = new Dictionary<string, MaterialProperty>();
+		this.materialProperties = new Dictionary<string, MP>();
 		var shaders = new HashSet<Shader>();
 		var names = new HashSet<string>();
 		var materials = 0;
@@ -643,44 +508,44 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 		}
 
 		try {
-			var generator_guid = Commons.MaterialTagGet(this.target, Commons.KawaFLT_GenaratorGUID);
+			var generator_guid = UMC.MaterialTagGet(this.target, KCT.GenaratorGUID);
 			var generator_path = AssetDatabase.GUIDToAssetPath(generator_guid);
 			var generator_obj = AssetDatabase.LoadAssetAtPath<Generator>(generator_path);
-			using (new EditorGUI.DisabledScope(generator_obj == null)) {
-				EditorGUILayout.ObjectField("Shader Generator", generator_obj, typeof(Generator), false);
+			using (new DisabledScope(generator_obj == null)) {
+				EGUIL.ObjectField("Shader Generator", generator_obj, typeof(Generator), false);
 			}
 		} catch (Exception exc) {
-			EditorGUILayout.LabelField("Shader Generator Error", exc.ToString());
+			EGUIL.LabelField("Shader Generator Error", exc.ToString());
 		}
 
-		EditorGUILayout.Space();
+		EGUIL.Space();
 		this.OnGUI_BlendMode();
 
-		EditorGUILayout.Space();
+		EGUIL.Space();
 		this.OnGUI_Tessellation();
 
-		EditorGUILayout.Space();
+		EGUIL.Space();
 		this.OnGUI_Random();
 
-		EditorGUILayout.Space();
+		EGUIL.Space();
 		this.OnGUI_Textures();
 
-		EditorGUILayout.Space();
+		EGUIL.Space();
 		this.OnGUI_Shading();
 
-		EditorGUILayout.Space();
+		EGUIL.Space();
 		this.OnGUI_Outline();
 
-		EditorGUILayout.Space();
+		EGUIL.Space();
 		this.OnGUI_DistanceFade();
 
-		EditorGUILayout.Space();
+		EGUIL.Space();
 		this.OnGUI_FPS();
 
-		EditorGUILayout.Space();
+		EGUIL.Space();
 		this.OnGUI_InfinityWarDecimation();
 
-		EditorGUILayout.Space();
+		EGUIL.Space();
 		this.OnGUI_PolyColorWave();
 
 	}
