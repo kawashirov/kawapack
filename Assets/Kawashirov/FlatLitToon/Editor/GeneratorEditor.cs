@@ -8,53 +8,49 @@ using UnityEditor;
 
 namespace Kawashirov.FLT  
 {
+	[CanEditMultipleObjects]
 	[CustomEditor(typeof(Generator))]
 	public class GeneratorEditor : Editor {
 
-		public static void PropertyEnumPopupCustomLabels<E>(
-			string label, SerializedProperty property, Dictionary<E, string> labels
-		)
+		public static bool PropertyEnumPopupCustomLabels<E>(
+			SerializedProperty property, string label, Dictionary<E, string> labels = null,
+			GUILayoutOption[] options = null
+		) where E : struct, IConvertible, IComparable, IFormattable
 		{
-			var enum_t = typeof(E);
-			if (enum_t == null || !enum_t.IsEnum) throw new Exception(string.Format("E={0} is not enum type!", enum_t));
+			var e_display = property.enumDisplayNames;
+			var e_type = typeof(E);
 
-			var e_names = Enum.GetNames(enum_t);
-			var e_values = Enum.GetValues(enum_t);
-
-
-			var mixed = property.hasMultipleDifferentValues;
-			var selected_before = mixed ? 0 : property.intValue;
-
-			var options = new List<string>(e_values.Length + (mixed ? 1: 0));
-			if (mixed)
-				options.Add("-");
-			foreach (var e_value in e_values) {
-				string option;
-				labels.TryGetValue((E) e_value, out option);
-				if (string.IsNullOrEmpty(option)) {
-					option = Enum.GetName(enum_t, e_value);
+			if (labels != null && e_type.IsEnum && labels.Count > 0) {
+				var e_values = Enum.GetValues(e_type);
+				var e_names = Enum.GetNames(e_type);
+				for (var e_index = 0; e_index < e_names.Length; ++e_index) {
+					var e_object = (E) Enum.Parse(typeof(E), e_names[e_index]);
+					string custom_label;
+					labels.TryGetValue(e_object, out custom_label);
+					if (!string.IsNullOrEmpty(custom_label)) {
+						e_display[e_index] = custom_label;
+					}
 				}
-				if (string.IsNullOrEmpty(option)) {
-					option = "???";
-				}
-				options.Add(option);
 			}
 
-			var selected_after = EditorGUILayout.Popup(label, selected_before, options.ToArray(), null, new GUILayoutOption[] { });
-			if (selected_before == selected_after)
-				return;
-			if (mixed && selected_after == 0)
-				return;
-
-
-			var new_index = mixed ? selected_after - 1 : selected_after;
-
-			var new_value = (int) e_values.GetValue(new_index);
-
-			Debug.LogFormat(
-				"User changed {0} ({1}) from #{2} to #{3}...",
-				property, label, selected_before, selected_after
+			EditorGUI.BeginChangeCheck();
+			var enumValueIndex = EditorGUILayout.Popup(
+				label, (!property.hasMultipleDifferentValues) ? property.enumValueIndex : -1, e_display, options
 			);
+			if (EditorGUI.EndChangeCheck()) {
+				property.enumValueIndex = enumValueIndex;
+				return true;
+			}
+			return false;
+		}
+
+		public static int PropertyMaskPopupCustomLabels(
+			string label, SerializedProperty property, Type enum_t, Dictionary<int, string> labels = null,
+			GUILayoutOption[] options = null
+		) {
+				
+
+			return 0;
 		}
 
 		public void DefaultPrpertyField(SerializedProperty property, string label = null)
@@ -68,7 +64,7 @@ namespace Kawashirov.FLT
 
 		public void DefaultPrpertyField(string name, string label = null)
 		{
-			DefaultPrpertyField(this.serializedObject.FindProperty(name), label);
+			this.DefaultPrpertyField(this.serializedObject.FindProperty(name), label);
 		}
 
 		public override void OnInspectorGUI()
@@ -106,8 +102,9 @@ namespace Kawashirov.FLT
 			EditorGUILayout.LabelField("General Shader Options");
 			using (new EditorGUI.IndentLevelScope()) {
 				var complexity = this.serializedObject.FindProperty("complexity");
-				this.DefaultPrpertyField(complexity, "DX11 Pipeline Stages");
-				
+				//this.DefaultPrpertyField(complexity, "DX11 Pipeline Stages");
+				PropertyEnumPopupCustomLabels(complexity, "DX11 Pipeline Stages", Commons.shaderComplexityNames);
+
 				complexity_VGF = !complexity.hasMultipleDifferentValues && complexity.intValue == (int)ShaderComplexity.VGF;
 				complexity_VHDGF = !complexity.hasMultipleDifferentValues && complexity.intValue == (int)ShaderComplexity.VHDGF;
 
@@ -207,13 +204,18 @@ namespace Kawashirov.FLT
 			EditorGUILayout.Space();
 			EditorGUILayout.LabelField("General Rendering Features");
 			using (new EditorGUI.IndentLevelScope()) {
-				this.DefaultPrpertyField("mainTex");
-				this.DefaultPrpertyField("cutout");
+				var mainTex = this.serializedObject.FindProperty("mainTex");
+				PropertyEnumPopupCustomLabels(mainTex, "Main (Albedo) Texture", Commons.mainTexKeywordsNames);
+
+				var cutout = this.serializedObject.FindProperty("cutout");
+				PropertyEnumPopupCustomLabels(cutout, "Cutout Mode", Commons.cutoutModeNames);
+
 				var emission = this.serializedObject.FindProperty("emission");
 				this.DefaultPrpertyField(emission);
 				using (new EditorGUI.DisabledScope(!emission.boolValue)) {
 					using (new EditorGUI.IndentLevelScope()) {
-						this.DefaultPrpertyField("emissionMode", "Mode");
+						var emissionMode = this.serializedObject.FindProperty("emissionMode");
+						PropertyEnumPopupCustomLabels(emissionMode, "Mode", Commons.emissionMode);
 					}
 				}
 				this.DefaultPrpertyField("bumpMap");
@@ -232,7 +234,8 @@ namespace Kawashirov.FLT
 			}
 
 			EditorGUILayout.Space();
-			this.DefaultPrpertyField("shading", "Shading Method");
+			var shading = this.serializedObject.FindProperty("shading");
+			PropertyEnumPopupCustomLabels(shading, "Shading Method", Commons.shadingModeNames);
 
 			EditorGUILayout.Space();
 			var distanceFade = this.serializedObject.FindProperty("distanceFade");
@@ -267,7 +270,15 @@ namespace Kawashirov.FLT
 
 			EditorGUILayout.Space();
 			using (new EditorGUI.DisabledScope(!complexity_VGF && !complexity_VHDGF)) {
-				this.DefaultPrpertyField("infinityWarDecimation", "VGF/VHDGF Feature: Infinity War Decimation");
+				var iwd = this.serializedObject.FindProperty("iwd");
+				this.DefaultPrpertyField(iwd, "VGF/VHDGF Feature: Infinity War Decimation");
+				using (new EditorGUI.DisabledScope(
+					iwd.hasMultipleDifferentValues || !iwd.boolValue || (!complexity_VGF && !complexity_VHDGF)
+				)) {
+					using (new EditorGUI.IndentLevelScope()) {
+						this.DefaultPrpertyField("iwdDirections", "Directions");
+					}
+				}
 			}
 
 			EditorGUILayout.Space();

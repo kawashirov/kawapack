@@ -11,9 +11,9 @@ namespace Kawashirov.FLT {
 	public enum TessDomain { Triangles, Quads }
 	public enum ShaderComplexity { VF, VGF, VHDGF }
 	public enum TessPartitioning { Integer, FractionalEven, FractionalOdd, Pow2 }
-	public enum BlendTemplate { Opaque, Cutout, Fade, Custom = 256 }
+	public enum BlendTemplate { Opaque, Cutout, Fade, FadeCutout, Custom = 256 }
 	public enum MainTexKeywords { NoMainTex, NoMask, ColorMask }
-	public enum CutoutMode { Classic, RangeRandom, RangePattern }
+	public enum CutoutMode { Classic, RangeRandom, RangeRandomH01 }
 	public enum EmissionMode { AlbedoNoMask, AlbedoMask, Custom }
 
 	public enum ShadingMode { CubedParadoxFLT, KawashirovFLTSingle, KawashirovFLTRamp }
@@ -25,10 +25,19 @@ namespace Kawashirov.FLT {
 
 	public enum OutlineMode { Tinted, Colored }
 
+	[Flags]
+	public enum IWDDirections {
+		Plane = 1,
+		Random = 2,
+		Normal = 4,
+		ObjectVector = 8,
+		WorldVector = 16,
+	}
+
 	public enum PolyColorWaveMode { Classic, KawaColorfulWaves }
 
 	static class Commons {
-		
+
 		public static readonly string Unity_Feature_DisableBatching = "DisableBatching";
 		public static readonly string Unity_Feature_ForceNoShadowCasting = "ForceNoShadowCasting";
 		public static readonly string Unity_Feature_IgnoreProjector = "IgnoreProjector";
@@ -46,7 +55,10 @@ namespace Kawashirov.FLT {
 		public static readonly string KawaFLT_Feature_Random = "KawaFLT_Feature_Random";
 
 		public static readonly string KawaFLT_Feature_MainTex = "KawaFLT_Feature_MainTex";
-		public static readonly string KawaFLT_Feature_Cutout = "KawaFLT_Feature_Cutout";
+		public static readonly string KawaFLT_Feature_Cutout_Forward = "KawaFLT_Feature_Cutout_Forward";
+		public static readonly string KawaFLT_Feature_Cutout_ShadowCaster = "KawaFLT_Feature_Cutout_ShadowCaster";
+		public static readonly string KawaFLT_Feature_Cutout_Classic = "KawaFLT_Feature_Cutout_Classic";
+		public static readonly string KawaFLT_Feature_Cutout_RangeRandom = "KawaFLT_Feature_Cutout_RangeRandom";
 		public static readonly string KawaFLT_Feature_Emission = "KawaFLT_Feature_Emission";
 		public static readonly string KawaFLT_Feature_EmissionMode = "KawaFLT_Feature_EmissionMode";
 		public static readonly string KawaFLT_Feature_NormalMap = "KawaFLT_Feature_NormalMap";
@@ -63,7 +75,8 @@ namespace Kawashirov.FLT {
 		public static readonly string KawaFLT_Feature_Outline = "KawaFLT_Feature_Outline";
 		public static readonly string KawaFLT_Feature_OutlineMode = "KawaFLT_Feature_OutlineMode";
 
-		public static readonly string KawaFLT_Feature_InfinityWarDecimation = "KawaFLT_Feature_InfinityWarDecimation";
+		public static readonly string KawaFLT_Feature_IWD = "KawaFLT_Feature_IWD";
+		public static readonly string KawaFLT_Feature_IWDDirections = "KawaFLT_Feature_IWDDirections";
 
 		public static readonly string KawaFLT_Feature_PCW = "KawaFLT_Feature_PCW";
 		public static readonly string KawaFLT_Feature_PCWMode = "KawaFLT_Feature_PCWMode";
@@ -75,13 +88,13 @@ namespace Kawashirov.FLT {
 		public static readonly string[] blendTemplateNames = Enum.GetNames(typeof(BlendTemplate));
 
 		public static readonly Dictionary<ShaderComplexity, string> shaderComplexityNames = new Dictionary<ShaderComplexity, string> {
-			{ ShaderComplexity.VF, "VF Lightweight (Vertex/Fragment)" },
-			{ ShaderComplexity.VGF, "VGF Geometry (Vertex/Geometry/Fragment)" },
-			{ ShaderComplexity.VHDGF, "VHDGF Tessellation+Geometry (Vertex/Hull/Domain/Geometry/Fragment)" },
+			{ ShaderComplexity.VF, "VF Lightweight (Vertex, Fragment)" },
+			{ ShaderComplexity.VGF, "VGF Geometry (Vertex, Geometry, Fragment)" },
+			{ ShaderComplexity.VHDGF, "VHDGF Tessellation+Geometry (Vertex, Hull, Domain, Geometry, Fragment)" },
 		};
 
 		public static readonly Dictionary<MainTexKeywords, string> mainTexKeywordsNames = new Dictionary<MainTexKeywords, string> {
-			{ MainTexKeywords.NoMainTex, "No Main Texture (Albedo Color Only)" },
+			{ MainTexKeywords.NoMainTex, "No Main Texture (Color Only)" },
 			{ MainTexKeywords.NoMask, "Main Texture without Color Mask" },
 			{ MainTexKeywords.ColorMask, "Main Texture with Color Mask" },
 		};
@@ -92,16 +105,23 @@ namespace Kawashirov.FLT {
 			{ EmissionMode.Custom, "Custom Emission Texture" },
 		};
 
-		public static readonly string[] cutoutModeNames = Enum.GetNames(typeof(CutoutMode));
+		public static readonly Dictionary<CutoutMode, string> cutoutModeNames = new Dictionary<CutoutMode, string>() {
+			{ CutoutMode.Classic, "Classic (Single alpha value as threshold)" },
+			{ CutoutMode.RangeRandom, "Random Range (Two alpha values defines range where texture randomly fades)" },
+			{ CutoutMode.RangeRandomH01, "Random Range H01 (Same as Random Range, but also cubic Hermite spline smooth)" },
+		};
+
+		public static readonly Dictionary<ShadingMode, string> shadingModeNames = new Dictionary<ShadingMode, string>() {
+			{ ShadingMode.CubedParadoxFLT, "CubedParadox Flat Lit Toon" },
+			{ ShadingMode.KawashirovFLTSingle, "Kawashirov Flat Lit Toon, Single-Step, Diffuse-based, Simple." },
+			{ ShadingMode.KawashirovFLTRamp, "Kawashirov Flat Lit Toon, Ramp-based, In dev yet." },
+		};
 
 		public static readonly Dictionary<ShadingMode, string> shadingModeDesc = new Dictionary<ShadingMode, string>() {
 			{ ShadingMode.CubedParadoxFLT, "CubedParadox Flat Lit Toon. Legacy. Not recommended. And I dislike this." },
 			{ ShadingMode.KawashirovFLTSingle, "Kawashirov Flat Lit Toon, Single-Step, Diffuse-based, Simple. Like CubedParadox, but better: supports more standard unity lighting features and also fast as fuck compare to other cbd-flt-like shaders." },
 			{ ShadingMode.KawashirovFLTRamp, "Kawashirov Flat Lit Toon, Ramp-based, In dev yet, need extra tests in various conditions, but you can use it, It should work well." },
 		};
-
-		public static readonly string[] distanceFadeModeNames = Enum.GetNames(typeof(DistanceFadeMode));
-		//public static readonly string[] distanceFadeRandomNames = Enum.GetNames(typeof(DistanceFadeRandom));
 
 		public static readonly string[] FPSModeNames = Enum.GetNames(typeof(FPSMode));
 
@@ -112,7 +132,7 @@ namespace Kawashirov.FLT {
 
 		static Commons()
 		{
-		
+
 		}
 
 		public static string MaterialTagGet(object material, string tag)
@@ -141,7 +161,8 @@ namespace Kawashirov.FLT {
 				: tag_v.Split(',').ToList<string>().Any(v => string.Equals(value, v, StringComparison.InvariantCultureIgnoreCase));
 		}
 
-		public static bool MaterialTagBoolCheck(object material, string tag) {
+		public static bool MaterialTagBoolCheck(object material, string tag)
+		{
 			return MaterialTagCheck(material, tag, "True");
 		}
 
@@ -158,7 +179,7 @@ namespace Kawashirov.FLT {
 			var tag_v = m.GetTag(tag, false, "");
 			if (string.IsNullOrEmpty(tag_v))
 				throw new ArgumentException(string.Format("No vaild tag set in material: {0}.{1} = {2}", material, tag, tag_v));
-			return (E) Enum.Parse(typeof(E), tag_v, true);
+			return (E)Enum.Parse(typeof(E), tag_v, true);
 		}
 
 		public static E MaterialTagEnumGet<E>(object material, string tag, E defualt) where E : struct
@@ -213,6 +234,15 @@ namespace Kawashirov.FLT {
 			}
 			EditorGUI.showMixedValue = false;
 			return value;
+		}
+
+		public static bool AnyNotNull<T>(params T[] objs)
+		{
+			foreach (var obj in objs) {
+				if (obj != null)
+					return true;
+			}
+			return false;
 		}
 
 	}
@@ -396,6 +426,7 @@ namespace Kawashirov.FLT {
 
 	public class PassSetup {
 		public string name;
+		public bool active = true;
 
 		public Dictionary<string, string> tags = new Dictionary<string, string>();
 
@@ -468,8 +499,11 @@ namespace Kawashirov.FLT {
 			this.skip_variants.Add("LIGHTMAP_SHADOW_MIXING");
 		}
 
-		public string Bake(ref StringBuilder sb)
+		public void Bake(ref StringBuilder sb)
 		{
+			if (!this.active)
+				return;
+
 			sb.Append("Pass { Name \"").Append(this.name).Append("\"\n");
 
 			sb.BakeTags(this.tags);
@@ -552,7 +586,7 @@ namespace Kawashirov.FLT {
 
 			sb.Append("\nENDCG\n");
 			sb.Append("}\n");
-			return sb.ToString();
+			return;
 		}
 	}
 

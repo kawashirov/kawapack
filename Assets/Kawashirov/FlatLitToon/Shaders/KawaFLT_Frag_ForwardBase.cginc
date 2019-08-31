@@ -17,7 +17,7 @@ inline half3 frag_forward_get_emission_color(inout FRAGMENT_IN i, half3 baseColo
 	#if defined(EMISSION_ALBEDO_NOMASK)
 		em = baseColor;
 	#elif defined(EMISSION_ALBEDO_MASK)
-		em = baseColor * UNITY_SAMPLE_TEX2D(_EmissionMap, texST).r;
+		em = baseColor * UNITY_SAMPLE_TEX2D(_EmissionMask, texST).r;
 	#elif defined(EMISSION_CUSTOM)
 		em = UNITY_SAMPLE_TEX2D(_EmissionMap, texST).rgb;
 	#endif

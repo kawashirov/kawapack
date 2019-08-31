@@ -75,7 +75,10 @@ uniform float4 _Color;
 
 #if defined(_EMISSION)
 	uniform float4 _EmissionColor;
-	#if defined(EMISSION_ALBEDO_MASK) || defined(EMISSION_CUSTOM)
+	#if defined(EMISSION_ALBEDO_MASK)
+		UNITY_DECLARE_TEX2D(_EmissionMask);
+	#endif
+	#if defined(EMISSION_CUSTOM)
 		UNITY_DECLARE_TEX2D(_EmissionMap);
 	#endif
 	#define AVAILABLE_EMISSIONMAP 1

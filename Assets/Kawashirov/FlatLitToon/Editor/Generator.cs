@@ -52,7 +52,8 @@ namespace Kawashirov.FLT
 		public bool outline = false;
 		public OutlineMode outlineMode = OutlineMode.Tinted;
 
-		public bool infinityWarDecimation = false;
+		public bool iwd = false;
+		public IWDDirections iwdDirections = 0;
 
 		public bool pcw = false;
 		public PolyColorWaveMode pcwMode = PolyColorWaveMode.Classic;
@@ -184,7 +185,7 @@ namespace Kawashirov.FLT
 				f_instancing = false;
 				f_batching = false;
 			}
-			if (this.infinityWarDecimation) {
+			if (this.iwd) {
 				f_instancing = false;
 				f_batching = false;
 			}
@@ -246,6 +247,7 @@ namespace Kawashirov.FLT
 			shader.forward_add.geometry = this.complexity == ShaderComplexity.VHDGF || this.complexity == ShaderComplexity.VGF ? "geom" : null;
 			shader.forward_add.fragment = "frag_forwardadd";
 
+			shader.shadowcaster.active = !this.forceNoShadowCasting;
 			shader.shadowcaster.cullMode = this.cull;
 			shader.shadowcaster.multi_compile_instancing = f_instancing;
 			shader.shadowcaster.defines.Add("KAWAFLT_PASS_SHADOWCASTER 1");
@@ -297,42 +299,41 @@ namespace Kawashirov.FLT
 		private void ConfigureBlending(ref ShaderSetup shader)
 		{
 			string q = null;
-			switch (this.mode) {
-				case BlendTemplate.Opaque:
-					q = "Geometry";
-					shader.tags[Commons.Unity_RenderType] = "Opaque";
-					shader.tags[Commons.KawaFLT_RenderType] = "Opaque";
-					shader.forward.srcBlend = BlendMode.One;
-					shader.forward.dstBlend = BlendMode.Zero;
-					shader.forward.zWrite = true;
-					shader.forward_add.srcBlend = BlendMode.One;
-					shader.forward_add.dstBlend = BlendMode.One;
-					shader.forward_add.zWrite = false;
-					break;
-				case BlendTemplate.Cutout:
-					q = "AlphaTest";
-					shader.tags[Commons.Unity_RenderType] = "TransparentCutout";
-					shader.tags[Commons.KawaFLT_RenderType] = "Cutout";
-					shader.Define("_ALPHATEST_ON 1");
-					shader.forward.srcBlend = BlendMode.One;
-					shader.forward.dstBlend = BlendMode.Zero;
-					shader.forward.zWrite = true;
-					shader.forward_add.srcBlend = BlendMode.One;
-					shader.forward_add.dstBlend = BlendMode.One;
-					shader.forward_add.zWrite = false;
-					break;
-				case BlendTemplate.Fade:
-					q = "Transparent";
-					shader.tags[Commons.Unity_RenderType] = "Transparent";
-					shader.tags[Commons.KawaFLT_RenderType] = "Fade";
-					shader.Define("_ALPHABLEND_ON 1");
-					shader.forward.srcBlend = BlendMode.SrcAlpha;
-					shader.forward.dstBlend = BlendMode.OneMinusSrcAlpha;
-					shader.forward.zWrite = false;
-					shader.forward_add.srcBlend = BlendMode.SrcAlpha;
-					shader.forward_add.dstBlend = BlendMode.One;
-					shader.forward_add.zWrite = false;
-					break;
+			if (this.mode == BlendTemplate.Opaque) {
+				q = "Geometry";
+				shader.tags[Commons.Unity_RenderType] = "Opaque";
+				shader.tags[Commons.KawaFLT_RenderType] = "Opaque";
+				shader.forward.srcBlend = BlendMode.One;
+				shader.forward.dstBlend = BlendMode.Zero;
+				shader.forward.zWrite = true;
+				shader.forward_add.srcBlend = BlendMode.One;
+				shader.forward_add.dstBlend = BlendMode.One;
+				shader.forward_add.zWrite = false;
+			} else if (this.mode == BlendTemplate.Cutout) {
+				q = "AlphaTest";
+				shader.tags[Commons.Unity_RenderType] = "TransparentCutout";
+				shader.tags[Commons.KawaFLT_RenderType] = "Cutout";
+				shader.Define("_ALPHATEST_ON 1");
+				shader.forward.srcBlend = BlendMode.One;
+				shader.forward.dstBlend = BlendMode.Zero;
+				shader.forward.zWrite = true;
+				shader.forward_add.srcBlend = BlendMode.One;
+				shader.forward_add.dstBlend = BlendMode.One;
+				shader.forward_add.zWrite = false;
+			} else if (this.mode == BlendTemplate.Fade || this.mode == BlendTemplate.FadeCutout) {
+				q = "Transparent";
+				shader.tags[Commons.Unity_RenderType] = "Transparent";
+				shader.tags[Commons.KawaFLT_RenderType] = "Fade";
+				shader.Define("_ALPHABLEND_ON 1");
+				if (this.mode == BlendTemplate.FadeCutout) {
+					shader.Define("CUTOFF_FADE 1");
+				}
+				shader.forward.srcBlend = BlendMode.SrcAlpha;
+				shader.forward.dstBlend = BlendMode.OneMinusSrcAlpha;
+				shader.forward.zWrite = false;
+				shader.forward_add.srcBlend = BlendMode.SrcAlpha;
+				shader.forward_add.dstBlend = BlendMode.One;
+				shader.forward_add.zWrite = false;
 			}
 			shader.tags["Queue"] = string.Format("{0}{1:+#;-#;+0}", q, this.queueOffset);
 			shader.shadowcaster.srcBlend = null;
@@ -372,30 +373,79 @@ namespace Kawashirov.FLT
 
 		private void ConfigureFeatureCutoff(ref ShaderSetup shader)
 		{
-			if (this.mode == BlendTemplate.Cutout || (this.mode == BlendTemplate.Fade && this.forceNoShadowCasting == false)) {
-				shader.Define("CUTOFF_ON 1");
-				shader.TagEnum(Commons.KawaFLT_Feature_Cutout, this.cutout);
-				switch (this.cutout) {
-					case CutoutMode.Classic:
-						shader.Define("CUTOFF_CLASSIC 1");
-						break;
-					case CutoutMode.RangeRandom:
-						shader.Define("CUTOFF_RANDOM 1");
-						this.needRandomFrag = true;
-						break;
+			var forward_on = false;
+			var forward_mode = CutoutMode.Classic;
+			var shadow_on = false;
+			var shadow_mode = CutoutMode.Classic;
+
+			if (this.mode == BlendTemplate.Cutout) {
+				forward_on = true;
+				forward_mode = this.cutout;
+				shadow_on = !this.forceNoShadowCasting;
+				shadow_mode = this.cutout;
+
+			} else if (this.mode == BlendTemplate.Fade) {
+				forward_on = false;
+				forward_mode = this.cutout;
+				shadow_on = !this.forceNoShadowCasting;
+				shadow_mode = this.cutout;
+
+			} else if (this.mode == BlendTemplate.FadeCutout) {
+				// Only classic
+				forward_on = true;
+				forward_mode = CutoutMode.Classic;
+				shadow_on = !this.forceNoShadowCasting;
+				shadow_mode = CutoutMode.Classic;
+			}
+
+			this.ConfigureFeatureCutoffPassDefines(ref shader.forward, forward_on, forward_mode);
+			this.ConfigureFeatureCutoffPassDefines(ref shader.forward_add, forward_on, forward_mode);
+			this.ConfigureFeatureCutoffPassDefines(ref shader.shadowcaster, shadow_on, shadow_mode);
+
+			var prop_classic = false;
+			var prop_range = false;
+			if (forward_on) {
+				prop_classic |= forward_mode == CutoutMode.Classic;
+				prop_range |= forward_mode == CutoutMode.RangeRandom;
+				prop_range |= forward_mode == CutoutMode.RangeRandomH01;
+				shader.TagEnum(Commons.KawaFLT_Feature_Cutout_Forward, forward_mode);
+			}
+			if (shadow_on) {
+				prop_classic |= shadow_mode == CutoutMode.Classic;
+				prop_range |= shadow_mode == CutoutMode.RangeRandom;
+				prop_range |= shadow_mode == CutoutMode.RangeRandomH01;
+				shader.TagEnum(Commons.KawaFLT_Feature_Cutout_ShadowCaster, shadow_mode);
+			}
+
+			shader.TagBool(Commons.KawaFLT_Feature_Cutout_Classic, prop_classic);
+			if (prop_classic) {
+				shader.properties.Add(new PropertyFloat() { name = "_Cutoff", defualt = 0.5f, range = new Vector2(0, 1) });
+			}
+			shader.TagBool(Commons.KawaFLT_Feature_Cutout_RangeRandom, prop_range);
+			if (prop_range) {
+				shader.properties.Add(new PropertyFloat() { name = "_CutoffMin", defualt = 0.4f, range = new Vector2(0, 1) });
+				shader.properties.Add(new PropertyFloat() { name = "_CutoffMax", defualt = 0.6f, range = new Vector2(0, 1) });
+			}
+		}
+
+		private void ConfigureFeatureCutoffPassDefines(ref PassSetup pass, bool is_on, CutoutMode mode)
+		{
+			if (is_on) {
+				pass.defines.Add("CUTOFF_ON 1");
+
+				if (mode == CutoutMode.Classic) {
+					pass.defines.Add("CUTOFF_CLASSIC 1");
 				}
-				if (this.cutout == CutoutMode.Classic) {
-					shader.properties.Add(new PropertyFloat() { name = "_Cutoff", defualt = 0.5f, range = new Vector2(0, 1) });
-				}
-				if (this.cutout == CutoutMode.RangeRandom || this.cutout == CutoutMode.RangePattern) {
-					shader.properties.Add(new PropertyFloat() { name = "_CutoffMin", defualt = 0.4f, range = new Vector2(0, 1) });
-					shader.properties.Add(new PropertyFloat() { name = "_CutoffMax", defualt = 0.6f, range = new Vector2(0, 1) });
-				}
-				if (this.cutout == CutoutMode.RangePattern) {
-					shader.properties.Add(new Property2D() { name = "_CutoffPattern", defualt = "gray" });
+				if (mode == CutoutMode.RangeRandom || mode == CutoutMode.RangeRandomH01) {
+					this.needRandomFrag = true;
+					pass.defines.Add("CUTOFF_RANDOM 1");
+					if (mode == CutoutMode.RangeRandomH01) {
+						pass.defines.Add("CUTOFF_RANDOM_H01 1");
+						// CUTOFF_RANDOM_H01 расширяет поведение CUTOFF_RANDOM, а не заменет
+					}
 				}
 			} else {
-				shader.Define("CUTOFF_OFF 1");
+				pass.defines.Add("CUTOFF_OFF 1");
 			}
 		}
 
@@ -416,8 +466,11 @@ namespace Kawashirov.FLT
 						shader.forward.defines.Add("EMISSION_CUSTOM 1");
 						break;
 				}
-				if (this.emissionMode == EmissionMode.AlbedoMask || this.emissionMode == EmissionMode.Custom) {
-					shader.properties.Add(new Property2D() { name = "_EmissionMap", defualt = "black" });
+				if (this.emissionMode == EmissionMode.AlbedoMask) {
+					shader.properties.Add(new Property2D() { name = "_EmissionMask", defualt = "white" });
+				}
+				if (this.emissionMode == EmissionMode.Custom) {
+					shader.properties.Add(new Property2D() { name = "_EmissionMap", defualt = "white" });
 				}
 				shader.properties.Add(new PropertyColor() { name = "_EmissionColor", defualt = Color.black });
 			} else {
@@ -548,8 +601,8 @@ namespace Kawashirov.FLT
 
 		private void ConfigureFeatureInfinityWarDecimation(ref ShaderSetup shader)
 		{
-			shader.TagBool(Commons.KawaFLT_Feature_InfinityWarDecimation, this.infinityWarDecimation);
-			if (this.infinityWarDecimation && (this.complexity == ShaderComplexity.VGF || this.complexity == ShaderComplexity.VHDGF)) {
+			shader.TagBool(Commons.KawaFLT_Feature_IWD, this.iwd);
+			if (this.iwd && (this.complexity == ShaderComplexity.VGF || this.complexity == ShaderComplexity.VHDGF)) {
 				this.needRandomVert = true;
 				shader.Define("IWD_ON 1");
 				shader.properties.Add(new PropertyVector() { name = "_IWD_Plane", defualt = Vector4.zero });

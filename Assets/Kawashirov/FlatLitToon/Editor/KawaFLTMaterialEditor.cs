@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using Kawashirov.FLT;
+using System.Linq;
 
 // Имя файла длжно совпадать с именем типа.
 // https://forum.unity.com/threads/solved-blank-scriptableobject-on-import.511527/
@@ -30,9 +31,10 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 	protected MaterialProperty FindProperty(string name)
 	{
 		//return GetMaterialProperty(this.targets, name);
-		MaterialProperty mp = null;
-		this.materialProperties.TryGetValue(name, out mp);
-		return mp;
+		//MaterialProperty mp = null;
+		//this.materialProperties.TryGetValue(name, out mp);
+		var mp = GetMaterialProperty(this.targets, name);
+		return mp != null && !string.IsNullOrEmpty(mp.name) && mp.targets != null && mp.targets.Length > 0 ? mp : null;
 	}
 
 	protected void TexturePropertySmol(GUIContent label, MaterialProperty prop)
@@ -63,6 +65,102 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 		}
 	}
 
+	protected void TexturePropertySmol(GUIContent label, MaterialProperty prop, bool compatibility)
+	{
+		this.TexturePropertySmol(label, prop);
+		if (compatibility) {
+			this.TextureCompatibilityWarning(prop);
+		}
+	}
+
+	protected void TexturePropertySmolDisabled(GUIContent label, MaterialProperty prop, bool compatibility = true)
+	{
+		using (new EditorGUI.DisabledScope(prop == null)) {
+			if (prop != null) {
+				this.TexturePropertySmol(label, prop, compatibility);
+			} else {
+				EditorGUILayout.LabelField(label, new GUIContent("Disabled"));
+			}
+		}
+
+	}
+
+	protected void ShaderPropertyDisabled(MaterialProperty property, string label = null)
+	{
+		if (string.IsNullOrEmpty(label) && property != null) {
+			label = property.name;
+		}
+		var gui_label = new GUIContent(label);
+		this.ShaderPropertyDisabled(property, gui_label);
+	}
+
+	protected void ShaderPropertyDisabled(MaterialProperty property, GUIContent label = null)
+	{
+		if (property != null) {
+			this.ShaderProperty(property, label);
+		} else {
+			using (new EditorGUI.DisabledScope(true)) {
+				EditorGUILayout.LabelField(label, new GUIContent("Disabled"));
+			}
+		}
+	}
+
+	protected static void LabelEnum<E>(string label, E value, Dictionary<E, string> display = null) where E : struct
+	{
+		string label2 = null;
+		if (display != null && display.Count > 0) {
+			display.TryGetValue(value, out label2);
+		}
+		if (string.IsNullOrEmpty(label2)) {
+			label2 = Enum.GetName(typeof(E), value);
+		}
+		EditorGUILayout.LabelField(label, label2);
+	}
+
+	protected static void LabelEnumDisabled<E>(string label, E? value, Dictionary<E, string> display = null) where E : struct
+	{
+		if (value.HasValue) {
+			LabelEnum(label, value.Value, display);
+		} else if (!string.IsNullOrEmpty(label)) {
+			using (new EditorGUI.DisabledScope(true)) {
+				EditorGUILayout.LabelField(label, "Disabled");
+			}
+		}
+	}
+
+	protected static void LabelEnumDisabledFromTag<E>(
+		string label, object material, string tag, Dictionary<E, string> display = null, E? defualt = null
+	) where E : struct
+	{
+		var e = Commons.MaterialTagEnumGetSafe(material, tag, defualt);
+		LabelEnumDisabled(label, e, display);
+	}
+
+	protected static void LabelEnumDisabledFromTagMixed<E>(
+		string label, IEnumerable<object> materials, string tag, Dictionary<E, string> display = null, E? defualt = null
+	) where E : struct
+	{
+		var values = new HashSet<E>();
+		foreach (var material in materials) {
+			var value = Commons.MaterialTagEnumGetSafe<E>(material, tag);
+			if (value.HasValue) {
+				values.Add(value.Value);
+			}
+		}
+		if (values.Count < 1 && defualt.HasValue) {
+			values.Add(defualt.Value);
+		}
+		if (values.Count < 1) {
+			using (new EditorGUI.DisabledScope(true)) {
+				EditorGUILayout.LabelField(label, "Disabled");
+			}
+		} else if (values.Count > 1) {
+			EditorGUILayout.LabelField(label, "Mixed Values");
+		} else {
+			LabelEnum(label, values.First(), display);
+		}
+	}
+
 	protected void OnGUI_BlendMode()
 	{
 		var debug = Commons.MaterialTagBoolCheck(this.target, "KawaFLT_Feature_Debug");
@@ -85,7 +183,11 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 
 
 	protected void OnGUI_Tessellation() {
-		var tessellation = Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_Tessellation);
+		// Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_Tessellation);
+		var _Tsltn_Uni = this.FindProperty("_Tsltn_Uni");
+		var _Tsltn_Nrm = this.FindProperty("_Tsltn_Nrm");
+		var _Tsltn_Inside = this.FindProperty("_Tsltn_Inside");
+		var tessellation = _Tsltn_Uni != null && _Tsltn_Nrm != null && _Tsltn_Inside != null;
 		using (new EditorGUI.DisabledScope(!tessellation)) {
 			if (tessellation) {
 				EditorGUILayout.LabelField("Tessellation", "Enabled");
@@ -94,10 +196,9 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 					var domain = Commons.MaterialTagEnumGet<TessDomain>(this.target, Commons.KawaFLT_Feature_Domain);
 					EditorGUILayout.LabelField("Partitioning", Enum.GetName(typeof(TessPartitioning), partitioning));
 					EditorGUILayout.LabelField("Domain", Enum.GetName(typeof(TessDomain), domain));
-
-					this.ShaderProperty(this.FindProperty("_Tsltn_Uni"), "Uniform factor");
-					this.ShaderProperty(this.FindProperty("_Tsltn_Nrm"), "Factor from curvness");
-					this.ShaderProperty(this.FindProperty("_Tsltn_Inside"), "Inside multiplier");
+					this.ShaderProperty(_Tsltn_Uni, "Uniform factor");
+					this.ShaderProperty(_Tsltn_Nrm, "Factor from curvness");
+					this.ShaderProperty(_Tsltn_Inside, "Inside multiplier");
 				}
 			} else {
 				EditorGUILayout.LabelField("Tessellation", "Disabled");
@@ -109,27 +210,19 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 	{
 		var random = Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_Random);
 
-		using (new EditorGUI.DisabledScope(!random)) {
-			if (random) {
-				EditorGUILayout.LabelField("Random", "Enabled");
-				using (new EditorGUI.IndentLevelScope()) {
-					var seedTex = this.FindProperty("_Rnd_Seed");
-					this.TexturePropertySmol(new GUIContent(
-						"Seed Noise", "Red-Texture filled with random values to help generating random numbers."
-					), seedTex);
-					this.TextureCompatibilityWarning(seedTex);
-					if (seedTex.textureValue == null) {
-						EditorGUILayout.HelpBox(
-							"No seed noise texture is set! " +
-							"Some of enabled features using Pseudo-Random Number Generator. " +
-							"This texture is required, and shader will not properly work without this.",
-							MessageType.Error
-						);
-					}
-				}
-			} else {
-				EditorGUILayout.LabelField("Random", "Disabled");
-			}
+
+		var _Rnd_Seed = this.FindProperty("_Rnd_Seed");
+		var label = new GUIContent(
+			"Seed Noise", "Red-Texture filled with random values to help generating random numbers."
+		);
+		this.TexturePropertySmolDisabled(label, _Rnd_Seed);
+		if (_Rnd_Seed != null && _Rnd_Seed.textureValue == null){
+			EditorGUILayout.HelpBox(
+				"No seed noise texture is set! " +
+				"Some of enabled features using Pseudo-Random Number Generator. " +
+				"This texture is required, and shader will not properly work without this.",
+				MessageType.Error
+			);
 		}
 	}
 
@@ -138,116 +231,77 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 		EditorGUILayout.LabelField("General Rendering Features");
 		using (new EditorGUI.IndentLevelScope()) {
 
-			var f_mainTex = Commons.MaterialTagEnumGet<MainTexKeywords>(this.target, Commons.KawaFLT_Feature_MainTex);
-			var f_cutout = Commons.MaterialTagEnumGetSafe<CutoutMode>(this.target, Commons.KawaFLT_Feature_Cutout);
-
-			var f_normalMap = Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_NormalMap);
-
-			using (new EditorGUI.DisabledScope(f_mainTex == MainTexKeywords.NoMainTex)) {
-				var label = "Albedo (MainTex)";
-				var tooltip = "Albedo main Color Texture (RGBA)";
-				var mainTexture = this.FindProperty("_MainTex");
-				if (f_mainTex != MainTexKeywords.NoMainTex) {
-					this.TexturePropertySmol(new GUIContent(label, tooltip), mainTexture);
-					this.TextureCompatibilityWarning(mainTexture);
-					if (mainTexture.textureValue == null) {
-						EditorGUILayout.HelpBox(
-							"No albedo texture is set! Disable main tex feature in shader generator, if you don't need this.",
-							MessageType.Warning
-						);
-					}
-				} else {
-					EditorGUILayout.LabelField(label, "Disabled");
-				}
+			var _MainTex = this.FindProperty("_MainTex");
+			var _MainTex_label = new GUIContent("Albedo (Main Texture)", "Albedo Main Color Texture (RGBA)");
+			this.TexturePropertySmolDisabled(_MainTex_label, _MainTex);
+			if (_MainTex != null && _MainTex.textureValue == null) {
+				EditorGUILayout.HelpBox(
+					"No albedo texture is set! Disable main tex feature in shader generator, if you don't need this.",
+					MessageType.Warning
+				);
 			}
 
 			using (new EditorGUI.IndentLevelScope()) {
-				using (new EditorGUI.DisabledScope(!f_cutout.HasValue || f_cutout.Value != CutoutMode.Classic)) {
-					if (f_cutout.HasValue && f_cutout.Value == CutoutMode.Classic) {
-						this.ShaderProperty(this.FindProperty("_Cutoff"), "Cutout (Classic)");
-					} else {
-						EditorGUILayout.LabelField("Cutout (Classic)", "Disabled");
-					}
-				}
+				LabelEnumDisabledFromTagMixed<CutoutMode>(
+					"Forward Pass Cutout Mode", this.targets, Commons.KawaFLT_Feature_Cutout_Forward
+				);
 
-				using (new EditorGUI.DisabledScope(!f_cutout.HasValue || f_cutout.Value == CutoutMode.Classic)) {
-					if (f_cutout.HasValue && f_cutout.Value != CutoutMode.Classic) {
-						this.ShaderProperty(this.FindProperty("_CutoffMin"), "Cutout Min");
-						this.ShaderProperty(this.FindProperty("_CutoffMax"), "Cutout Max");
-					} else {
-						EditorGUILayout.LabelField("Cutout Min", "Disabled");
-						EditorGUILayout.LabelField("Cutout Max", "Disabled");
-					}
-				}
+				LabelEnumDisabledFromTagMixed<CutoutMode>(
+					"Shadow Caster Cutout Mode", this.targets, Commons.KawaFLT_Feature_Cutout_ShadowCaster
+				);
 
-				this.ShaderProperty(this.FindProperty("_Color"), "Color");
+				this.ShaderPropertyDisabled(this.FindProperty("_Cutoff"), "Cutout (Classic)");
+				this.ShaderPropertyDisabled(this.FindProperty("_CutoffMin"), "Cutout Min");
+				this.ShaderPropertyDisabled(this.FindProperty("_CutoffMax"), "Cutout Max");
 
-				using (new EditorGUI.DisabledScope(f_mainTex != MainTexKeywords.ColorMask)) {
-					var label = "Color Mask";
-					var tooltip = "Masks Color Tint (R)";
-					if (f_mainTex == MainTexKeywords.ColorMask) {
-						var colorMask = this.FindProperty("_ColorMask");
-						this.TexturePropertySmol(new GUIContent(label, tooltip), colorMask);
-						this.TextureCompatibilityWarning(colorMask);
-						if (colorMask.textureValue == null) {
-							EditorGUILayout.HelpBox(
-								"No color mask texture set! Disable main tex clor mask feature in shader generator, if you don't need this.",
-								MessageType.Warning
-							);
-						}
-					} else {
-						EditorGUILayout.LabelField(label, "Disabled");
-					}
+				this.ShaderPropertyDisabled(this.FindProperty("_Color"), "Color");
+
+				var _ColorMask = this.FindProperty("_ColorMask");
+				var _ColorMask_label = new GUIContent("Color Mask", "Masks Color Tint (R)");
+				this.TexturePropertySmolDisabled(_ColorMask_label, _ColorMask);
+				if (_ColorMask != null && _ColorMask.textureValue == null) {
+					EditorGUILayout.HelpBox(
+						"No color mask texture set! Disable main texture color mask feature in shader generator, if you don't need this.",
+						MessageType.Warning
+					);
 				}
 			}
 
-			var f_emission = Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_Emission);
+			var _EmissionMask = this.FindProperty("_EmissionMask");
+			var _EmissionMap = this.FindProperty("_EmissionMap");
+			var _EmissionColor = this.FindProperty("_EmissionColor");
+			var f_emission = _EmissionMask != null || _EmissionMap != null || _EmissionColor != null;
+			
 			using (new EditorGUI.DisabledScope(!f_emission)) {
+				EditorGUILayout.LabelField("Emission Feature", f_emission ? "Enabled" : "Disabled");
 				if (f_emission) {
-					var f_emissionMode = Commons.MaterialTagEnumGet<EmissionMode>(this.target, Commons.KawaFLT_Feature_EmissionMode);
-					EditorGUILayout.LabelField("Emission", Enum.GetName(typeof(EmissionMode), f_emissionMode));
 					using (new EditorGUI.IndentLevelScope()) {
-						using (new EditorGUI.DisabledScope(f_emissionMode != EmissionMode.AlbedoMask)) {
-							var label = "Emission Albedo Mask";
-							var tooltip = "Masks which parts of albedo is emissive (R)";
-							if (f_emissionMode == EmissionMode.AlbedoMask) {
-								var emMask = this.FindProperty("_EmissionMap");
-								this.TexturePropertySmol(new GUIContent(label, tooltip), emMask);
-								this.TextureCompatibilityWarning(emMask);
-								if (emMask.textureValue == null) {
-									EditorGUILayout.HelpBox(
-										"No custom emission mask texture set! Disable emission mask feature in shader generator, if you don't need this.",
-										MessageType.Warning
-									);
-								}
-							} else {
-								EditorGUILayout.LabelField(label, "Disabled");
-							}
+						LabelEnumDisabledFromTagMixed(
+							"Emission Mode", this.targets, Commons.KawaFLT_Feature_EmissionMode, Commons.emissionMode
+						);
+
+						var _EmissionMask_label = new GUIContent("Emission Mask", "Mask for Emission by Albedo Main Texture (R)");
+						this.TexturePropertySmolDisabled(_EmissionMask_label, _EmissionMask);
+						if (_EmissionMask != null && _EmissionMask.textureValue == null) {
+							EditorGUILayout.HelpBox(
+								"No emission mask texture set! Disable emission mask feature in shader generator, if you don't need this.",
+								MessageType.Warning
+							);
 						}
 
-						using (new EditorGUI.DisabledScope(f_emissionMode != EmissionMode.Custom)) {
-							var label = "Emission Texture";
-							var tooltip = "Custom Emission Texture (RGB)";
-							if (f_emissionMode == EmissionMode.Custom) {
-								var emMap = this.FindProperty("_EmissionMap");
-								this.TexturePropertySmol(new GUIContent(label, tooltip), emMap);
-								this.TextureCompatibilityWarning(emMap);
-								if (emMap.textureValue == null) {
-									EditorGUILayout.HelpBox(
-										"No custom emission texture set! Disable custom emission feature in shader generator, if you don't need this.",
-										MessageType.Warning
-									);
-								}
-							} else {
-								EditorGUILayout.LabelField(label, "Disabled");
-							}
+						var _EmissionMap_label = new GUIContent("Emission Texture", "Custom Emission Texture (RGB)");
+						this.TexturePropertySmolDisabled(_EmissionMap_label, _EmissionMap);
+						if (_EmissionMap != null && _EmissionMap.textureValue == null) {
+							EditorGUILayout.HelpBox(
+								"No emission map texture set! Disable emission map feature in shader generator, if you don't need this.",
+								MessageType.Warning
+							);
 						}
 
-						var color = this.FindProperty("_EmissionColor");
-						this.ShaderProperty(color, new GUIContent("Emission Color (Tint)", "Emission Color Tint (RGB)"));
-						var value = color.colorValue;
-						var intencity = (value.r + value.g + value.b) * value.a;
-						if (intencity < 0.03) {
+						this.ShaderPropertyDisabled(_EmissionColor, new GUIContent("Emission Color (Tint)", "Emission Color Tint (RGB)"));
+						var _EmissionColor_value = _EmissionColor.colorValue;
+						var intencity = (_EmissionColor_value.r + _EmissionColor_value.g + _EmissionColor_value.b) * _EmissionColor_value.a;
+						if (intencity < 0.05) {
 							EditorGUILayout.HelpBox(
 								"Emission Color is too dark! disable emission feature in shader generator, if you don't need emission.",
 								MessageType.Warning
@@ -255,39 +309,26 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 						}
 
 					}
-				} else {
-					EditorGUILayout.LabelField("Emission", "Disabled");
 				}
 			}
 
-			using (new EditorGUI.DisabledScope(!f_normalMap)) {
-				var label = "Normal Map";
-				var tooltip = "Normal (Bump) Map Texture (RGB)";
-				if (f_normalMap) {
-					var bumpMap = this.FindProperty("_BumpMap");
-					this.TexturePropertySmol(new GUIContent(label, tooltip), bumpMap);
-					this.TextureCompatibilityWarning(bumpMap);
-					if (bumpMap.textureValue == null) {
-						EditorGUILayout.HelpBox(
-							"Normal map texture is not set! Disable normal feature in shader generator, if you don't need this.",
-							MessageType.Warning
-						);
-					}
-					using (new EditorGUI.IndentLevelScope()) {
-						var bumpScale = this.FindProperty("_BumpScale");
-						this.DefaultShaderProperty(bumpScale, "Normal Map Scale");
-						if (bumpScale.floatValue < 0.01) {
-							EditorGUILayout.HelpBox(
-								"Normal map scale value is close to zero! In this situation, may be it's better to disable normal feature in shader generator, if you don't need this?",
-								MessageType.Warning
-							);
-						}
-					}
-				} else {
-					EditorGUILayout.LabelField(label, "Disabled");
-					using (new EditorGUI.IndentLevelScope()) {
-						EditorGUILayout.LabelField("Normal Map Scale", "Disabled");
-					}
+			var _BumpMap = this.FindProperty("_BumpMap");
+			var label = new GUIContent("Normal Map", "Normal (Bump) Map Texture (RGB)");
+			this.TexturePropertySmolDisabled(label, _BumpMap);
+			if (_BumpMap != null && _BumpMap.textureValue == null) {
+				EditorGUILayout.HelpBox(
+					"Normal map texture is not set! Disable normal feature in shader generator, if you don't need this.",
+					MessageType.Warning
+				);
+			}
+			using (new EditorGUI.IndentLevelScope()) {
+				var _BumpScale = this.FindProperty("_BumpScale");
+				this.ShaderPropertyDisabled(_BumpScale, "Normal Map Scale");
+				if (_BumpScale != null && _BumpScale.floatValue < 0.05) {
+					EditorGUILayout.HelpBox(
+						"Normal map scale value is close to zero! In this situation, may be it's better to disable normal feature in shader generator, if you don't need this?",
+						MessageType.Warning
+					);
 				}
 			}
 		}
@@ -300,24 +341,24 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 		using (new EditorGUI.IndentLevelScope()) {
 			EditorGUILayout.HelpBox(Commons.shadingModeDesc[shading], MessageType.Info);
 			if (shading == ShadingMode.CubedParadoxFLT) {
-				this.ShaderProperty(this.FindProperty("_Sh_Cbdprdx_Shadow"), "Shadow");
+				this.ShaderPropertyDisabled(this.FindProperty("_Sh_Cbdprdx_Shadow"), "Shadow");
 			} else if (shading == ShadingMode.KawashirovFLTSingle) {
-				this.ShaderProperty(this.FindProperty("_Sh_Kwshrv_ShdBlnd"), "RT Shadows blending");
+				this.ShaderPropertyDisabled(this.FindProperty("_Sh_Kwshrv_ShdBlnd"), "RT Shadows blending");
 
 				EditorGUILayout.LabelField("Sides threshold");
 				using (new EditorGUI.IndentLevelScope()) {
-					this.ShaderProperty(this.FindProperty("_Sh_KwshrvSngl_TngntLo"), "Low");
-					this.ShaderProperty(this.FindProperty("_Sh_KwshrvSngl_TngntHi"), "High");
+					this.ShaderPropertyDisabled(this.FindProperty("_Sh_KwshrvSngl_TngntLo"), "Low");
+					this.ShaderPropertyDisabled(this.FindProperty("_Sh_KwshrvSngl_TngntHi"), "High");
 				}
 
 				EditorGUILayout.LabelField("Brightness");
 				using (new EditorGUI.IndentLevelScope()) {
-					this.ShaderProperty(this.FindProperty("_Sh_KwshrvSngl_ShdLo"), "Back side (Shaded)");
-					this.ShaderProperty(this.FindProperty("_Sh_KwshrvSngl_ShdHi"), "Front side (Lit)");
+					this.ShaderPropertyDisabled(this.FindProperty("_Sh_KwshrvSngl_ShdLo"), "Back side (Shaded)");
+					this.ShaderPropertyDisabled(this.FindProperty("_Sh_KwshrvSngl_ShdHi"), "Front side (Lit)");
 				}
 			} else if (shading == ShadingMode.KawashirovFLTRamp) {
 				var rampTex = this.FindProperty("_Sh_KwshrvRmp_Tex");
-				this.ShaderProperty(this.FindProperty("_Sh_Kwshrv_ShdBlnd"), "RT Shadows blending");
+				this.ShaderPropertyDisabled(this.FindProperty("_Sh_Kwshrv_ShdBlnd"), "RT Shadows blending");
 				this.TexturePropertySmol(new GUIContent("Ramp Texture", "Ramp Texture (RGB)"), rampTex);
 				this.TextureCompatibilityWarning(rampTex);
 				if (rampTex.textureValue == null) {
@@ -326,42 +367,30 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 						MessageType.Error
 					);
 				}
-				this.ShaderProperty(this.FindProperty("_Sh_KwshrvRmp_Pwr"), "Power");
-				this.ShaderProperty(this.FindProperty("_Sh_KwshrvRmp_NdrctClr"), "Indirect Tint");
+				this.ShaderPropertyDisabled(this.FindProperty("_Sh_KwshrvRmp_Pwr"), "Power");
+				this.ShaderPropertyDisabled(this.FindProperty("_Sh_KwshrvRmp_NdrctClr"), "Indirect Tint");
 			}
 		}
 	}
 
 	protected void OnGUI_DistanceFade()
 	{
-		var f_distanceFade = Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_DistanceFade);
+		var _DstFd_Axis = this.FindProperty("_DstFd_Axis");
+		var _DstFd_Near = this.FindProperty("_DstFd_Near");
+		var _DstFd_Far = this.FindProperty("_DstFd_Far");
+		var _DstFd_AdjustPower = this.FindProperty("_DstFd_AdjustPower");
+		var _DstFd_AdjustScale = this.FindProperty("_DstFd_AdjustScale");
+		var f_distanceFade = Commons.AnyNotNull(_DstFd_Axis, _DstFd_Near, _DstFd_Far, _DstFd_AdjustPower, _DstFd_AdjustScale);
 		using (new EditorGUI.DisabledScope(!f_distanceFade)) {
-			EditorGUILayout.LabelField("VF Feature: Distance Fade", f_distanceFade ? "Enabled" : "Disabled");
+			EditorGUILayout.LabelField("Distance Fade Feature", f_distanceFade ? "Enabled" : "Disabled");
 			using (new EditorGUI.IndentLevelScope()) {
 				if (f_distanceFade) {
-					var f_DistanceFadeMode = Commons.MaterialTagEnumGet<DistanceFadeMode>(this.target, Commons.KawaFLT_Feature_DistanceFadeMode);
-					EditorGUILayout.LabelField("Mode", Enum.GetName(typeof(DistanceFadeMode), f_DistanceFadeMode));
-
-					this.ShaderProperty(this.FindProperty("_DstFd_Axis"), "Axis weights");
-
-					this.ShaderProperty(this.FindProperty("_DstFd_Near"), "Near Distance");
-					if (f_DistanceFadeMode == DistanceFadeMode.Range) {
-						this.ShaderProperty(this.FindProperty("_DstFd_Far"), "Far Distance");
-					} else {
-						using (new EditorGUI.DisabledScope(true)) {
-							EditorGUILayout.LabelField("Far Distance", "Disabled");
-						}
-					}
-
-					this.ShaderProperty(this.FindProperty("_DstFd_AdjustPower"), "Power Adjust");
-					if (f_DistanceFadeMode == DistanceFadeMode.Infinity) {
-						this.ShaderProperty(this.FindProperty("_DstFd_AdjustScale"), "Scale Adjust");
-					} else {
-						using (new EditorGUI.DisabledScope(true)) {
-							EditorGUILayout.LabelField("Scale Adjust", "Disabled");
-						}
-					}
-
+					LabelEnumDisabledFromTagMixed<DistanceFadeMode>("Mode", this.targets, Commons.KawaFLT_Feature_DistanceFadeMode);
+					this.ShaderPropertyDisabled(_DstFd_Axis, "Axis weights");
+					this.ShaderPropertyDisabled(_DstFd_Near, "Near Distance");
+					this.ShaderPropertyDisabled(_DstFd_Far, "Far Distance");
+					this.ShaderPropertyDisabled(_DstFd_AdjustPower, "Power Adjust");
+					this.ShaderPropertyDisabled(_DstFd_AdjustScale, "Scale Adjust");
 				}
 			}
 		}
@@ -369,16 +398,17 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 
 	protected void OnGUI_FPS()
 	{
-		var f_FPS = Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_FPS);
+		// Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_FPS);
+		var _FPS_TLo = this.FindProperty("_FPS_TLo");
+		var _FPS_THi = this.FindProperty("_FPS_THi");
+		var f_FPS = Commons.AnyNotNull(_FPS_TLo, _FPS_THi);
 		using (new EditorGUI.DisabledScope(!f_FPS)) {
-			EditorGUILayout.LabelField("VF Feature: FPS Indication", f_FPS ? "Enabled" : "Disabled");
+			EditorGUILayout.LabelField("FPS Indication Feature", f_FPS ? "Enabled" : "Disabled");
 			using (new EditorGUI.IndentLevelScope()) {
 				if (f_FPS) {
-					var f_FPSMode = Commons.MaterialTagEnumGet<FPSMode>(this.target, Commons.KawaFLT_Feature_FPSMode);
-					EditorGUILayout.LabelField("Mode", Enum.GetName(typeof(FPSMode), f_FPSMode));
-
-					this.ShaderProperty(this.FindProperty("_FPS_TLo"), "Low FPS tint");
-					this.ShaderProperty(this.FindProperty("_FPS_THi"), "High FPS tint");
+					LabelEnumDisabledFromTagMixed<FPSMode>("Mode", this.targets, Commons.KawaFLT_Feature_FPSMode);
+					this.ShaderPropertyDisabled(_FPS_TLo, "Low FPS tint");
+					this.ShaderPropertyDisabled(_FPS_THi, "High FPS tint");
 				}
 			}
 		}
@@ -386,17 +416,19 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 
 	private void OnGUI_Outline()
 	{
-		var f_Outline = Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_Outline);
+		var _outline_width = this.FindProperty("_outline_width");
+		var _outline_color = this.FindProperty("_outline_color");
+		var _outline_bias = this.FindProperty("_outline_bias");
+
+		var f_Outline = Commons.AnyNotNull(_outline_width,  _outline_color, _outline_bias);
 		using (new EditorGUI.DisabledScope(!f_Outline)) {
-			EditorGUILayout.LabelField("VGF Feature: Outline", f_Outline ? "Enabled" : "Disabled");
+			EditorGUILayout.LabelField("Outline Feature", f_Outline ? "Enabled" : "Disabled");
 			using (new EditorGUI.IndentLevelScope()) {
 				if (f_Outline) {
-					var f_FPSMode = Commons.MaterialTagEnumGet<OutlineMode>(this.target, Commons.KawaFLT_Feature_OutlineMode);
-					EditorGUILayout.LabelField("Mode", Enum.GetName(typeof(FPSMode), f_FPSMode));
-
-					this.ShaderProperty(this.FindProperty("_outline_width"), "Outline width (cm)");
-					this.ShaderProperty(this.FindProperty("_outline_color"), "Outline Color (Tint)");
-					this.ShaderProperty(this.FindProperty("_outline_bias"), "Outline Z-Bias");
+					LabelEnumDisabledFromTagMixed<OutlineMode>("Mode", this.targets, Commons.KawaFLT_Feature_OutlineMode);
+					this.ShaderPropertyDisabled(_outline_width, "Outline width (cm)");
+					this.ShaderPropertyDisabled(_outline_color, "Outline Color (Tint)");
+					this.ShaderPropertyDisabled(_outline_bias, "Outline Z-Bias");
 				}
 			}
 		}
@@ -404,49 +436,67 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 
 	private void OnGUI_InfinityWarDecimation()
 	{
-		var f_InfinityWarDecimation = Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_InfinityWarDecimation);
-		var f_Tessellation = Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_Tessellation);
+		var _IWD_Plane = this.FindProperty("_IWD_Plane");
+		var _IWD_PlaneDistRandomness = this.FindProperty("_IWD_PlaneDistRandomness");
+
+		var _IWD_DirRandomWeight = this.FindProperty("_IWD_DirRandomWeight");
+		var _IWD_DirPlaneWeight = this.FindProperty("_IWD_DirPlaneWeight");
+		var _IWD_DirNormalWeight = this.FindProperty("_IWD_DirNormalWeight");
+		var _IWD_DirObjectWeight = this.FindProperty("_IWD_DirObjectWeight");
+		var _IWD_DirObjectVector = this.FindProperty("_IWD_DirObjectVector");
+		var _IWD_DirWorldWeight = this.FindProperty("_IWD_DirWorldWeight");
+		var _IWD_DirWorldVector = this.FindProperty("_IWD_DirWorldVector");
+
+		var _IWD_MoveSpeed = this.FindProperty("_IWD_MoveSpeed");
+		var _IWD_MoveAccel = this.FindProperty("_IWD_MoveAccel");
+
+		var _IWD_CmprssFar = this.FindProperty("_IWD_CmprssFar");
+		var _IWD_TintFar = this.FindProperty("_IWD_TintFar");
+		var _IWD_TintColor = this.FindProperty("_IWD_TintColor");
+		var _IWD_Tsltn = this.FindProperty("_IWD_Tsltn");
+
+		var f_InfinityWarDecimation = Commons.AnyNotNull(
+			_IWD_Plane, _IWD_PlaneDistRandomness,
+			_IWD_DirRandomWeight, _IWD_DirPlaneWeight, _IWD_DirNormalWeight, _IWD_DirObjectWeight, _IWD_DirWorldWeight,
+			_IWD_DirObjectVector, _IWD_DirWorldVector,
+			_IWD_MoveSpeed, _IWD_MoveAccel,
+			_IWD_CmprssFar, _IWD_TintFar, _IWD_TintColor, _IWD_Tsltn
+		);
+
 		using (new EditorGUI.DisabledScope(!f_InfinityWarDecimation)) {
-			EditorGUILayout.LabelField("VGF Feature: Infinity War Decimation", f_InfinityWarDecimation ? "Enabled" : "Disabled");
+			EditorGUILayout.LabelField("Infinity War Decimation Feature", f_InfinityWarDecimation ? "Enabled" : "Disabled");
 			using (new EditorGUI.IndentLevelScope()) {
 				if (f_InfinityWarDecimation) {
 					EditorGUILayout.LabelField("I don't feel so good...");
-					//EditorGUILayout.LabelField("General equation of a Plane (XYZ is normal, W is offset):");
 					EditorGUILayout.LabelField("Particles Front");
 					using (new EditorGUI.IndentLevelScope()) {
 						EditorGUILayout.LabelField("General equation of a Plane (XYZ is normal, W is offset)");
-						this.ShaderProperty(this.FindProperty("_IWD_Plane"), "");
-						this.ShaderProperty(this.FindProperty("_IWD_PlaneDistRandomness"), "Randomness (W)");
+						this.ShaderPropertyDisabled(_IWD_Plane, "");
+						this.ShaderPropertyDisabled(_IWD_PlaneDistRandomness, "Randomness (W)");
 					}
 					EditorGUILayout.LabelField("Particles Direction");
 					using (new EditorGUI.IndentLevelScope()) {
-						this.ShaderProperty(this.FindProperty("_IWD_DirRandomWeight"), "Random");
-						this.ShaderProperty(this.FindProperty("_IWD_DirPlaneWeight"), "Particles Front Plane");
-						this.ShaderProperty(this.FindProperty("_IWD_DirNormalWeight"), "Normal");
-						this.ShaderProperty(this.FindProperty("_IWD_DirObjectWeight"), "Object Space Vector");
+						this.ShaderPropertyDisabled(_IWD_DirRandomWeight, "Random");
+						this.ShaderPropertyDisabled(_IWD_DirPlaneWeight, "Particles Front Plane");
+						this.ShaderPropertyDisabled(_IWD_DirNormalWeight, "Normal");
+						this.ShaderPropertyDisabled(_IWD_DirObjectWeight, "Object Space Vector");
 						using (new EditorGUI.IndentLevelScope()) {
-							this.ShaderProperty(this.FindProperty("_IWD_DirObjectVector"), "");
+							this.ShaderPropertyDisabled(_IWD_DirObjectVector, "");
 						}
-						this.ShaderProperty(this.FindProperty("_IWD_DirWorldWeight"), "World Space Vector");
+						this.ShaderPropertyDisabled(_IWD_DirWorldWeight, "World Space Vector");
 						using (new EditorGUI.IndentLevelScope()) {
-							this.ShaderProperty(this.FindProperty("_IWD_DirWorldVector"), "");
+							this.ShaderPropertyDisabled(_IWD_DirWorldVector, "");
 						}
 					}
 					EditorGUILayout.LabelField("Particles Movement");
 					using (new EditorGUI.IndentLevelScope()) {
-						this.ShaderProperty(this.FindProperty("_IWD_MoveSpeed"), "Speed");
-						this.ShaderProperty(this.FindProperty("_IWD_MoveAccel"), "Accel");
+						this.ShaderPropertyDisabled(_IWD_MoveSpeed, "Speed");
+						this.ShaderPropertyDisabled(_IWD_MoveAccel, "Accel");
 					}
-					this.ShaderProperty(this.FindProperty("_IWD_CmprssFar"), "Compression Distance");
-					this.ShaderProperty(this.FindProperty("_IWD_TintFar"), "Tint Distance");
-					this.ShaderProperty(this.FindProperty("_IWD_TintColor"), "Tint Color");
-					if (f_Tessellation) {
-						this.ShaderProperty(this.FindProperty("_IWD_Tsltn"), "Tessellation factor");
-					} else {
-						using (new EditorGUI.DisabledScope(true)) {
-							EditorGUILayout.LabelField("Tessellation factor", "Disabled");
-						}
-					}
+					this.ShaderPropertyDisabled(_IWD_CmprssFar, "Compression Distance");
+					this.ShaderPropertyDisabled(_IWD_TintFar, "Tint Distance");
+					this.ShaderPropertyDisabled(_IWD_TintColor, "Tint Color");
+					this.ShaderPropertyDisabled(_IWD_Tsltn, "Tessellation factor");
 				}
 			}
 		}
@@ -454,77 +504,103 @@ public class KawaFLTMaterialEditor : MaterialEditor {
 
 	private void OnGUI_PolyColorWave()
 	{
+		var _PCW_WvTmLo = this.FindProperty("_PCW_WvTmLo");
+		var _PCW_WvTmAs = this.FindProperty("_PCW_WvTmAs");
+		var _PCW_WvTmHi = this.FindProperty("_PCW_WvTmHi");
+		var _PCW_WvTmDe = this.FindProperty("_PCW_WvTmDe");
+		var _PCW_WvTmRnd = this.FindProperty("_PCW_WvTmRnd");
+		var _PCW_WvTmUV = this.FindProperty("_PCW_WvTmUV");
+		var _PCW_WvTmVtx = this.FindProperty("_PCW_WvTmVtx");
+
+		var _PCW_Em = this.FindProperty("_PCW_Em");
+		var _PCW_Color = this.FindProperty("_PCW_Color");
+		var _PCW_RnbwTm = this.FindProperty("_PCW_RnbwTm");
+		var _PCW_RnbwTmRnd = this.FindProperty("_PCW_RnbwTmRnd");
+		var _PCW_RnbwStrtn = this.FindProperty("_PCW_RnbwStrtn");
+		var _PCW_RnbwBrghtnss = this.FindProperty("_PCW_RnbwBrghtnss");
+		var _PCW_Mix = this.FindProperty("_PCW_Mix");
+
 		var f_PCW = Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_PCW);
 		using (new EditorGUI.DisabledScope(!f_PCW)) {
-			EditorGUILayout.LabelField("VGF Feature: Poly Color Wave", f_PCW ? "Enabled" : "Disabled");
+			EditorGUILayout.LabelField("Poly Color Wave Feature", f_PCW ? "Enabled" : "Disabled");
 			using (new EditorGUI.IndentLevelScope()) {
 				if (f_PCW) {
 					var f_PCWMode = Commons.MaterialTagEnumGet<PolyColorWaveMode>(this.target, Commons.KawaFLT_Feature_PCWMode);
 					EditorGUILayout.LabelField("Mode", Enum.GetName(typeof(PolyColorWaveMode), f_PCWMode));
 
-					var time_low = this.FindProperty("_PCW_WvTmLo");
-					var time_asc = this.FindProperty("_PCW_WvTmAs");
-					var time_high = this.FindProperty("_PCW_WvTmHi");
-					var time_desc = this.FindProperty("_PCW_WvTmDe");
-
 					EditorGUILayout.LabelField("Wave timings:");
+					float? time_period = null;
 					using (new EditorGUI.IndentLevelScope()) {
-						this.ShaderProperty(time_low, "Hidden");
-						this.ShaderProperty(time_asc, "Fade-in");
-						this.ShaderProperty(time_high, "Shown");
-						this.ShaderProperty(time_desc, "Fade-out");
-					}
+						this.ShaderPropertyDisabled(_PCW_WvTmLo, "Hidden");
+						this.ShaderPropertyDisabled(_PCW_WvTmAs, "Fade-in");
+						this.ShaderPropertyDisabled(_PCW_WvTmHi, "Shown");
+						this.ShaderPropertyDisabled(_PCW_WvTmDe, "Fade-out");
+						time_period = this.OnGUI_PolyColorWave_WvTmHelper(_PCW_WvTmLo, _PCW_WvTmAs, _PCW_WvTmHi, _PCW_WvTmDe);
 
-					var time_low_f = time_low.floatValue;
-					var time_asc_f = time_asc.floatValue;
-					var time_high_f = time_high.floatValue;
-					var time_desc_f = time_desc.floatValue;
-					var time_period = time_low_f + time_asc_f + time_high_f + time_desc_f;
-
-					using (new EditorGUI.IndentLevelScope()) {
-						var time_curve = new AnimationCurve();
-						time_curve.AddKey(0, 0);
-						time_curve.AddKey(time_low_f, 0);
-						time_curve.AddKey(time_low_f + time_asc_f, 1);
-						time_curve.AddKey(time_low_f + time_asc_f + time_high_f, 1);
-						time_curve.AddKey(time_period, 0);
-						for (var i = 0; i < time_curve.keys.Length; ++i) {
-							AnimationUtility.SetKeyLeftTangentMode(time_curve, i, AnimationUtility.TangentMode.Linear);
-							AnimationUtility.SetKeyRightTangentMode(time_curve, i, AnimationUtility.TangentMode.Linear);
-						}
-						EditorGUILayout.CurveField("Preview amplitude (read-only)", time_curve);
-						HelpBoxRich(string.Format("Time for singe wave cycle: <b>{0:f}</b> sec. ", time_period));
-						this.ShaderProperty(this.FindProperty("_PCW_WvTmRnd"), "Random per tris");
+						this.ShaderPropertyDisabled(_PCW_WvTmRnd, "Random per tris");
 
 						EditorGUILayout.LabelField("Time offset from UV0 (XY) and UV1 (ZW):");
-						this.VectorProperty(this.FindProperty("_PCW_WvTmUV"), "");
+						this.ShaderPropertyDisabled(_PCW_WvTmUV, "");
 
 						EditorGUILayout.LabelField("Time offset from mesh-space coords: ");
-						this.VectorProperty(this.FindProperty("_PCW_WvTmVtx"), "");
+						this.ShaderPropertyDisabled(_PCW_WvTmVtx, "");
 					}
 
 					EditorGUILayout.LabelField("Wave coloring:");
-					var rainbowTime = this.FindProperty("_PCW_RnbwTm");
 					using (new EditorGUI.IndentLevelScope()) {
-						this.ShaderProperty(this.FindProperty("_PCW_Em"), "Emissiveness");
-						this.ShaderProperty(this.FindProperty("_PCW_Color"), "Color");
-						this.ShaderProperty(rainbowTime, "Rainbow time");
-						this.ShaderProperty(this.FindProperty("_PCW_RnbwTmRnd"), "Rainbow time random");
-						this.ShaderProperty(this.FindProperty("_PCW_RnbwStrtn"), "Rainbow saturation");
-						this.ShaderProperty(this.FindProperty("_PCW_RnbwBrghtnss"), "Rainbow brightness");
-						this.ShaderProperty(this.FindProperty("_PCW_Mix"), "Color vs. Rainbow");
+						this.ShaderPropertyDisabled(_PCW_Em, "Emissiveness");
+						this.ShaderPropertyDisabled(_PCW_Color, "Color");
+						this.ShaderPropertyDisabled(_PCW_RnbwTm, "Rainbow time");
+						this.ShaderPropertyDisabled(_PCW_RnbwTmRnd, "Rainbow time random");
+						this.ShaderPropertyDisabled(_PCW_RnbwStrtn, "Rainbow saturation");
+						this.ShaderPropertyDisabled(_PCW_RnbwBrghtnss, "Rainbow brightness");
+						this.ShaderPropertyDisabled(_PCW_Mix, "Color vs. Rainbow");
 					}
-
-					var time_rainbow = rainbowTime.floatValue;
-					var gcd_t = gcd(time_rainbow, time_period);
-					var lcm_t = (time_rainbow * time_period) / gcd_t;
-					HelpBoxRich(string.Format(
-						"Period of the wave <b>{0:f1}</b> sec. and period of Rainbow <b>{1:f1}</b> sec. produces total cycle of ~<b>{2:f1}</b> sec. (GCD: ~<b>{3:f}</b>)",
-						time_period, time_rainbow, lcm_t, gcd_t
-					));
-
+					if (time_period.HasValue && _PCW_RnbwTm != null && !_PCW_RnbwTm.hasMixedValue) {
+						var time_rainbow = _PCW_RnbwTm.floatValue;
+						var gcd_t = gcd(time_rainbow, time_period.Value);
+						var lcm_t = (time_rainbow * time_period) / gcd_t;
+						HelpBoxRich(string.Format(
+							"Period of the wave <b>{0:f1}</b> sec. and period of Rainbow <b>{1:f1}</b> sec. produces total cycle of ~<b>{2:f1}</b> sec. (GCD: ~<b>{3:f}</b>)",
+							time_period, time_rainbow, lcm_t, gcd_t
+						));
+					}
 				}
 			}
+		}
+	}
+
+	private float? OnGUI_PolyColorWave_WvTmHelper(
+		MaterialProperty _PCW_WvTmLo, MaterialProperty _PCW_WvTmAs, MaterialProperty _PCW_WvTmHi, MaterialProperty _PCW_WvTmDe
+	) {
+		if (
+			_PCW_WvTmLo != null && !_PCW_WvTmLo.hasMixedValue &&
+			_PCW_WvTmAs != null && !_PCW_WvTmAs.hasMixedValue &&
+			_PCW_WvTmHi != null && !_PCW_WvTmHi.hasMixedValue &&
+			_PCW_WvTmDe != null && !_PCW_WvTmDe.hasMixedValue
+		) {
+			var t0 = 0.0f;
+			var t1 = t0 + _PCW_WvTmLo.floatValue;
+			var t2 = t1 + _PCW_WvTmAs.floatValue;
+			var t3 = t2 + _PCW_WvTmHi.floatValue;
+			var t4 = t3 + _PCW_WvTmDe.floatValue;
+
+			var time_curve = new AnimationCurve();
+			time_curve.AddKey(t0, 0);
+			time_curve.AddKey(t1, 0);
+			time_curve.AddKey(t2, 1);
+			time_curve.AddKey(t3, 1);
+			time_curve.AddKey(t4, 0);
+			for (var i = 0; i < time_curve.keys.Length; ++i) {
+				AnimationUtility.SetKeyLeftTangentMode(time_curve, i, AnimationUtility.TangentMode.Linear);
+				AnimationUtility.SetKeyRightTangentMode(time_curve, i, AnimationUtility.TangentMode.Linear);
+			}
+			EditorGUILayout.CurveField("Preview amplitude (read-only)", time_curve);
+			HelpBoxRich(string.Format("Time for singe wave cycle: <b>{0:f}</b> sec. ", t4));
+
+			return t4;
+		} else {
+			return null;
 		}
 	}
 
