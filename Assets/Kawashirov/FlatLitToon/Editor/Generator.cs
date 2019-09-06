@@ -330,9 +330,7 @@ namespace Kawashirov.FLT
 				shader.tags[UMC.RenderType] = "Transparent";
 				shader.tags[KFLTC.RenderType] = "Fade";
 				shader.Define("_ALPHABLEND_ON 1");
-				if (this.mode == BlendTemplate.FadeCutout) {
-					shader.Define("CUTOFF_FADE 1");
-				}
+				// Дополнительно CUTOFF_FADE
 				shader.forward.srcBlend = BlendMode.SrcAlpha;
 				shader.forward.dstBlend = BlendMode.OneMinusSrcAlpha;
 				shader.forward.zWrite = false;
@@ -382,6 +380,7 @@ namespace Kawashirov.FLT
 			var forward_mode = CutoutMode.Classic;
 			var shadow_on = false;
 			var shadow_mode = CutoutMode.Classic;
+			var cutoff_fade_flag = false;
 
 			if (this.mode == BlendTemplate.Cutout) {
 				forward_on = true;
@@ -400,12 +399,13 @@ namespace Kawashirov.FLT
 				forward_on = true;
 				forward_mode = CutoutMode.Classic;
 				shadow_on = !this.forceNoShadowCasting;
-				shadow_mode = CutoutMode.Classic;
+				shadow_mode = this.cutout;
+				cutoff_fade_flag = true;
 			}
 
-			this.ConfigureFeatureCutoffPassDefines(ref shader.forward, forward_on, forward_mode);
-			this.ConfigureFeatureCutoffPassDefines(ref shader.forward_add, forward_on, forward_mode);
-			this.ConfigureFeatureCutoffPassDefines(ref shader.shadowcaster, shadow_on, shadow_mode);
+			this.ConfigureFeatureCutoffPassDefines(ref shader.forward, forward_on, forward_mode, cutoff_fade_flag);
+			this.ConfigureFeatureCutoffPassDefines(ref shader.forward_add, forward_on, forward_mode, cutoff_fade_flag);
+			this.ConfigureFeatureCutoffPassDefines(ref shader.shadowcaster, shadow_on, shadow_mode, cutoff_fade_flag);
 
 			var prop_classic = false;
 			var prop_range = false;
@@ -433,13 +433,18 @@ namespace Kawashirov.FLT
 			}
 		}
 
-		private void ConfigureFeatureCutoffPassDefines(ref PassSetup pass, bool is_on, CutoutMode mode)
+		private void ConfigureFeatureCutoffPassDefines(ref PassSetup pass, bool is_on, CutoutMode mode, bool cutoff_fade_flag)
 		{
 			if (is_on) {
 				pass.defines.Add("CUTOFF_ON 1");
 
-				if (mode == CutoutMode.Classic) {
+				if (cutoff_fade_flag) {
+					pass.defines.Add("CUTOFF_FADE 1");
+				}
+
+				if (mode == CutoutMode.Classic && !cutoff_fade_flag) {
 					pass.defines.Add("CUTOFF_CLASSIC 1");
+					// CUTOFF_FADE итак делает обрезку + коррекцию, вторая не к чему. 
 				}
 				if (mode == CutoutMode.RangeRandom || mode == CutoutMode.RangeRandomH01) {
 					this.needRandomFrag = true;
@@ -458,7 +463,7 @@ namespace Kawashirov.FLT
 		{
 			shader.TagBool(KFLTC.F_Emission, this.emission);
 			if (this.emission) {
-				shader.forward.defines.Add("_EMISSION");
+				shader.forward.defines.Add("EMISSION_ON 1");
 				shader.TagEnum(KFLTC.F_EmissionMode, this.emissionMode);
 				switch (this.emissionMode) {
 					case EmissionMode.AlbedoNoMask:

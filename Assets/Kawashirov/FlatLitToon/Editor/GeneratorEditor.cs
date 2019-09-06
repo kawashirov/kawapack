@@ -6,6 +6,7 @@ using Kawashirov;
 
 using DisabledScope = UnityEditor.EditorGUI.DisabledScope;
 using IndentLevelScope = UnityEditor.EditorGUI.IndentLevelScope;
+using KGC = Kawashirov.GeneralCommons;
 using EGUIL = UnityEditor.EditorGUILayout;
 using KFLTC = Kawashirov.FLT.Commons;
 
@@ -30,7 +31,18 @@ namespace Kawashirov.FLT
 			using (new IndentLevelScope()) {
 				this.DefaultPrpertyField("shaderName", "Name");
 				using (new DisabledScope(error)) {
-					this.DefaultPrpertyField("result", "Bound Asset");
+					var result = this.serializedObject.FindProperty("result");
+					if (result.hasMultipleDifferentValues) {
+						using (new DisabledScope(true)) {
+							EGUIL.LabelField("Shader Asset", "Mixed Values");
+						}
+					} else if (result.objectReferenceValue == null) {
+						using (new DisabledScope(true)) {
+							EGUIL.LabelField("Shader Asset", "Not Yet Generated");
+						}
+					} else {
+						this.DefaultPrpertyField(result, "Shader Asset");
+					}
 				}
 			}
 
@@ -87,20 +99,15 @@ namespace Kawashirov.FLT
 				var queueOffset_int = !queueOffset.hasMultipleDifferentValues ? queueOffset.intValue : (int?)null;
 				using (new DisabledScope(true)) {
 					using (new IndentLevelScope()) {
-						//var mode_ = this.serializedObject.FindProperty("mode");
-						var queueOffset_str = "-";
-						if (!queueOffset_int.HasValue && mode_int.HasValue) {
+						var queueOffset_str = "Mixed Values";
+						if (queueOffset_int.HasValue && mode_int.HasValue) {
 							string q = null;
-							switch (mode_int.Value) {
-								case (int) BlendTemplate.Opaque:
-									q = "Geometry";
-									break;
-								case (int) BlendTemplate.Cutout:
-									q = "AlphaTest";
-									break;
-								case (int) BlendTemplate.Fade:
-									q = "Transparent";
-									break;
+							if (mode_int.Value == (int)BlendTemplate.Opaque) {
+								q = "Geometry";
+							} else if (mode_int.Value == (int)BlendTemplate.Cutout) {
+								q = "AlphaTest";
+							} else if (KGC.AnyEq(mode_int.Value, (int)BlendTemplate.Fade, (int)BlendTemplate.FadeCutout)) {
+								q = "Transparent";
 							}
 							queueOffset_str = string.Format("{0}{1:+#;-#;+0}", q, queueOffset_int.Value);
 						}

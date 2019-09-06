@@ -19,6 +19,17 @@ namespace Kawashirov {
 			}
 			return false;
 		}
+
+
+		public static bool AnyEq(int value, params int[] values)
+		{
+			foreach (var v in values) {
+				if (value == v)
+					return true;
+			}
+			return false;
+		}
+
 	}
 
 	public static class UnityMaterialCommons {

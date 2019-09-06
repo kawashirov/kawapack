@@ -101,12 +101,24 @@ inline float2 frag_applyst(float2 uv) {
 	return uv;
 }
 
-inline void frag_alphatest(FRAGMENT_IN i, inout uint rnd, in half alpha) {
-	#if defined(CUTOFF_CLASSIC)
+inline void frag_alphatest(FRAGMENT_IN i, inout uint rnd, inout half alpha) {
+	#if defined(CUTOFF_FADE)
+		// Первичное преобразование
+		alpha = (alpha - _Cutoff) / (1.0 - _Cutoff);
+		clip(alpha);
+	#endif
+	#if defined(CUTOFF_CLASSIC) 
+		#if defined(CUTOFF_FADE)
+			#error "CUTOFF_CLASSIC defined (with) CUTOFF_FADE"
+		#endif
 		clip(alpha - _Cutoff);
 	#elif defined(CUTOFF_RANDOM)
 		float spread = rnd_next_float_01(rnd);
-		clip(alpha - lerp(_CutoffMin, _CutoffMax, spread));
+		#if defined(CUTOFF_RANDOM_H01)
+			spread = smoothstep(0, 1, spread);
+		#endif
+			float rnd_cutoff = lerp(_CutoffMin, _CutoffMax, spread);
+		clip(alpha - rnd_cutoff);
 	#endif
 }
 

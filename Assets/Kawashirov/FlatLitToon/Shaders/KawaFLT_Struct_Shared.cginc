@@ -57,7 +57,7 @@
 
 uniform float4 _Color;
 
-#if defined(CUTOFF_CLASSIC)
+#if defined(CUTOFF_CLASSIC) || defined(CUTOFF_FADE)
 	uniform float _Cutoff;
 #endif
 #if defined(CUTOFF_RANDOM)
@@ -73,7 +73,7 @@ uniform float4 _Color;
 	#endif
 #endif
 
-#if defined(_EMISSION)
+#if defined(EMISSION_ON)
 	uniform float4 _EmissionColor;
 	#if defined(EMISSION_ALBEDO_MASK)
 		UNITY_DECLARE_TEX2D(_EmissionMask);
@@ -81,13 +81,11 @@ uniform float4 _Color;
 	#if defined(EMISSION_CUSTOM)
 		UNITY_DECLARE_TEX2D(_EmissionMap);
 	#endif
-	#define AVAILABLE_EMISSIONMAP 1
 #endif
 
 #if defined(_NORMALMAP)
 	UNITY_DECLARE_TEX2D(_BumpMap);
 	uniform float _BumpScale;
-	#define AVAILABLE_NORMALMAP 1
 #endif
 
 #if defined(AVAILABLE_MAINTEX) || defined(AVAILABLE_COLORMASK) || defined(AVAILABLE_EMISSIONMAP) || defined(AVAILABLE_NORMALMAP)

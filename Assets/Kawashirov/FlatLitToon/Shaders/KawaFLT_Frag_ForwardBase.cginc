@@ -21,8 +21,10 @@ inline half3 frag_forward_get_emission_color(inout FRAGMENT_IN i, half3 baseColo
 	#elif defined(EMISSION_CUSTOM)
 		em = UNITY_SAMPLE_TEX2D(_EmissionMap, texST).rgb;
 	#endif
-	em = em * _EmissionColor.rgb * _EmissionColor.a;
-	em = em * em; // TODO FIXME Gamma fix?
+	#if defined(EMISSION_ON)
+		em = em * _EmissionColor.rgb * _EmissionColor.a;
+		em = em * em; // TODO FIXME Gamma fix?
+	#endif
 	em = fps_mix(half4(em, 0)).rgb;
 	em = pcw_mix(em, i, true); // Mix-in Poly Color Wave
 	em = iwd_mix_emission(em, i);
