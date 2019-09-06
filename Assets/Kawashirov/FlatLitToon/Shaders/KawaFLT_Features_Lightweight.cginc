@@ -2,6 +2,38 @@
 #define KAWAFLT_FEATURES_LIGHTWEIGHT_INCLUDED
 
 
+/* Matcap features */
+
+// (world_normal) -> (matcap_uv)
+inline void matcap_calc_uv(inout FRAGMENT_IN i) {
+	#if defined(MATCAP_ON)
+		// Типа UnityObjectToViewDir, конвертит направление
+		half3 normal_view = mul((float3x3)UNITY_MATRIX_V, i.normal_world);
+		i.matcap_uv = normal_view * 0.5h + 0.5h;
+		// half3 world_view_up = normalize(half3(0, 1, 0) - poiCam.viewDir * dot(poiCam.viewDir, half3(0, 1, 0)));
+		// half3 world_view_right = normalize(cross(poiCam.viewDir, world_view_up));
+		// half2 matcapUV = half2(dot(world_view_right, world_normal), dot(world_view_up, world_normal)) * 0.5h + 0.5h;
+	#endif
+}
+
+inline half3 matcap_apply(FRAGMENT_IN i, half3 color) {
+	#if defined(MATCAP_ON)
+		float4 matcap = UNITY_SAMPLE_TEX2D(_MatCap, i.matcap_uv);
+		#if defined(MATCAP_REPLACE)
+			color = lerp(color, matcap.rgb, _MatCap_Scale * matcap.a);
+		#endif
+		#if defined(MATCAP_MULTIPLE)
+			color *= lerp(1, matcap.rgb, _MatCap_Scale * matcap.a);
+		#endif
+		#if defined(MATCAP_ADD)
+			color += matcap.rgb * _MatCap_Scale * matcap.a;
+		#endif
+	#endif
+	return color;
+}
+
+
+
 /* Distance Fade features */
 
 // (o.pos_world) -> (o.dstfd_distance)

@@ -225,11 +225,8 @@ void geom(triangle GEOMETRY_IN v_in[3], uint p_id : SV_PrimitiveID, uint g_id : 
 			v_out[i2].tangent_world = normalize(UnityObjectToWorldDir(v_in[i2].tangent_obj));
 			v_out[i2].bitangent_world = normalize(UnityObjectToWorldDir(v_in[i2].bitangent_obj));
 
-			#if defined(KAWAFLT_F_MATCAP_ON)
-				half3x3 tangent_obj_basis = half3x3(v_in[i2].tangent_obj, v_in[i2].bitangent_obj, v_in[i2].normal_obj);
-				v_out[i2].matcap_x = mul(tangent_obj_basis, half3(UNITY_MATRIX_IT_MV[0].xyz));
-				v_out[i2].matcap_y = mul(tangent_obj_basis, half3(UNITY_MATRIX_IT_MV[1].xyz));
-			#endif
+			// (v_out.world_normal) -> (v_out.matcap_uv)
+			matcap_calc_uv(v_out[i2]);
 
 			bool vertexlight_on = false;
 			#if defined(KAWAFLT_PASS_FORWARDBASE) && defined(SHADE_KAWAFLT)

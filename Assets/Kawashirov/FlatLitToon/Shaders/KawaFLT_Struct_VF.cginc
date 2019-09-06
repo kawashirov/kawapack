@@ -31,9 +31,8 @@ struct v2f {
 		half2 uv1 : TEXCOORD2;
 		half3 tangent_world : KAWASMNT_TANGENT_WORLD;
 		half3 bitangent_world : KAWASMNT_BITANGENT_WORLD;
-		#if defined(KAWAFLT_F_MATCAP_ON)
-			half3 matcap_x : KAWASMNT_MATCAP_X;
-			half3 matcap_y : KAWASMNT_MATCAP_Y;
+		#if defined(MATCAP_ON)
+			half2 matcap_uv : KAWASMNT_MATCAP_UV;
 		#endif
 		#if defined(KAWAFLT_PASS_FORWARDBASE) && defined(SHADE_KAWAFLT)
 			half3 vertexlight : KAWASMNT_VERTEXLIGHT;

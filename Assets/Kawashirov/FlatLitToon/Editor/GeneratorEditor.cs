@@ -171,6 +171,15 @@ namespace Kawashirov.FLT
 			PropertyEnumPopupCustomLabels(shading, "Shading Method", KFLTC.shadingModeNames);
 
 			EGUIL.Space();
+			var matcap = this.serializedObject.FindProperty("matcap");
+			this.DefaultPrpertyField(matcap, "Matcap");
+			using (new DisabledScope(matcap.hasMultipleDifferentValues || !matcap.boolValue)) {
+				using (new IndentLevelScope()) {
+					this.DefaultPrpertyField("matcapMode", "Mode");
+				}
+			}
+
+			EGUIL.Space();
 			var distanceFade = this.serializedObject.FindProperty("distanceFade");
 			this.DefaultPrpertyField(distanceFade, "Distance Dithering Fade Feature");
 			using (new DisabledScope(distanceFade.hasMultipleDifferentValues || !distanceFade.boolValue)) {

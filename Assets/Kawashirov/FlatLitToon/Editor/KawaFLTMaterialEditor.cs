@@ -238,6 +238,23 @@ internal class KawaFLTMaterialEditor : KawaMaterialEditor {
 		}
 	}
 
+	protected void OnGUI_MatCap()
+	{
+		var _MatCap = this.FindProperty("_MatCap");
+		var _MatCap_Scale = this.FindProperty("_MatCap_Scale");
+		var f_matCap = GC.AnyNotNull(_MatCap, _MatCap_Scale);
+		using (new DisabledScope(!f_matCap)) {
+			EGUIL.LabelField("MatCap Feature", f_matCap ? "Enabled" : "Disabled");
+			using (new IndentLevelScope()) {
+				if (f_matCap) {
+					LabelEnumDisabledFromTagMixed<DistanceFadeMode>("Mode", this.targets, KFLTC.F_MatcapMode);
+					this.ShaderPropertyDisabled(_MatCap, "MatCap Texture");
+					this.ShaderPropertyDisabled(_MatCap_Scale, "MatCap Power");
+				}
+			}
+		}
+	}
+
 	protected void OnGUI_DistanceFade()
 	{
 		var _DstFd_Axis = this.FindProperty("_DstFd_Axis");
@@ -535,6 +552,9 @@ internal class KawaFLTMaterialEditor : KawaMaterialEditor {
 
 		EGUIL.Space();
 		this.OnGUI_Outline();
+
+		EGUIL.Space();
+		this.OnGUI_MatCap();
 
 		EGUIL.Space();
 		this.OnGUI_DistanceFade();

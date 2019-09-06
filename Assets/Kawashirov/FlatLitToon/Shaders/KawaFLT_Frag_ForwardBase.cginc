@@ -141,6 +141,8 @@ half4 frag_forwardbase(FRAGMENT_IN i) : COLOR {
 	half3 emissive = frag_forward_get_emission_color(i, albedo, texST);
 	
 	frag_alphatest(i, rnd4_sc, albedo.a);
+
+	albedo.rgb = matcap_apply(i, albedo.rgb);
 	
 	half4 finalColor;
 	finalColor.a = albedo.a;

@@ -48,6 +48,9 @@ namespace Kawashirov.FLT
 
 		public ShadingMode shading = ShadingMode.KawashirovFLTSingle;
 
+		public bool matcap = false;
+		public MatcapMode matcapMode = MatcapMode.Multiple;
+
 		public bool distanceFade = false;
 		public DistanceFadeMode distanceFadeMode = DistanceFadeMode.Range;
 
@@ -150,6 +153,7 @@ namespace Kawashirov.FLT
 
 			this.ConfigureFeatureShading(ref shader);
 
+			this.ConfigureFeatureMatcap(ref shader);
 			this.ConfigureFeatureDistanceFade(ref shader);
 			this.ConfigureFeatureFPS(ref shader);
 
@@ -540,6 +544,31 @@ namespace Kawashirov.FLT
 			shader.properties.Add(new Property2D() { name = "_Sh_KwshrvRmp_Tex", defualt = "gray" });
 			shader.properties.Add(new PropertyColor() { name = "_Sh_KwshrvRmp_NdrctClr", defualt = Color.white });
 			shader.properties.Add(new PropertyFloat() { name = "_Sh_KwshrvSngl_TngntLo", defualt = 0.7f, range = new Vector2(0, 1), power = 1.5f });
+		}
+
+		private void ConfigureFeatureMatcap(ref ShaderSetup shader)
+		{
+			shader.TagBool(KFLTC.F_Matcap, this.matcap);
+			if (this.matcap) {
+				shader.Define("MATCAP_ON 1");
+				this.needRandomFrag = true;
+				shader.TagEnum(KFLTC.F_MatcapMode, this.matcapMode);
+				switch (this.matcapMode) {
+					case MatcapMode.Replace:
+						shader.Define("MATCAP_REPLACE 1");
+						break;
+					case MatcapMode.Multiple:
+						shader.Define("MATCAP_MULTIPLE 1");
+						break;
+					case MatcapMode.Add:
+						shader.Define("MATCAP_ADD 1");
+						break;
+				}
+				shader.properties.Add(new Property2D() { name = "_MatCap", defualt = "white" });
+				shader.properties.Add(new PropertyFloat() { name = "_MatCap_Scale", defualt = 1f, range = new Vector2(0, 1) });
+			} else {
+				shader.Define("MATCAP_OFF 1");
+			}
 		}
 
 		private void ConfigureFeatureDistanceFade(ref ShaderSetup shader)

@@ -40,12 +40,8 @@ VERTEX_OUT vert(appdata_full v_in) {
 		v_out.tangent_world = normalize(UnityObjectToWorldDir(tangent_obj));
 		v_out.bitangent_world = normalize(cross(v_out.normal_world, v_out.tangent_world) * tangent_w);
 
-		#if defined(KAWAFLT_F_MATCAP_ON)
-			// А почему в юнити нет UNITY_MATRIX_IT_V ? :thinking:
-			half3x3 tangent_obj_basis = half3x3(tangent_obj, bitangent_obj, normal_obj);
-			v_out.matcap_x = mul(tangent_obj_basis, half3(UNITY_MATRIX_IT_MV[0].xyz));
-			v_out.matcap_y = mul(tangent_obj_basis, half3(UNITY_MATRIX_IT_MV[1].xyz));
-		#endif
+		// (v_out.world_normal) -> (v_out.matcap_uv)
+		matcap_calc_uv(v_out);
 
 		bool vertexlight = false;
 		#if defined(VERTEXLIGHT_ON)

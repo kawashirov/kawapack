@@ -70,6 +70,8 @@ half4 frag_forwardadd(FRAGMENT_IN i) : COLOR {
 	half originalA = albedo.a;
 	
 	frag_alphatest(i, rnd4_sc, albedo.a);
+
+	albedo.rgb = matcap_apply(i, albedo.rgb);
 	
 	half4 finalColor;
 	finalColor.a = albedo.a;
