@@ -1,12 +1,11 @@
 #ifndef KAWAFLT_FEATURES_LIGHTWEIGHT_INCLUDED
 #define KAWAFLT_FEATURES_LIGHTWEIGHT_INCLUDED
 
-
 /* Matcap features */
 
 // (world_normal) -> (matcap_uv)
 inline void matcap_calc_uv(inout FRAGMENT_IN i) {
-	#if defined(MATCAP_ON)
+	#if defined(MATCAP_ON) && defined(KAWAFLT_PASS_FORWARD)
 		// Типа UnityObjectToViewDir, конвертит направление
 		half3 normal_view = mul((float3x3)UNITY_MATRIX_V, i.normal_world);
 		i.matcap_uv = normal_view * 0.5h + 0.5h;
@@ -17,7 +16,7 @@ inline void matcap_calc_uv(inout FRAGMENT_IN i) {
 }
 
 inline half3 matcap_apply(FRAGMENT_IN i, half3 color) {
-	#if defined(MATCAP_ON)
+	#if defined(MATCAP_ON) && defined(KAWAFLT_PASS_FORWARD)
 		float4 matcap = UNITY_SAMPLE_TEX2D(_MatCap, i.matcap_uv);
 		#if defined(MATCAP_REPLACE)
 			color = lerp(color, matcap.rgb, _MatCap_Scale * matcap.a);

@@ -224,7 +224,7 @@ void geom(triangle GEOMETRY_IN v_in[3], uint p_id : SV_PrimitiveID, uint g_id : 
 			v_out[i2].vertex = v_in[i2].vertex;
 			v_out[i2].tangent_world = normalize(UnityObjectToWorldDir(v_in[i2].tangent_obj));
 			v_out[i2].bitangent_world = normalize(UnityObjectToWorldDir(v_in[i2].bitangent_obj));
-
+			
 			// (v_out.world_normal) -> (v_out.matcap_uv)
 			matcap_calc_uv(v_out[i2]);
 

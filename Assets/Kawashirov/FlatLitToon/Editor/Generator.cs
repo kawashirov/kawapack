@@ -16,7 +16,7 @@ using KFLTC = Kawashirov.FLT.Commons;
 
 namespace Kawashirov.FLT 
 {
-	[CreateAssetMenu(menuName = "Kawashirov Flat Lit Toon Shader Generator")]
+	[CreateAssetMenu(menuName = "Kawashirov/Flat Lit Toon/Shader Generator")]
 	[Serializable]
 	internal class Generator : ScriptableObject {
 		private static readonly string NAME_PATTERN = @"[a-zA-Z0-9_-]+";
@@ -68,6 +68,10 @@ namespace Kawashirov.FLT
 
 		public Shader result = null;
 
+		[MenuItem("Kawashirov/KawaShade/Flat Lit Toon/Create New Shader Generator Asset")]
+		public static void CreateAsset() {
+			EditorApplication.ExecuteMenuItem("Assets/Create/Kawashirov/Flat Lit Toon/Shader Generator");
+		}
 
 		public void Generate()
 		{

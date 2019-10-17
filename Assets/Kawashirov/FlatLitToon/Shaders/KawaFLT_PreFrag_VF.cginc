@@ -39,7 +39,7 @@ VERTEX_OUT vert(appdata_full v_in) {
 		// Тангентное-пространство в координатах мира
 		v_out.tangent_world = normalize(UnityObjectToWorldDir(tangent_obj));
 		v_out.bitangent_world = normalize(cross(v_out.normal_world, v_out.tangent_world) * tangent_w);
-
+		
 		// (v_out.world_normal) -> (v_out.matcap_uv)
 		matcap_calc_uv(v_out);
 
