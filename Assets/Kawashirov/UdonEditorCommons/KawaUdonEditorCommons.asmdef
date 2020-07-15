@@ -1,0 +1,17 @@
+{
+    "name": "KawaUdonEditorCommons",
+    "references": [
+        "KawaCommons",
+        "VRC.Udon",
+        "VRC.Udon.Editor",
+        "VRC.Udon.Serialization.OdinSerializer"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": []
+}

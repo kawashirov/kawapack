@@ -6,7 +6,7 @@ using Kawashirov;
 
 using DisabledScope = UnityEditor.EditorGUI.DisabledScope;
 using IndentLevelScope = UnityEditor.EditorGUI.IndentLevelScope;
-using KGC = Kawashirov.GeneralCommons;
+using KGC = Kawashirov.StaticCommons;
 using EGUIL = UnityEditor.EditorGUILayout;
 using KFLTC = Kawashirov.FLT.Commons;
 
@@ -18,7 +18,7 @@ namespace Kawashirov.FLT
 {
 	[CanEditMultipleObjects]
 	[CustomEditor(typeof(Generator))]
-	public class GeneratorEditor : KawaEditor {
+	public class GeneratorEditor : CommonEditor {
 
 		public override void OnInspectorGUI()
 		{
@@ -29,9 +29,10 @@ namespace Kawashirov.FLT
 
 			EGUIL.LabelField("Shader");
 			using (new IndentLevelScope()) {
-				this.DefaultPrpertyField("shaderName", "Name");
+				DefaultPrpertyField("shaderName", "Name");
 				using (new DisabledScope(error)) {
-					var result = this.serializedObject.FindProperty("result");
+					var result = serializedObject.FindProperty("result");
+					/*
 					if (result.hasMultipleDifferentValues) {
 						using (new DisabledScope(true)) {
 							EGUIL.LabelField("Shader Asset", "Mixed Values");
@@ -43,12 +44,14 @@ namespace Kawashirov.FLT
 					} else {
 						this.DefaultPrpertyField(result, "Shader Asset");
 					}
+					*/
+					DefaultPrpertyField(result, "Shader Asset");
 				}
 			}
 
 			EGUIL.Space();
-			var debug = this.serializedObject.FindProperty("debug");
-			this.DefaultPrpertyField(debug, "Debug Build");
+			var debug = serializedObject.FindProperty("debug");
+			DefaultPrpertyField(debug, "Debug Build");
 			var debug_bool = !debug.hasMultipleDifferentValues ? debug.boolValue : (bool?)null;
 			var debug_true = debug_bool.HasValue && debug_bool.Value;
 			if (debug_true) {
@@ -65,7 +68,7 @@ namespace Kawashirov.FLT
 			EGUIL.Space();
 			EGUIL.LabelField("General Shader Options");
 			using (new IndentLevelScope()) {
-				var complexity = this.serializedObject.FindProperty("complexity");
+				var complexity = serializedObject.FindProperty("complexity");
 				PropertyEnumPopupCustomLabels(complexity, "DX11 Pipeline Stages", KFLTC.shaderComplexityNames);
 
 				complexity_VGF = !complexity.hasMultipleDifferentValues && complexity.intValue == (int)ShaderComplexity.VGF;
@@ -73,13 +76,13 @@ namespace Kawashirov.FLT
 
 				using (new DisabledScope(!complexity_VHDGF)) {
 					using (new IndentLevelScope()) {
-						this.DefaultPrpertyField("tessPartitioning", "Tessellation Partitioning");
-						this.DefaultPrpertyField("tessDomain", "Tessellation Domain (Primitive Topology)");
+						DefaultPrpertyField("tessPartitioning", "Tessellation Partitioning");
+						DefaultPrpertyField("tessDomain", "Tessellation Domain (Primitive Topology)");
 					}
 				}
 
-				var mode = this.serializedObject.FindProperty("mode");
-				this.DefaultPrpertyField(mode, "Blending Mode");
+				var mode = serializedObject.FindProperty("mode");
+				DefaultPrpertyField(mode, "Blending Mode");
 				var mode_int = !mode.hasMultipleDifferentValues ? mode.intValue : (int?)null;
 				var mode_Opaque = mode_int.HasValue && mode_int.Value == (int)BlendTemplate.Opaque;
 				var mode_Cutout = mode_int.HasValue && mode_int.Value == (int)BlendTemplate.Cutout;
@@ -90,12 +93,12 @@ namespace Kawashirov.FLT
 					error = true;
 				}
 
-				this.DefaultPrpertyField("cull");
+				DefaultPrpertyField("cull");
 
-				this.DefaultPrpertyField("instancing");
+				DefaultPrpertyField("instancing");
 
-				var queueOffset = this.serializedObject.FindProperty("queueOffset");
-				this.DefaultPrpertyField(queueOffset);
+				var queueOffset = serializedObject.FindProperty("queueOffset");
+				DefaultPrpertyField(queueOffset);
 				var queueOffset_int = !queueOffset.hasMultipleDifferentValues ? queueOffset.intValue : (int?)null;
 				using (new DisabledScope(true)) {
 					using (new IndentLevelScope()) {
@@ -116,11 +119,11 @@ namespace Kawashirov.FLT
 				}
 
 				using (new DisabledScope(true)) {
-					this.DefaultPrpertyField("disableBatching");
+					DefaultPrpertyField("disableBatching");
 				}
 
-				var forceNoShadowCasting = this.serializedObject.FindProperty("forceNoShadowCasting");
-				this.DefaultPrpertyField(forceNoShadowCasting);
+				var forceNoShadowCasting = serializedObject.FindProperty("forceNoShadowCasting");
+				DefaultPrpertyField(forceNoShadowCasting);
 				var forceNoShadowCasting_bool = !forceNoShadowCasting.hasMultipleDifferentValues ? forceNoShadowCasting.boolValue : (bool?)null;
 				if (forceNoShadowCasting_bool.HasValue && mode_int.HasValue && !forceNoShadowCasting_bool.Value && mode_int.Value == (int)BlendTemplate.Fade) {
 					EGUIL.HelpBox(
@@ -131,27 +134,27 @@ namespace Kawashirov.FLT
 					);
 				}
 
-				this.DefaultPrpertyField("ignoreProjector");
+				DefaultPrpertyField("ignoreProjector");
 			}
 
 			EGUIL.Space();
 			EGUIL.LabelField("General Rendering Features");
 			using (new IndentLevelScope()) {
-				var mainTex = this.serializedObject.FindProperty("mainTex");
+				var mainTex = serializedObject.FindProperty("mainTex");
 				PropertyEnumPopupCustomLabels(mainTex, "Main (Albedo) Texture", KFLTC.mainTexKeywordsNames);
 
-				var cutout = this.serializedObject.FindProperty("cutout");
+				var cutout = serializedObject.FindProperty("cutout");
 				PropertyEnumPopupCustomLabels(cutout, "Cutout Mode", KFLTC.cutoutModeNames);
 
-				var emission = this.serializedObject.FindProperty("emission");
-				this.DefaultPrpertyField(emission);
+				var emission = serializedObject.FindProperty("emission");
+				DefaultPrpertyField(emission);
 				using (new DisabledScope(!emission.boolValue)) {
 					using (new IndentLevelScope()) {
-						var emissionMode = this.serializedObject.FindProperty("emissionMode");
+						var emissionMode = serializedObject.FindProperty("emissionMode");
 						PropertyEnumPopupCustomLabels(emissionMode, "Mode", KFLTC.emissionMode);
 					}
 				}
-				this.DefaultPrpertyField("bumpMap");
+				DefaultPrpertyField("bumpMap");
 			}
 
 			EGUIL.Space();
@@ -162,76 +165,76 @@ namespace Kawashirov.FLT
 					"These options affects it's behaivor.",
 					MessageType.None
 				);
-				this.DefaultPrpertyField("rndMixTime", "Use Time where possible");
-				this.DefaultPrpertyField("rndMixCords", "Use Screen-Space coords where possible");
+				DefaultPrpertyField("rndMixTime", "Use Time where possible");
+				DefaultPrpertyField("rndMixCords", "Use Screen-Space coords where possible");
 			}
 
 			EGUIL.Space();
-			var shading = this.serializedObject.FindProperty("shading");
+			var shading = serializedObject.FindProperty("shading");
 			PropertyEnumPopupCustomLabels(shading, "Shading Method", KFLTC.shadingModeNames);
 
 			EGUIL.Space();
-			var matcap = this.serializedObject.FindProperty("matcap");
-			this.DefaultPrpertyField(matcap, "Matcap");
+			var matcap = serializedObject.FindProperty("matcap");
+			DefaultPrpertyField(matcap, "Matcap");
 			using (new DisabledScope(matcap.hasMultipleDifferentValues || !matcap.boolValue)) {
 				using (new IndentLevelScope()) {
-					this.DefaultPrpertyField("matcapMode", "Mode");
+					DefaultPrpertyField("matcapMode", "Mode");
 				}
 			}
 
 			EGUIL.Space();
-			var distanceFade = this.serializedObject.FindProperty("distanceFade");
-			this.DefaultPrpertyField(distanceFade, "Distance Dithering Fade Feature");
+			var distanceFade = serializedObject.FindProperty("distanceFade");
+			DefaultPrpertyField(distanceFade, "Distance Dithering Fade Feature");
 			using (new DisabledScope(distanceFade.hasMultipleDifferentValues || !distanceFade.boolValue)) {
 				using (new IndentLevelScope()) {
-					this.DefaultPrpertyField("distanceFadeMode", "Mode");
+					DefaultPrpertyField("distanceFadeMode", "Mode");
 				}
 			}
 
 			EGUIL.Space();
-			var FPS = this.serializedObject.FindProperty("FPS");
-			this.DefaultPrpertyField(FPS, "FPS Feature");
+			var FPS = serializedObject.FindProperty("FPS");
+			DefaultPrpertyField(FPS, "FPS Feature");
 			using (new DisabledScope(FPS.hasMultipleDifferentValues || !FPS.boolValue)) {
 				using (new IndentLevelScope()) {
-					this.DefaultPrpertyField("FPSMode", "Mode");
+					DefaultPrpertyField("FPSMode", "Mode");
 				}
 			}
 
 			EGUIL.Space();
 			using (new DisabledScope(!complexity_VGF && !complexity_VHDGF)) {
-				var outline = this.serializedObject.FindProperty("outline");
-				this.DefaultPrpertyField(outline, "Outline Feature");
+				var outline = serializedObject.FindProperty("outline");
+				DefaultPrpertyField(outline, "Outline Feature");
 				using (new DisabledScope(
 					outline.hasMultipleDifferentValues || !outline.boolValue || (!complexity_VGF && !complexity_VHDGF)
 				)) {
 					using (new IndentLevelScope()) {
-						this.DefaultPrpertyField("outlineMode", "Mode");
+						DefaultPrpertyField("outlineMode", "Mode");
 					}
 				}
 			}
 
 			EGUIL.Space();
 			using (new DisabledScope(!complexity_VGF && !complexity_VHDGF)) {
-				var iwd = this.serializedObject.FindProperty("iwd");
-				this.DefaultPrpertyField(iwd, "Infinity War Decimation Feature");
+				var iwd = serializedObject.FindProperty("iwd");
+				DefaultPrpertyField(iwd, "Infinity War Decimation Feature");
 				using (new DisabledScope(
 					iwd.hasMultipleDifferentValues || !iwd.boolValue || (!complexity_VGF && !complexity_VHDGF)
 				)) {
 					using (new IndentLevelScope()) {
-						this.DefaultPrpertyField("iwdDirections", "Directions");
+						DefaultPrpertyField("iwdDirections", "Directions");
 					}
 				}
 			}
 
 			EGUIL.Space();
 			using (new DisabledScope(!complexity_VGF && !complexity_VHDGF)) {
-				var pcw = this.serializedObject.FindProperty("pcw");
-				this.DefaultPrpertyField(pcw, "Poly ColorWave Feature");
+				var pcw = serializedObject.FindProperty("pcw");
+				DefaultPrpertyField(pcw, "Poly ColorWave Feature");
 				using (new DisabledScope(
 					pcw.hasMultipleDifferentValues || !pcw.boolValue || (!complexity_VGF && !complexity_VHDGF)
 				)) {
 					using (new IndentLevelScope()) {
-						this.DefaultPrpertyField("pcwMode", "Mode");
+						DefaultPrpertyField("pcwMode", "Mode");
 					}
 				}
 			}
@@ -241,14 +244,16 @@ namespace Kawashirov.FLT
 				if (GUILayout.Button("(Re)Bake Shader")) {
 					if (error)
 						return;
-					foreach (var t in this.targets) {
+					foreach (var t in targets) {
 						var generator = t as Generator;
 						if (generator)
-							generator.Generate();
+							generator.Refresh();
 					}
+					Repaint();
 				}	
 			}
-			this.serializedObject.ApplyModifiedProperties();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }

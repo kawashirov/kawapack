@@ -1,10 +1,16 @@
 {
     "name": "KawaFLTEditor",
     "references": [
-        "KawaEditor"
+        "KawaCommons"
     ],
+    "optionalUnityReferences": [],
     "includePlatforms": [
         "Editor"
     ],
-    "excludePlatforms": []
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": []
 }

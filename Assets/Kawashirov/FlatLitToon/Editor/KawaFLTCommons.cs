@@ -1,32 +1,27 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEditor;
 
 namespace Kawashirov.FLT {
 
-	internal enum TessDomain { Triangles, Quads }
-	internal enum ShaderComplexity { VF, VGF, VHDGF }
-	internal enum TessPartitioning { Integer, FractionalEven, FractionalOdd, Pow2 }
-	internal enum BlendTemplate { Opaque, Cutout, Fade, FadeCutout, Custom = 256 }
-	internal enum MainTexKeywords { NoMainTex, NoMask, ColorMask }
-	internal enum CutoutMode { Classic, RangeRandom, RangeRandomH01 }
-	internal enum EmissionMode { AlbedoNoMask, AlbedoMask, Custom }
-	internal enum ShadingMode { CubedParadoxFLT, KawashirovFLTSingle, KawashirovFLTRamp }
-	internal enum MatcapMode { Replace, Multiple, Add }
+	public enum TessDomain { Triangles, Quads }
+	public enum ShaderComplexity { VF, VGF, VHDGF }
+	public enum TessPartitioning { Integer, FractionalEven, FractionalOdd, Pow2 }
+	public enum BlendTemplate { Opaque, Cutout, Fade, FadeCutout, Custom = 256 }
+	public enum MainTexKeywords { NoMainTex, NoMask, ColorMask }
+	public enum CutoutMode { Classic, RangeRandom, RangeRandomH01 }
+	public enum EmissionMode { AlbedoNoMask, AlbedoMask, Custom }
+	public enum ShadingMode { CubedParadoxFLT, KawashirovFLTSingle, KawashirovFLTRamp }
+	public enum MatcapMode { Replace, Multiple, Add }
 
-	internal enum DistanceFadeMode { Range, Infinity }
+	public enum DistanceFadeMode { Range, Infinity }
 	//public enum DistanceFadeRandom { PerPixel, ScreenPattern }
 
-	internal enum FPSMode { ColorTint, DigitsTexture, DigitsMesh }
+	public enum FPSMode { ColorTint, DigitsTexture, DigitsMesh }
 
-	internal enum OutlineMode { Tinted, Colored }
+	public enum OutlineMode { Tinted, Colored }
 
 	[Flags]
-	internal enum IWDDirections {
+	public enum IWDDirections {
 		Plane = 1,
 		Random = 2,
 		Normal = 4,
@@ -34,10 +29,11 @@ namespace Kawashirov.FLT {
 		WorldVector = 16,
 	}
 
-	internal enum PolyColorWaveMode { Classic, KawaColorfulWaves }
+	public enum PolyColorWaveMode { Classic, KawaColorfulWaves }
 
 	internal static class Commons {
 		internal static readonly string RenderType = "KawaFLT_RenderType";
+		internal static readonly string F_Debug = "KawaFLT_Feature_Debug"; // TODO
 		internal static readonly string F_Instancing = "KawaFLT_Feature_Instancing";
 
 		internal static readonly string F_Geometry = "KawaFLT_Feature_Geometry";
@@ -110,6 +106,24 @@ namespace Kawashirov.FLT {
 			{ ShadingMode.CubedParadoxFLT, "CubedParadox Flat Lit Toon. Legacy. Not recommended. And I dislike this." },
 			{ ShadingMode.KawashirovFLTSingle, "Kawashirov Flat Lit Toon, Single-Step, Diffuse-based, Simple. Like CubedParadox, but better: supports more standard unity lighting features and also fast as fuck compare to other cbd-flt-like shaders." },
 			{ ShadingMode.KawashirovFLTRamp, "Kawashirov Flat Lit Toon, Ramp-based, In dev yet, need extra tests in various conditions, but you can use it, It should work well." },
+		};
+
+		internal static string[] tags = new string[] {
+			RenderType,
+			F_Debug, F_Instancing,
+			F_Geometry, F_Tessellation, F_Partitioning, F_Domain,
+			F_Random,
+			F_MainTex,
+			F_Cutout_Forward, F_Cutout_ShadowCaster, F_Cutout_Classic, F_Cutout_RangeRandom,
+			F_Emission, F_EmissionMode,
+			F_NormalMap,
+			F_Shading,
+			F_DistanceFade, F_DistanceFadeMode, 
+			F_Matcap, F_MatcapMode,
+			F_FPS, F_FPSMode,
+			F_Outline, F_OutlineMode,
+			F_IWD, F_IWDDirections,
+			F_PCW, F_PCWMode
 		};
 
 	}
