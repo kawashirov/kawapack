@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Reflection;
 
 
 #if UNITY_EDITOR
@@ -15,10 +16,22 @@ namespace Kawashirov {
 		// по возможности static this, что бы можно было использовать там,
 		// где нет возможности наследовать CommonEditor
 
+		private static readonly MethodInfo EditorGUIUtility_GetHelpIcon;
+
 		private static GUIStyle richHelpBox = null;
+
+		static CommonEditor() {
+			EditorGUIUtility_GetHelpIcon = typeof(EditorGUIUtility).GetMethod("GetHelpIcon", BindingFlags.NonPublic | BindingFlags.Static);
+		}
+
+		public static Texture2D GetHelpIcon(MessageType type) {
+			return (Texture2D)EditorGUIUtility_GetHelpIcon.Invoke(null, new object[] { type });
+		}
+
 
 		public static GUIStyle GetRichHelpBox() {
 			if (richHelpBox == null) {
+				// по требованию, т.к. стили инициализирутся не сразу 
 				var helpbox = GUI.skin.GetStyle("HelpBox");
 				richHelpBox = new GUIStyle(helpbox) { richText = true };
 			}
@@ -78,8 +91,27 @@ namespace Kawashirov {
 			}
 		}
 
-		public static void DefaultPrpertyField(string name, string label = null) {
-			// DefaultPrpertyField(serializedObject.FindProperty(name), label);
+		public static void ToggleLeft(SerializedProperty property, GUIContent label) {
+			var position = EditorGUILayout.GetControlRect(true);
+			using (var prop_scope = new EditorGUI.PropertyScope(position, label, property)) {
+				using(var change_scope = new EditorGUI.ChangeCheckScope()) {
+					var value = EditorGUI.ToggleLeft(position, label, property.boolValue);
+					if (change_scope.changed) {
+						property.boolValue = value;
+					}
+				}
+			}
+		}
+
+		//
+		// Инстансное
+
+		protected virtual void OnEnable() {
+
+		}
+
+		public void DefaultPrpertyField(string name, string label = null) {
+			DefaultPrpertyField(serializedObject.FindProperty(name), label);
 		}
 
 	}

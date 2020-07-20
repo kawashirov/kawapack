@@ -1,15 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEditor;
-using Kawashirov;
 
-using DisabledScope = UnityEditor.EditorGUI.DisabledScope;
-using IndentLevelScope = UnityEditor.EditorGUI.IndentLevelScope;
 using KGC = Kawashirov.StaticCommons;
+using GUIL = UnityEngine.GUILayout;
 using EGUIL = UnityEditor.EditorGUILayout;
 using KFLTC = Kawashirov.FLT.Commons;
 
+using static UnityEditor.EditorGUI;
 
 // Имя файла длжно совпадать с именем типа.
 // https://forum.unity.com/threads/solved-blank-scriptableobject-on-import.511527/
@@ -18,36 +17,25 @@ namespace Kawashirov.FLT
 {
 	[CanEditMultipleObjects]
 	[CustomEditor(typeof(Generator))]
-	public class GeneratorEditor : CommonEditor {
+	public class GeneratorEditor : ShaderBaking.BaseGenerator.Editor<Generator> {
 
+
+		
+		private static readonly GUIContent gui_feature_matcap = new GUIContent("Matcap Feature");
+		private static readonly GUIContent gui_feature_dstfd = new GUIContent("Distance Dithering Fade Feature");
+		private static readonly GUIContent gui_feature_fps = new GUIContent("FPS Feature");
+		private static readonly GUIContent gui_feature_outline = new GUIContent("Outline Feature");
+		private static readonly GUIContent gui_feature_iwd = new GUIContent("Infinity War Decimation Feature");
+		private static readonly GUIContent gui_feature_pcw = new GUIContent("Poly ColorWave Feature");
+		
 		public override void OnInspectorGUI()
 		{
+			base.OnInspectorGUI();
+
 			var error = false;
 
 			var complexity_VGF = false;
 			var complexity_VHDGF = false;
-
-			EGUIL.LabelField("Shader");
-			using (new IndentLevelScope()) {
-				DefaultPrpertyField("shaderName", "Name");
-				using (new DisabledScope(error)) {
-					var result = serializedObject.FindProperty("result");
-					/*
-					if (result.hasMultipleDifferentValues) {
-						using (new DisabledScope(true)) {
-							EGUIL.LabelField("Shader Asset", "Mixed Values");
-						}
-					} else if (result.objectReferenceValue == null) {
-						using (new DisabledScope(true)) {
-							EGUIL.LabelField("Shader Asset", "Not Yet Generated");
-						}
-					} else {
-						this.DefaultPrpertyField(result, "Shader Asset");
-					}
-					*/
-					DefaultPrpertyField(result, "Shader Asset");
-				}
-			}
 
 			EGUIL.Space();
 			var debug = serializedObject.FindProperty("debug");
@@ -167,6 +155,13 @@ namespace Kawashirov.FLT
 				);
 				DefaultPrpertyField("rndMixTime", "Use Time where possible");
 				DefaultPrpertyField("rndMixCords", "Use Screen-Space coords where possible");
+				using (new GUIL.HorizontalScope()) {
+					var rndDefaultTexture = serializedObject.FindProperty("rndDefaultTexture");
+					DefaultPrpertyField(rndDefaultTexture, "Default noise texture.");
+					if (GUIL.Button("Default")) {
+						rndDefaultTexture.objectReferenceValue = Generator.GetRndDefaultTexture();
+					}
+				}
 			}
 
 			EGUIL.Space();
@@ -175,7 +170,7 @@ namespace Kawashirov.FLT
 
 			EGUIL.Space();
 			var matcap = serializedObject.FindProperty("matcap");
-			DefaultPrpertyField(matcap, "Matcap");
+			ToggleLeft(matcap, gui_feature_matcap);
 			using (new DisabledScope(matcap.hasMultipleDifferentValues || !matcap.boolValue)) {
 				using (new IndentLevelScope()) {
 					DefaultPrpertyField("matcapMode", "Mode");
@@ -184,7 +179,7 @@ namespace Kawashirov.FLT
 
 			EGUIL.Space();
 			var distanceFade = serializedObject.FindProperty("distanceFade");
-			DefaultPrpertyField(distanceFade, "Distance Dithering Fade Feature");
+			ToggleLeft(distanceFade, gui_feature_dstfd);
 			using (new DisabledScope(distanceFade.hasMultipleDifferentValues || !distanceFade.boolValue)) {
 				using (new IndentLevelScope()) {
 					DefaultPrpertyField("distanceFadeMode", "Mode");
@@ -193,7 +188,7 @@ namespace Kawashirov.FLT
 
 			EGUIL.Space();
 			var FPS = serializedObject.FindProperty("FPS");
-			DefaultPrpertyField(FPS, "FPS Feature");
+			ToggleLeft(FPS, gui_feature_fps);
 			using (new DisabledScope(FPS.hasMultipleDifferentValues || !FPS.boolValue)) {
 				using (new IndentLevelScope()) {
 					DefaultPrpertyField("FPSMode", "Mode");
@@ -203,7 +198,7 @@ namespace Kawashirov.FLT
 			EGUIL.Space();
 			using (new DisabledScope(!complexity_VGF && !complexity_VHDGF)) {
 				var outline = serializedObject.FindProperty("outline");
-				DefaultPrpertyField(outline, "Outline Feature");
+				ToggleLeft(FPS, gui_feature_outline);
 				using (new DisabledScope(
 					outline.hasMultipleDifferentValues || !outline.boolValue || (!complexity_VGF && !complexity_VHDGF)
 				)) {
@@ -216,7 +211,7 @@ namespace Kawashirov.FLT
 			EGUIL.Space();
 			using (new DisabledScope(!complexity_VGF && !complexity_VHDGF)) {
 				var iwd = serializedObject.FindProperty("iwd");
-				DefaultPrpertyField(iwd, "Infinity War Decimation Feature");
+				ToggleLeft(iwd, gui_feature_iwd);
 				using (new DisabledScope(
 					iwd.hasMultipleDifferentValues || !iwd.boolValue || (!complexity_VGF && !complexity_VHDGF)
 				)) {
@@ -229,7 +224,7 @@ namespace Kawashirov.FLT
 			EGUIL.Space();
 			using (new DisabledScope(!complexity_VGF && !complexity_VHDGF)) {
 				var pcw = serializedObject.FindProperty("pcw");
-				DefaultPrpertyField(pcw, "Poly ColorWave Feature");
+				ToggleLeft(pcw, gui_feature_pcw);
 				using (new DisabledScope(
 					pcw.hasMultipleDifferentValues || !pcw.boolValue || (!complexity_VGF && !complexity_VHDGF)
 				)) {
@@ -241,7 +236,7 @@ namespace Kawashirov.FLT
 
 			EGUIL.Space();
 			using (new DisabledScope(error)) {
-				if (GUILayout.Button("(Re)Bake Shader")) {
+				if (GUIL.Button("(Re)Bake Shader")) {
 					if (error)
 						return;
 					foreach (var t in targets) {

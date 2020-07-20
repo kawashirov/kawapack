@@ -17,11 +17,14 @@ using KFLTC = Kawashirov.FLT.Commons;
 // https://forum.unity.com/threads/solved-blank-scriptableobject-on-import.511527/
 
 namespace Kawashirov.FLT {
-	[CreateAssetMenu(menuName = "Kawashirov/Flat Lit Toon Shader/Shader Generator")]
 	[Serializable]
-	public class Generator : ShaderBaking.Generator {
+	public class Generator : ShaderBaking.BaseGenerator {
 		// GUID of KawaFLT_Struct_Shared.cginc
 		public static readonly string MAIN_CGINC_GUID = "19e348e622400bd4d86b4eff1408f1b9";
+		// GUID of noise_256x256_R16.asset
+		public static readonly string RND_NOISE_GUID = "de64211a543015d4cb7cbee9b684386b";
+
+		private static Texture2D _rndDefaultTexture = null;
 
 		public ShaderComplexity complexity = ShaderComplexity.VF;
 		public TessPartitioning tessPartitioning = TessPartitioning.Integer;
@@ -45,6 +48,7 @@ namespace Kawashirov.FLT {
 		public bool rndMixCords = false;
 		[NonSerialized] private bool needRandomVert = false;
 		[NonSerialized] private bool needRandomFrag = false;
+		public Texture2D rndDefaultTexture = null;
 
 		public ShadingMode shading = ShadingMode.KawashirovFLTSingle;
 
@@ -66,11 +70,21 @@ namespace Kawashirov.FLT {
 		public bool pcw = false;
 		public PolyColorWaveMode pcwMode = PolyColorWaveMode.Classic;
 
-		public Shader result = null;
-
 		[MenuItem("Kawashirov/Flat Lit Toon Shader/Create New Shader Generator Asset")]
 		public static void CreateAsset() {
-			EditorApplication.ExecuteMenuItem("Assets/Create/Kawashirov/Flat Lit Toon Shader/Shader Generator");
+			var save_path = EU.SaveFilePanelInProject(
+				"New Flat Lit Toon Shader Generator Asset", "MyShaderGenerator.asset", "asset",
+				"Please enter a file name to save the Generator to."
+			);
+			if (string.IsNullOrWhiteSpace(save_path))
+				return;
+
+			var generator = CreateInstance<Generator>();
+
+			generator.shaderName = Path.GetFileNameWithoutExtension(save_path);
+			generator.rndDefaultTexture = GetRndDefaultTexture();
+
+			AssetDatabase.CreateAsset(generator, save_path);
 		}
 
 		[MenuItem("Kawashirov/Flat Lit Toon Shader/Delete all generated shaders (but not generators)")]
@@ -87,6 +101,23 @@ namespace Kawashirov.FLT {
 				throw new InvalidOperationException("Can not get path to KawaFLT_Struct_Shared.cginc");
 			}
 			return cginc_path;
+		}
+
+		public static Texture2D GetRndDefaultTexture() {
+			if (_rndDefaultTexture == null) {
+				try {
+					Debug.Log("[KawaFLT] Loading RndDefaultTexture...");
+					var path = AssetDatabase.GUIDToAssetPath(RND_NOISE_GUID);
+					_rndDefaultTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+					if (_rndDefaultTexture == null)
+						throw new InvalidOperationException("Texture2D asset is null");
+				} catch (Exception exc) {
+					Debug.LogWarningFormat(_rndDefaultTexture, "[KawaFLT] Loading RndDefaultTexture failed: <i>{0}</i>\n{1}", exc.Message, exc.StackTrace);
+					Debug.LogException(exc, _rndDefaultTexture);
+				}
+				Debug.LogFormat(_rndDefaultTexture, "[KawaFLT] Loaded RndDefaultTexture: <i>{0}</i>", _rndDefaultTexture);
+			}
+			return _rndDefaultTexture;
 		}
 
 		public void ValidateAssetDatabase(out string shader_path, out string this_guid) {
@@ -184,11 +215,27 @@ namespace Kawashirov.FLT {
 				writer.Write(code.ToString());
 				writer.Flush();
 			}
+			// Нам нужно заимпортировать шейдер, для дальнейших манипуляций, даже если это придется делать еще раз.
 			AssetDatabase.ImportAsset(shader_path, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
 			result = AssetDatabase.LoadAssetAtPath<Shader>(shader_path);
+			EU.SetDirty(this); // result modified
 			AssetDatabase.SetLabels(result, new string[] { "Kawashirov-Generated-Shader-File", "Kawashirov", "Generated" });
-			EU.SetDirty(result);
+			EU.SetDirty(result); // shader modified
 			ShaderUtil.RegisterShader(result);
+
+			var shader_importer = AssetImporter.GetAtPath(shader_path) as ShaderImporter;
+			if (shader_importer == null) {
+				Debug.LogWarningFormat(this, "Can not get ShaderImporter for shader <b>{0}</b>!\n@ <i>{1}</i>", this, RefreshablePath());
+			} else {
+				shader_importer.SetDefaultTextures(new string[] {
+					"_Rnd_Seed"
+				}, new Texture[] {
+					rndDefaultTexture
+				});
+				EU.SetDirty(shader_importer);
+				shader_importer.SaveAndReimport();
+			}
+
 			Shader.WarmupAllShaders();
 		}
 

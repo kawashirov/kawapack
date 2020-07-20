@@ -35,23 +35,24 @@ namespace Kawashirov {
 		private readonly string tag;
 
 		public ShaderTag(IEnumerable<Material> materials, string tag) {
-			if (materials == null)
-				throw new ArgumentNullException(string.Format("No materials provided! (tag=\"{0}\")", tag));
-
 			if (tag == null)
 				throw new ArgumentNullException("No tag provided!");
 			if (string.IsNullOrWhiteSpace(tag))
 				throw new ArgumentException("No tag provided!");
 			this.tag = tag.Trim();
 
+			if (materials == null)
+				throw new ArgumentNullException(string.Format("tag {0}: No materials provided!", tag));
 			this.materials = materials.Distinct().UnityNotNull().ToArray();
-
 			if (this.materials.Length < 1)
-				throw new ArgumentException(string.Format("No materials provided! (tag=\"{0}\")", tag));
+				throw new ArgumentException(string.Format("tag {0}: No materials provided!", tag));
 		}
 
-		public HashSet<string> GetMultipleValues() {
-			return new HashSet<string>(materials.Select(m => m.GetTag(tag, false)).Distinct());
+		public IEnumerable<string> GetMultipleValues() {
+			return materials
+				.Select(m => m.GetTag(tag, false))
+				.Select(s => string.IsNullOrWhiteSpace(s) ? string.Empty : s) // пуыстые -> string.Empty
+				.Distinct();
 		}
 
 		public string GetValue() {
@@ -69,7 +70,6 @@ namespace Kawashirov {
 			var result = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
 			if (value != null)
 				result.UnionWith(value.Split(',').Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s.Trim()));
-
 			return result;
 		}
 
@@ -77,8 +77,8 @@ namespace Kawashirov {
 
 		public bool ValueEquals(string value) {
 			// Установлен ли tag на материале равным value ?
-			if (string.IsNullOrEmpty(value))
-				throw new ArgumentException("Comparing tag against invalid value: " + value);
+			if (string.IsNullOrWhiteSpace(value))
+				throw new ArgumentException(string.Format("tag {0}: Comparing with empty value: {1}", tag, value));
 			var tag_v = GetValue();
 			return tag_v != null && string.Equals(value, tag_v, StringComparison.InvariantCultureIgnoreCase);
 		}
@@ -86,8 +86,8 @@ namespace Kawashirov {
 		public bool IsTrue() => ValueEquals("True");
 
 		public bool ContainsItem(string item) {
-			if (string.IsNullOrEmpty(item))
-				throw new ArgumentException("Comparing tag against invalid item: " + item);
+			if (string.IsNullOrWhiteSpace(item))
+				throw new ArgumentException(string.Format("tag {0}: Comparing with empty item: {1}", tag, item));
 			var items = GetItems();
 			return items.Contains(item);
 		}
@@ -97,8 +97,8 @@ namespace Kawashirov {
 
 		public E GetEnumValueUnsafe<E>() where E : Enum {
 			var tag_v = GetValue();
-			if (string.IsNullOrEmpty(tag_v)) // todo detailed exc
-				throw new ArgumentException("No vaild tag is not set!");
+			if (string.IsNullOrWhiteSpace(tag_v)) // todo detailed exc
+				throw new ArgumentException(string.Format("tag {0}: Enum value is not set!", tag));
 			return (E)Enum.Parse(typeof(E), tag_v, true);
 		}
 

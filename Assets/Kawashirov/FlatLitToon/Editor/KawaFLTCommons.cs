@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Kawashirov.ShaderBaking;
 
 namespace Kawashirov.FLT {
 
@@ -109,6 +110,8 @@ namespace Kawashirov.FLT {
 		};
 
 		internal static string[] tags = new string[] {
+			ShaderBaking.Commons.GenaratorGUID,
+			//
 			RenderType,
 			F_Debug, F_Instancing,
 			F_Geometry, F_Tessellation, F_Partitioning, F_Domain,

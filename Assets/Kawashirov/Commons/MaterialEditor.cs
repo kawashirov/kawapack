@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Kawashirov.ShaderBaking;
+using static UnityEditor.EditorGUI;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -54,7 +55,7 @@ namespace Kawashirov {
 		}
 
 		protected void TexturePropertySmolDisabled(GUIContent label, MaterialProperty prop, bool compatibility = true) {
-			using (new EditorGUI.DisabledScope(prop == null)) {
+			using (new DisabledScope(prop == null)) {
 				if (prop != null) {
 					this.TexturePropertySmol(label, prop, compatibility);
 				} else {
@@ -72,7 +73,7 @@ namespace Kawashirov {
 			if (property != null) {
 				ShaderProperty(property, label);
 			} else {
-				using (new EditorGUI.DisabledScope(true)) {
+				using (new DisabledScope(true)) {
 					EditorGUILayout.LabelField(label, new GUIContent("Disabled"));
 				}
 			}
@@ -93,9 +94,9 @@ namespace Kawashirov {
 		protected void LabelEnumDisabledFromTagMixed<E>(
 			string label, string tag, Dictionary<E, string> display = null
 		) where E : Enum {
-			var values = shaderTags[tag].GetMultipleValues();
+			var values = shaderTags[tag].GetMultipleValues().ToList();
 			if (values.Count < 1) {
-				using (new EditorGUI.DisabledScope(true)) {
+				using (new DisabledScope(true)) {
 					EditorGUILayout.LabelField(label, "Disabled");
 				}
 				return;
@@ -114,6 +115,7 @@ namespace Kawashirov {
 				EditorGUILayout.LabelField(label, "Unknown");
 			}
 		}
+
 
 	}
 }

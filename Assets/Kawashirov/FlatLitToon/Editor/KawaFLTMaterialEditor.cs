@@ -9,17 +9,15 @@ using Kawashirov.FLT;
 
 using MP = UnityEditor.MaterialProperty;
 using EGUIL = UnityEditor.EditorGUILayout;
-using DisabledScope = UnityEditor.EditorGUI.DisabledScope;
-using IndentLevelScope = UnityEditor.EditorGUI.IndentLevelScope;
 using SC = Kawashirov.StaticCommons;
-using SBC = Kawashirov.ShaderBaking.Commons;
 using KFLTC = Kawashirov.FLT.Commons;
+using static UnityEditor.EditorGUI;
 
 // Имя файла длжно совпадать с именем типа.
 // https://forum.unity.com/threads/solved-blank-scriptableobject-on-import.511527/
 // Тип не включен в неймспейс Kawashirov.FLT, т.к. эдитор указывается в файле .shader без указания неймспейса.
 
-internal class KawaFLTMaterialEditor : Kawashirov.MaterialEditor {
+internal class KawaFLTMaterialEditor : Kawashirov.ShaderBaking.MaterialEditor<Generator> {
 
 	public override IEnumerable<string> GetShaderTagsOfIntrest() => KFLTC.tags;
 
@@ -70,16 +68,35 @@ internal class KawaFLTMaterialEditor : Kawashirov.MaterialEditor {
 	protected void OnGUI_Random() {
 		var _Rnd_Seed = FindProperty("_Rnd_Seed");
 		var label = new GUIContent(
-			"Seed Noise", "Red-Texture filled with random values to help generating random numbers."
+			"Seed Noise", "R16 texture filled with random values to help generating random numbers."
 		);
-		TexturePropertySmolDisabled(label, _Rnd_Seed);
-		if (_Rnd_Seed != null && _Rnd_Seed.textureValue == null) {
-			EGUIL.HelpBox(
-				"No seed noise texture is set! " +
-				"Some of enabled features using Pseudo-Random Number Generator. " +
-				"This texture is required, and shader will not properly work without this.",
-				MessageType.Error
-			);
+
+		if (_Rnd_Seed != null) {
+			using(new GUILayout.HorizontalScope()) {
+				this.TexturePropertySmol(label, _Rnd_Seed, false);
+				if (GUILayout.Button("Default")) {
+					_Rnd_Seed.textureValue = Generator.GetRndDefaultTexture();
+				}
+			}
+
+			var value = _Rnd_Seed.textureValue as Texture2D;
+			if (value == null) {
+				EGUIL.HelpBox(
+					"No seed noise texture is set!\n" +
+					"Some of enabled features using Pseudo-Random Number Generator.\n" +
+					"This texture is required, and shader will not properly work without this.",
+					MessageType.Error
+				);
+			} else if (value.format != TextureFormat.R16) {
+				EGUIL.HelpBox(
+					"Seed noise texture is not encoded as R16!\n(Single red channel, 16 bit integer.)\n" +
+					"Pseudo-Random Number Generator features is guaranteed to work only with R16 format.",
+					MessageType.Warning
+				);
+			}
+		} else {
+			using (new DisabledScope(true))
+				EGUIL.LabelField(label, new GUIContent("Disabled"));
 		}
 	}
 
@@ -221,7 +238,7 @@ internal class KawaFLTMaterialEditor : Kawashirov.MaterialEditor {
 				}
 			}
 		} else {
-			EGUIL.LabelField("Shading", "Unknown");
+			EGUIL.LabelField("Shading", "Mixed Values or Unknown");
 		}
 	}
 
@@ -466,25 +483,16 @@ internal class KawaFLTMaterialEditor : Kawashirov.MaterialEditor {
 		}
 	}
 
-
 	public override void OnInspectorGUI() {
 		if (!isVisible)
 			return;
 
 		if (targets.Length > 1) {
-			CommonEditor.HelpBoxRich("Multi-select is not yet properly work, it can break your materals! Not yet recomended to use.");
+			EGUIL.HelpBox("Multi-select is not yet properly tested, it can break your materals! Not yet recomended to use.", MessageType.Warning, true);
 		}
 
-		try {
-			var generator_guid = shaderTags[SBC.GenaratorGUID].GetValue();
-			var generator_path = AssetDatabase.GUIDToAssetPath(generator_guid);
-			var generator_obj = AssetDatabase.LoadAssetAtPath<Generator>(generator_path);
-			using (new DisabledScope(generator_obj == null)) {
-				EGUIL.ObjectField("Shader Generator", generator_obj, typeof(Generator), false);
-			}
-		} catch (Exception exc) { // TODO
-			EGUIL.LabelField("Shader Generator Error", exc.ToString());
-		}
+		if (!GenaratorGUIDFields())
+			return;
 
 		EGUIL.Space();
 		OnGUI_BlendMode();
