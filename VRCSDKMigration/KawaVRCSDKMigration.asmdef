@@ -1,0 +1,22 @@
+{
+    "name": "KawaVRCSDKMigration",
+    "references": [
+        "KawaCommons"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "VRCSDKBase.dll",
+        "VRCSDK2.dll",
+        "VRCSDK3.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "VRC_SDK_VRCSDK3"
+    ]
+}

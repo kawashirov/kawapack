@@ -36,8 +36,8 @@ sysinfo.txt
 *.unitypackage
 
 # Kawa
-Assets/Kawashirov/Demo*
-Assets/Kawashirov/Experemental*
+# Demo*
+Experemental*
 *.legacy~
 *_mod_*
 *_generated_*

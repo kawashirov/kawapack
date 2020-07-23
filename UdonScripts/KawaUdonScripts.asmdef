@@ -1,0 +1,21 @@
+{
+    "name": "KawashirovUdonScripts",
+    "references": [
+        "KawaCommons",
+        "VRC.Udon",
+        "VRC.Udon.Editor",
+        "UdonSharp.Runtime",
+        "UdonSharp.Editor",
+        "KawaUdonEditorCommons"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UDON"
+    ]
+}

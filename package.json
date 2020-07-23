@@ -1,0 +1,11 @@
+{
+  "name": "kawashirov.kawapack",
+  "displayName": "Kawapack",
+  "version": "1.0.1",
+  "description": "",
+  "type": "tool",
+  "author": {
+    "name": "kawashirov",
+    "url": "https://github.com/kawashirov/kawapack/"
+  }
+}
