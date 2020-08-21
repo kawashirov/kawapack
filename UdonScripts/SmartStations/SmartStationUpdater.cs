@@ -147,23 +147,26 @@ public class SmartStationUpdater : UdonSharpBehaviour {
 	private void UpdateDynamicSeatOccupied(VRCPlayerApi occupant) {
 		// Обновляет DynamicSeat если в нйм сидит occupant
 
-		var position = ReferenceSeat.position;
+		var ref_seat_pos = ReferenceSeat.position;
+
+		var position = DynamicSeat.position;
 		var rotation = ReferenceSeat.rotation;
 
 		if (UseCustomReference == 1) {
 			// Смещение позиции по одной кости (SingleReferenceBone)
-			var reference_pos = occupant.GetBonePosition(SingleReferenceBone);
-
+			var ref_bone_pos = occupant.GetBonePosition(SingleReferenceBone);
 			var player_pos = occupant.GetPosition();
-			position -= (reference_pos - player_pos) * CustomReferenceOffsetMultiplier;
+			var target_pos = ref_seat_pos - (ref_bone_pos - player_pos) * CustomReferenceOffsetMultiplier;
+			position = Vector3.Lerp(target_pos, position, 0.9f);
+
 		} else if (UseCustomReference == 2) {
 			// Смещение позиции по двум костям (ReferenceBoneA и ReferenceBoneB)
-			var reference_a_pos = occupant.GetBonePosition(ReferenceBoneA);
-			var reference_b_pos = occupant.GetBonePosition(ReferenceBoneB);
-			var reference_pos = (reference_a_pos * 0.5f) + (reference_b_pos * 0.5f);
-
+			var ref_a_pos = occupant.GetBonePosition(ReferenceBoneA);
+			var ref_b_pos = occupant.GetBonePosition(ReferenceBoneB);
+			var ref_bone_pos = (ref_a_pos * 0.5f) + (ref_b_pos * 0.5f);
 			var player_pos = occupant.GetPosition();
-			position -= (reference_pos - player_pos) * CustomReferenceOffsetMultiplier;
+			var target_pos = ref_seat_pos - (ref_bone_pos - player_pos) * CustomReferenceOffsetMultiplier;
+			position = Vector3.Lerp(target_pos, position, 0.9f);
 		}
 
 		if (KeepVertical) {

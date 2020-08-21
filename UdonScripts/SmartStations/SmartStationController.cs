@@ -109,7 +109,7 @@ public class SmartStationController : UdonSharpBehaviour {
 			CheckUpdater();
 		}
 
-		if (!LocallyOccupied && is_owner_ctrl && current_occupant_id == player_local_id) {
+		if (!LocallyOccupied && is_owner_ctrl && current_occupant_id != -1) {
 			LogChangeOccupant(current_occupant_id, -1, "not locally occupied");
 			OccupantID = -1;
 			CheckUpdater();

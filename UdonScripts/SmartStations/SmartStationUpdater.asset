@@ -37,24 +37,26 @@ MonoBehaviour:
     \   __0_custom_rotation_Single: %SystemSingle, null\r\n    __0_path_String: %SystemString,
     null\r\n    __0_t_Transform: %UnityEngineTransform, null\r\n    __0_forward_Vector3:
     %UnityEngineVector3, null\r\n    __0_player_pos_Vector3: %UnityEngineVector3,
-    null\r\n    __0_position_Vector3: %UnityEngineVector3, null\r\n    __0_reference_a_pos_Vector3:
-    %UnityEngineVector3, null\r\n    __0_reference_b_pos_Vector3: %UnityEngineVector3,
-    null\r\n    __0_reference_pos_Vector3: %UnityEngineVector3, null\r\n    __1_forward_Vector3:
-    %UnityEngineVector3, null\r\n    __0_occupant_VRCPlayerApi: %VRCSDKBaseVRCPlayerApi,
-    null\r\n    __0_owner_ctrl_VRCPlayerApi: %VRCSDKBaseVRCPlayerApi, null\r\n    __0_owner_this_VRCPlayerApi:
-    %VRCSDKBaseVRCPlayerApi, null\r\n    __1_occupant_VRCPlayerApi: %VRCSDKBaseVRCPlayerApi,
-    null\r\n    __0_const_intnl_SystemBoolean: %SystemBoolean, null\r\n    __0_const_intnl_SystemInt32:
-    %SystemInt32, null\r\n    __1_const_intnl_SystemInt32: %SystemInt32, null\r\n
-    \   __2_const_intnl_SystemInt32: %SystemInt32, null\r\n    __0_const_intnl_SystemObject:
-    %SystemObject, null\r\n    __0_const_intnl_SystemObjectArray: %SystemObjectArray,
-    null\r\n    __1_const_intnl_SystemObjectArray: %SystemObjectArray, null\r\n    __2_const_intnl_SystemObjectArray:
-    %SystemObjectArray, null\r\n    __3_const_intnl_SystemObjectArray: %SystemObjectArray,
-    null\r\n    __4_const_intnl_SystemObjectArray: %SystemObjectArray, null\r\n    __5_const_intnl_SystemObjectArray:
-    %SystemObjectArray, null\r\n    __6_const_intnl_SystemObjectArray: %SystemObjectArray,
-    null\r\n    __7_const_intnl_SystemObjectArray: %SystemObjectArray, null\r\n    __0_const_intnl_SystemSingle:
-    %SystemSingle, null\r\n    __1_const_intnl_SystemSingle: %SystemSingle, null\r\n
-    \   __2_const_intnl_SystemSingle: %SystemSingle, null\r\n    __3_const_intnl_SystemSingle:
-    %SystemSingle, null\r\n    __4_const_intnl_SystemSingle: %SystemSingle, null\r\n
+    null\r\n    __0_position_Vector3: %UnityEngineVector3, null\r\n    __0_ref_a_pos_Vector3:
+    %UnityEngineVector3, null\r\n    __0_ref_b_pos_Vector3: %UnityEngineVector3, null\r\n
+    \   __0_ref_bone_pos_Vector3: %UnityEngineVector3, null\r\n    __0_ref_seat_pos_Vector3:
+    %UnityEngineVector3, null\r\n    __0_target_pos_Vector3: %UnityEngineVector3,
+    null\r\n    __1_forward_Vector3: %UnityEngineVector3, null\r\n    __0_occupant_VRCPlayerApi:
+    %VRCSDKBaseVRCPlayerApi, null\r\n    __0_owner_ctrl_VRCPlayerApi: %VRCSDKBaseVRCPlayerApi,
+    null\r\n    __0_owner_this_VRCPlayerApi: %VRCSDKBaseVRCPlayerApi, null\r\n    __1_occupant_VRCPlayerApi:
+    %VRCSDKBaseVRCPlayerApi, null\r\n    __0_const_intnl_SystemBoolean: %SystemBoolean,
+    null\r\n    __0_const_intnl_SystemInt32: %SystemInt32, null\r\n    __1_const_intnl_SystemInt32:
+    %SystemInt32, null\r\n    __2_const_intnl_SystemInt32: %SystemInt32, null\r\n
+    \   __0_const_intnl_SystemObject: %SystemObject, null\r\n    __0_const_intnl_SystemObjectArray:
+    %SystemObjectArray, null\r\n    __1_const_intnl_SystemObjectArray: %SystemObjectArray,
+    null\r\n    __2_const_intnl_SystemObjectArray: %SystemObjectArray, null\r\n    __3_const_intnl_SystemObjectArray:
+    %SystemObjectArray, null\r\n    __4_const_intnl_SystemObjectArray: %SystemObjectArray,
+    null\r\n    __5_const_intnl_SystemObjectArray: %SystemObjectArray, null\r\n    __6_const_intnl_SystemObjectArray:
+    %SystemObjectArray, null\r\n    __7_const_intnl_SystemObjectArray: %SystemObjectArray,
+    null\r\n    __0_const_intnl_SystemSingle: %SystemSingle, null\r\n    __1_const_intnl_SystemSingle:
+    %SystemSingle, null\r\n    __2_const_intnl_SystemSingle: %SystemSingle, null\r\n
+    \   __3_const_intnl_SystemSingle: %SystemSingle, null\r\n    __4_const_intnl_SystemSingle:
+    %SystemSingle, null\r\n    __5_const_intnl_SystemSingle: %SystemSingle, null\r\n
     \   __0_const_intnl_SystemString: %SystemString, null\r\n    __1_const_intnl_SystemString:
     %SystemString, null\r\n    __10_const_intnl_SystemString: %SystemString, null\r\n
     \   __11_const_intnl_SystemString: %SystemString, null\r\n    __12_const_intnl_SystemString:
@@ -122,45 +124,47 @@ MonoBehaviour:
     null\r\n    __0_intnl_UnityEngineVector3: %UnityEngineVector3, null\r\n    __1_intnl_UnityEngineVector3:
     %UnityEngineVector3, null\r\n    __10_intnl_UnityEngineVector3: %UnityEngineVector3,
     null\r\n    __11_intnl_UnityEngineVector3: %UnityEngineVector3, null\r\n    __12_intnl_UnityEngineVector3:
-    %UnityEngineVector3, null\r\n    __2_intnl_UnityEngineVector3: %UnityEngineVector3,
-    null\r\n    __3_intnl_UnityEngineVector3: %UnityEngineVector3, null\r\n    __4_intnl_UnityEngineVector3:
-    %UnityEngineVector3, null\r\n    __5_intnl_UnityEngineVector3: %UnityEngineVector3,
-    null\r\n    __6_intnl_UnityEngineVector3: %UnityEngineVector3, null\r\n    __7_intnl_UnityEngineVector3:
-    %UnityEngineVector3, null\r\n    __8_intnl_UnityEngineVector3: %UnityEngineVector3,
-    null\r\n    __9_intnl_UnityEngineVector3: %UnityEngineVector3, null\r\n    __0_intnl_VRCSDKBaseVRCPlayerApi:
-    %VRCSDKBaseVRCPlayerApi, null\r\n    __1_intnl_VRCSDKBaseVRCPlayerApi: %VRCSDKBaseVRCPlayerApi,
-    null\r\n    __2_intnl_VRCSDKBaseVRCPlayerApi: %VRCSDKBaseVRCPlayerApi, null\r\n
-    \   __3_intnl_VRCSDKBaseVRCPlayerApi: %VRCSDKBaseVRCPlayerApi, null\r\n    __0_intnl_VRCSDK3ComponentsVRCStation:
-    %VRCSDK3ComponentsVRCStation, null\r\n    __1_intnl_VRCSDK3ComponentsVRCStation:
-    %VRCSDK3ComponentsVRCStation, null\r\n\r\n.data_end\r\n\r\n        \r\n         #
-    using System;\r\n        \r\n         # using UdonSharp;\r\n        \r\n         #
-    using UnityEngine;\r\n        \r\n         # using VRC.SDKBase;\r\n        \r\n
-    \        # using VRC.Udon;\r\n        \r\n         # public class SmartStationUpdater
-    : UdonSharpBehaviour {\r\n.code_start\r\n        \r\n         # \tpublic SmartStationController
-    Controller;\r\n        \r\n         # \t[Space, Tooltip(\"Will use this transform
-    as reference for seated location.\")]\r\n        \r\n         # \tpublic Transform
-    ReferenceSeat;\r\n        \r\n         # \t[Tooltip(\"Will use this transform
-    as reference for exit location.\")]\r\n        \r\n         # \tpublic Transform
-    ReferenceExit;\r\n        \r\n         # \t[Space, Tooltip(\"Transform used as
-    Enter in VRCStation.\\nWill be dynamically updated at run-time.\")]\r\n        \r\n
-    \        # \tpublic Transform DynamicSeat;\r\n        \r\n         # \t[Tooltip(\"Transform
-    used as Exit in VRCStation.\\nWill be dynamically updated at run-time.\")]\r\n
-    \       \r\n         # \tpublic Transform DynamicExit;\r\n        \r\n         #
-    \t[Space, Tooltip(\"Should try to keep player vertical in world-space?\")]\r\n
-    \       \r\n         # \tpublic bool KeepVertical = false;\r\n        \r\n         #
-    \t[Space, Tooltip(\"Allow players to rotate themselves while being seat on station
-    using Move Left-Right input (A/S keys).\\nMake sure VRCStation.disableStationExit
-    set to true.\")]\r\n        \r\n         # \tpublic bool AllowRotation = false;\r\n
-    \       \r\n         # \t[Tooltip(\"Maximum allowed rotation angle to left side
-    direction in degrees.\\nSet both MaxLeftRotation and MaxRightRotation to >180
-    or <0 to remove limits.\")]\r\n        \r\n         # \tpublic float MaxLeftRotation
-    = 60;\r\n        \r\n         # \t[Tooltip(\"Maximum allowed rotation angle to
-    right side direction in degrees.\\nSet both MaxLeftRotation and MaxRightRotation
-    to >180 or <0 to remove limits.\")]\r\n        \r\n         # \tpublic float MaxRightRotation
-    = 60;\r\n        \r\n         # \t[Tooltip(\"Degrees per second.\")]\r\n        \r\n
-    \        # \tpublic float RotationSpeed = 60; // 6 sec = full circle\r\n        \r\n
-    \        # \t[Tooltip(\"Current rotation of seat. Can be read or writen (by owner/occupant)
-    from other udon scripts at run-time.\")]\r\n        \r\n         # \t[UdonSynced(UdonSyncMode.Linear)]
+    %UnityEngineVector3, null\r\n    __13_intnl_UnityEngineVector3: %UnityEngineVector3,
+    null\r\n    __14_intnl_UnityEngineVector3: %UnityEngineVector3, null\r\n    __2_intnl_UnityEngineVector3:
+    %UnityEngineVector3, null\r\n    __3_intnl_UnityEngineVector3: %UnityEngineVector3,
+    null\r\n    __4_intnl_UnityEngineVector3: %UnityEngineVector3, null\r\n    __5_intnl_UnityEngineVector3:
+    %UnityEngineVector3, null\r\n    __6_intnl_UnityEngineVector3: %UnityEngineVector3,
+    null\r\n    __7_intnl_UnityEngineVector3: %UnityEngineVector3, null\r\n    __8_intnl_UnityEngineVector3:
+    %UnityEngineVector3, null\r\n    __9_intnl_UnityEngineVector3: %UnityEngineVector3,
+    null\r\n    __0_intnl_VRCSDKBaseVRCPlayerApi: %VRCSDKBaseVRCPlayerApi, null\r\n
+    \   __1_intnl_VRCSDKBaseVRCPlayerApi: %VRCSDKBaseVRCPlayerApi, null\r\n    __2_intnl_VRCSDKBaseVRCPlayerApi:
+    %VRCSDKBaseVRCPlayerApi, null\r\n    __3_intnl_VRCSDKBaseVRCPlayerApi: %VRCSDKBaseVRCPlayerApi,
+    null\r\n    __0_intnl_VRCSDK3ComponentsVRCStation: %VRCSDK3ComponentsVRCStation,
+    null\r\n    __1_intnl_VRCSDK3ComponentsVRCStation: %VRCSDK3ComponentsVRCStation,
+    null\r\n\r\n.data_end\r\n\r\n        \r\n         # using System;\r\n        \r\n
+    \        # using UdonSharp;\r\n        \r\n         # using UnityEngine;\r\n        \r\n
+    \        # using VRC.SDKBase;\r\n        \r\n         # using VRC.Udon;\r\n        \r\n
+    \        # public class SmartStationUpdater : UdonSharpBehaviour {\r\n.code_start\r\n
+    \       \r\n         # \tpublic SmartStationController Controller;\r\n        \r\n
+    \        # \t[Space, Tooltip(\"Will use this transform as reference for seated
+    location.\")]\r\n        \r\n         # \tpublic Transform ReferenceSeat;\r\n
+    \       \r\n         # \t[Tooltip(\"Will use this transform as reference for exit
+    location.\")]\r\n        \r\n         # \tpublic Transform ReferenceExit;\r\n
+    \       \r\n         # \t[Space, Tooltip(\"Transform used as Enter in VRCStation.\\nWill
+    be dynamically updated at run-time.\")]\r\n        \r\n         # \tpublic Transform
+    DynamicSeat;\r\n        \r\n         # \t[Tooltip(\"Transform used as Exit in
+    VRCStation.\\nWill be dynamically updated at run-time.\")]\r\n        \r\n         #
+    \tpublic Transform DynamicExit;\r\n        \r\n         # \t[Space, Tooltip(\"Should
+    try to keep player vertical in world-space?\")]\r\n        \r\n         # \tpublic
+    bool KeepVertical = false;\r\n        \r\n         # \t[Space, Tooltip(\"Allow
+    players to rotate themselves while being seat on station using Move Left-Right
+    input (A/S keys).\\nMake sure VRCStation.disableStationExit set to true.\")]\r\n
+    \       \r\n         # \tpublic bool AllowRotation = false;\r\n        \r\n         #
+    \t[Tooltip(\"Maximum allowed rotation angle to left side direction in degrees.\\nSet
+    both MaxLeftRotation and MaxRightRotation to >180 or <0 to remove limits.\")]\r\n
+    \       \r\n         # \tpublic float MaxLeftRotation = 60;\r\n        \r\n         #
+    \t[Tooltip(\"Maximum allowed rotation angle to right side direction in degrees.\\nSet
+    both MaxLeftRotation and MaxRightRotation to >180 or <0 to remove limits.\")]\r\n
+    \       \r\n         # \tpublic float MaxRightRotation = 60;\r\n        \r\n         #
+    \t[Tooltip(\"Degrees per second.\")]\r\n        \r\n         # \tpublic float
+    RotationSpeed = 60; // 6 sec = full circle\r\n        \r\n         # \t[Tooltip(\"Current
+    rotation of seat. Can be read or writen (by owner/occupant) from other udon scripts
+    at run-time.\")]\r\n        \r\n         # \t[UdonSynced(UdonSyncMode.Linear)]
     public float CurrentRotation = 0;\r\n        \r\n         # \t[Space, Tooltip(\"If
     0: No custom reference.\\nIf 1: Use SingleBone as Reference.\\nIf 2: Use median
     ReferenceBoneA and ReferenceBoneB.\")]\r\n        \r\n         # \tpublic int
@@ -181,7 +185,7 @@ MonoBehaviour:
     \       PUSH, __0_const_intnl_SystemUInt32\r\n        \r\n         # \t\t_path
     = GetPath(transform);\r\n        PUSH, __0_this_intnl_UnityEngineTransform\r\n
     \       PUSH, __0_t_Transform\r\n        COPY\r\n        PUSH, __0_const_intnl_exitJumpLoc_UInt32\r\n
-    \       JUMP, 0x00001274\r\n        PUSH, __0_intnl_returnValSymbol_String\r\n
+    \       JUMP, 0x00001318\r\n        PUSH, __0_intnl_returnValSymbol_String\r\n
     \       PUSH, _path\r\n        COPY\r\n        \r\n         # \t\tif (Controller
     == null) {\r\n        PUSH, Controller\r\n        PUSH, __0_const_intnl_VRCUdonCommonInterfacesIUdonEventReceiver\r\n
     \       PUSH, __0_intnl_SystemBoolean\r\n        EXTERN, \"UnityEngineObject.__op_Equality__UnityEngineObject_UnityEngineObject__SystemBoolean\"\r\n
@@ -369,74 +373,87 @@ MonoBehaviour:
     epilogue\r\n        COPY\r\n        JUMP_INDIRECT, __0_intnl_returnTarget_UInt32\r\n
     \       \r\n        \r\n         # \tprivate void UpdateDynamicSeatOccupied(VRCPlayerApi
     occupant) {\r\n    UpdateDynamicSeatOccupied:\r\n        \r\n        PUSH, __0_const_intnl_SystemUInt32\r\n
-    \       \r\n         # \t\tvar position = ReferenceSeat.position;\r\n        PUSH,
+    \       \r\n         # \t\tvar ref_seat_pos = ReferenceSeat.position;\r\n        PUSH,
     ReferenceSeat\r\n        PUSH, __3_intnl_UnityEngineVector3\r\n        EXTERN,
     \"UnityEngineTransform.__get_position__UnityEngineVector3\"\r\n        PUSH, __3_intnl_UnityEngineVector3\r\n
-    \       PUSH, __0_position_Vector3\r\n        COPY\r\n        \r\n         # \t\tvar
-    rotation = ReferenceSeat.rotation;\r\n        PUSH, ReferenceSeat\r\n        PUSH,
-    __2_intnl_UnityEngineQuaternion\r\n        EXTERN, \"UnityEngineTransform.__get_rotation__UnityEngineQuaternion\"\r\n
+    \       PUSH, __0_ref_seat_pos_Vector3\r\n        COPY\r\n        \r\n         #
+    \t\tvar position = DynamicSeat.position;\r\n        PUSH, DynamicSeat\r\n        PUSH,
+    __4_intnl_UnityEngineVector3\r\n        EXTERN, \"UnityEngineTransform.__get_position__UnityEngineVector3\"\r\n
+    \       PUSH, __4_intnl_UnityEngineVector3\r\n        PUSH, __0_position_Vector3\r\n
+    \       COPY\r\n        \r\n         # \t\tvar rotation = ReferenceSeat.rotation;\r\n
+    \       PUSH, ReferenceSeat\r\n        PUSH, __2_intnl_UnityEngineQuaternion\r\n
+    \       EXTERN, \"UnityEngineTransform.__get_rotation__UnityEngineQuaternion\"\r\n
     \       PUSH, __2_intnl_UnityEngineQuaternion\r\n        PUSH, __0_rotation_Quaternion\r\n
     \       COPY\r\n        \r\n         # \t\tif (UseCustomReference == 1) {\r\n
     \       PUSH, UseCustomReference\r\n        PUSH, __1_const_intnl_SystemInt32\r\n
     \       PUSH, __11_intnl_SystemBoolean\r\n        EXTERN, \"SystemInt32.__op_Equality__SystemInt32_SystemInt32__SystemBoolean\"\r\n
-    \       PUSH, __11_intnl_SystemBoolean\r\n        JUMP_IF_FALSE, 0x000009DC\r\n
-    \       \r\n         # \t\t\tvar reference_pos = occupant.GetBonePosition(SingleReferenceBone);\r\n
+    \       PUSH, __11_intnl_SystemBoolean\r\n        JUMP_IF_FALSE, 0x00000A44\r\n
+    \       \r\n         # \t\t\tvar ref_bone_pos = occupant.GetBonePosition(SingleReferenceBone);\r\n
     \       PUSH, __0_occupant_VRCPlayerApi\r\n        PUSH, SingleReferenceBone\r\n
-    \       PUSH, __4_intnl_UnityEngineVector3\r\n        EXTERN, \"VRCSDKBaseVRCPlayerApi.__GetBonePosition__UnityEngineHumanBodyBones__UnityEngineVector3\"\r\n
-    \       PUSH, __4_intnl_UnityEngineVector3\r\n        PUSH, __0_reference_pos_Vector3\r\n
+    \       PUSH, __5_intnl_UnityEngineVector3\r\n        EXTERN, \"VRCSDKBaseVRCPlayerApi.__GetBonePosition__UnityEngineHumanBodyBones__UnityEngineVector3\"\r\n
+    \       PUSH, __5_intnl_UnityEngineVector3\r\n        PUSH, __0_ref_bone_pos_Vector3\r\n
     \       COPY\r\n        \r\n         # \t\t\tvar player_pos = occupant.GetPosition();\r\n
-    \       PUSH, __0_occupant_VRCPlayerApi\r\n        PUSH, __5_intnl_UnityEngineVector3\r\n
+    \       PUSH, __0_occupant_VRCPlayerApi\r\n        PUSH, __6_intnl_UnityEngineVector3\r\n
     \       EXTERN, \"VRCSDKBaseVRCPlayerApi.__GetPosition__UnityEngineVector3\"\r\n
-    \       PUSH, __5_intnl_UnityEngineVector3\r\n        PUSH, __0_player_pos_Vector3\r\n
-    \       COPY\r\n        \r\n         # \t\t\tposition -= (reference_pos - player_pos)
-    * CustomReferenceOffsetMultiplier;\r\n        PUSH, __0_reference_pos_Vector3\r\n
-    \       PUSH, __0_player_pos_Vector3\r\n        PUSH, __6_intnl_UnityEngineVector3\r\n
+    \       PUSH, __6_intnl_UnityEngineVector3\r\n        PUSH, __0_player_pos_Vector3\r\n
+    \       COPY\r\n        \r\n         # \t\t\tvar target_pos = ref_seat_pos - (ref_bone_pos
+    - player_pos) * CustomReferenceOffsetMultiplier;\r\n        PUSH, __0_ref_bone_pos_Vector3\r\n
+    \       PUSH, __0_player_pos_Vector3\r\n        PUSH, __7_intnl_UnityEngineVector3\r\n
     \       EXTERN, \"UnityEngineVector3.__op_Subtraction__UnityEngineVector3_UnityEngineVector3__UnityEngineVector3\"\r\n
-    \       PUSH, __6_intnl_UnityEngineVector3\r\n        PUSH, CustomReferenceOffsetMultiplier\r\n
-    \       PUSH, __7_intnl_UnityEngineVector3\r\n        EXTERN, \"UnityEngineVector3.__op_Multiply__UnityEngineVector3_SystemSingle__UnityEngineVector3\"\r\n
-    \       PUSH, __0_position_Vector3\r\n        PUSH, __7_intnl_UnityEngineVector3\r\n
-    \       PUSH, __8_intnl_UnityEngineVector3\r\n        EXTERN, \"UnityEngineVector3.__op_Subtraction__UnityEngineVector3_UnityEngineVector3__UnityEngineVector3\"\r\n
-    \       PUSH, __8_intnl_UnityEngineVector3\r\n        PUSH, __0_position_Vector3\r\n
-    \       COPY\r\n        JUMP, 0x00000B88\r\n        \r\n         # \t\t} else
-    if (UseCustomReference == 2) {\r\n        PUSH, UseCustomReference\r\n        PUSH,
-    __2_const_intnl_SystemInt32\r\n        PUSH, __12_intnl_SystemBoolean\r\n        EXTERN,
-    \"SystemInt32.__op_Equality__SystemInt32_SystemInt32__SystemBoolean\"\r\n        PUSH,
-    __12_intnl_SystemBoolean\r\n        JUMP_IF_FALSE, 0x00000B88\r\n        \r\n
-    \        # \t\t\tvar reference_a_pos = occupant.GetBonePosition(ReferenceBoneA);\r\n
+    \       PUSH, __7_intnl_UnityEngineVector3\r\n        PUSH, CustomReferenceOffsetMultiplier\r\n
+    \       PUSH, __8_intnl_UnityEngineVector3\r\n        EXTERN, \"UnityEngineVector3.__op_Multiply__UnityEngineVector3_SystemSingle__UnityEngineVector3\"\r\n
+    \       PUSH, __0_ref_seat_pos_Vector3\r\n        PUSH, __8_intnl_UnityEngineVector3\r\n
+    \       PUSH, __9_intnl_UnityEngineVector3\r\n        EXTERN, \"UnityEngineVector3.__op_Subtraction__UnityEngineVector3_UnityEngineVector3__UnityEngineVector3\"\r\n
+    \       PUSH, __9_intnl_UnityEngineVector3\r\n        PUSH, __0_target_pos_Vector3\r\n
+    \       COPY\r\n        \r\n         # \t\t\tposition = Vector3.Lerp(target_pos,
+    position, 0.9f);\r\n        PUSH, __0_target_pos_Vector3\r\n        PUSH, __0_position_Vector3\r\n
+    \       PUSH, __0_const_intnl_SystemSingle\r\n        PUSH, __0_position_Vector3\r\n
+    \       PUSH, __10_intnl_UnityEngineVector3\r\n        COPY # Copy-on-write symbol
+    value dirtied\r\n        PUSH, __0_position_Vector3\r\n        EXTERN, \"UnityEngineVector3.__Lerp__UnityEngineVector3_UnityEngineVector3_SystemSingle__UnityEngineVector3\"\r\n
+    \       JUMP, 0x00000C2C\r\n        \r\n         # \t\t} else if (UseCustomReference
+    == 2) {\r\n        PUSH, UseCustomReference\r\n        PUSH, __2_const_intnl_SystemInt32\r\n
+    \       PUSH, __12_intnl_SystemBoolean\r\n        EXTERN, \"SystemInt32.__op_Equality__SystemInt32_SystemInt32__SystemBoolean\"\r\n
+    \       PUSH, __12_intnl_SystemBoolean\r\n        JUMP_IF_FALSE, 0x00000C2C\r\n
+    \       \r\n         # \t\t\tvar ref_a_pos = occupant.GetBonePosition(ReferenceBoneA);\r\n
     \       PUSH, __0_occupant_VRCPlayerApi\r\n        PUSH, ReferenceBoneA\r\n        PUSH,
-    __4_intnl_UnityEngineVector3\r\n        EXTERN, \"VRCSDKBaseVRCPlayerApi.__GetBonePosition__UnityEngineHumanBodyBones__UnityEngineVector3\"\r\n
-    \       PUSH, __4_intnl_UnityEngineVector3\r\n        PUSH, __0_reference_a_pos_Vector3\r\n
-    \       COPY\r\n        \r\n         # \t\t\tvar reference_b_pos = occupant.GetBonePosition(ReferenceBoneB);\r\n
-    \       PUSH, __0_occupant_VRCPlayerApi\r\n        PUSH, ReferenceBoneB\r\n        PUSH,
     __5_intnl_UnityEngineVector3\r\n        EXTERN, \"VRCSDKBaseVRCPlayerApi.__GetBonePosition__UnityEngineHumanBodyBones__UnityEngineVector3\"\r\n
-    \       PUSH, __5_intnl_UnityEngineVector3\r\n        PUSH, __0_reference_b_pos_Vector3\r\n
-    \       COPY\r\n        \r\n         # \t\t\tvar reference_pos = (reference_a_pos
-    * 0.5f) + (reference_b_pos * 0.5f);\r\n        PUSH, __0_reference_a_pos_Vector3\r\n
-    \       PUSH, __0_const_intnl_SystemSingle\r\n        PUSH, __6_intnl_UnityEngineVector3\r\n
+    \       PUSH, __5_intnl_UnityEngineVector3\r\n        PUSH, __0_ref_a_pos_Vector3\r\n
+    \       COPY\r\n        \r\n         # \t\t\tvar ref_b_pos = occupant.GetBonePosition(ReferenceBoneB);\r\n
+    \       PUSH, __0_occupant_VRCPlayerApi\r\n        PUSH, ReferenceBoneB\r\n        PUSH,
+    __6_intnl_UnityEngineVector3\r\n        EXTERN, \"VRCSDKBaseVRCPlayerApi.__GetBonePosition__UnityEngineHumanBodyBones__UnityEngineVector3\"\r\n
+    \       PUSH, __6_intnl_UnityEngineVector3\r\n        PUSH, __0_ref_b_pos_Vector3\r\n
+    \       COPY\r\n        \r\n         # \t\t\tvar ref_bone_pos = (ref_a_pos * 0.5f)
+    + (ref_b_pos * 0.5f);\r\n        PUSH, __0_ref_a_pos_Vector3\r\n        PUSH,
+    __1_const_intnl_SystemSingle\r\n        PUSH, __7_intnl_UnityEngineVector3\r\n
     \       EXTERN, \"UnityEngineVector3.__op_Multiply__UnityEngineVector3_SystemSingle__UnityEngineVector3\"\r\n
-    \       PUSH, __0_reference_b_pos_Vector3\r\n        PUSH, __0_const_intnl_SystemSingle\r\n
-    \       PUSH, __7_intnl_UnityEngineVector3\r\n        EXTERN, \"UnityEngineVector3.__op_Multiply__UnityEngineVector3_SystemSingle__UnityEngineVector3\"\r\n
-    \       PUSH, __6_intnl_UnityEngineVector3\r\n        PUSH, __7_intnl_UnityEngineVector3\r\n
-    \       PUSH, __8_intnl_UnityEngineVector3\r\n        EXTERN, \"UnityEngineVector3.__op_Addition__UnityEngineVector3_UnityEngineVector3__UnityEngineVector3\"\r\n
-    \       PUSH, __8_intnl_UnityEngineVector3\r\n        PUSH, __0_reference_pos_Vector3\r\n
+    \       PUSH, __0_ref_b_pos_Vector3\r\n        PUSH, __1_const_intnl_SystemSingle\r\n
+    \       PUSH, __8_intnl_UnityEngineVector3\r\n        EXTERN, \"UnityEngineVector3.__op_Multiply__UnityEngineVector3_SystemSingle__UnityEngineVector3\"\r\n
+    \       PUSH, __7_intnl_UnityEngineVector3\r\n        PUSH, __8_intnl_UnityEngineVector3\r\n
+    \       PUSH, __9_intnl_UnityEngineVector3\r\n        EXTERN, \"UnityEngineVector3.__op_Addition__UnityEngineVector3_UnityEngineVector3__UnityEngineVector3\"\r\n
+    \       PUSH, __9_intnl_UnityEngineVector3\r\n        PUSH, __0_ref_bone_pos_Vector3\r\n
     \       COPY\r\n        \r\n         # \t\t\tvar player_pos = occupant.GetPosition();\r\n
-    \       PUSH, __0_occupant_VRCPlayerApi\r\n        PUSH, __9_intnl_UnityEngineVector3\r\n
+    \       PUSH, __0_occupant_VRCPlayerApi\r\n        PUSH, __10_intnl_UnityEngineVector3\r\n
     \       EXTERN, \"VRCSDKBaseVRCPlayerApi.__GetPosition__UnityEngineVector3\"\r\n
-    \       PUSH, __9_intnl_UnityEngineVector3\r\n        PUSH, __0_player_pos_Vector3\r\n
-    \       COPY\r\n        \r\n         # \t\t\tposition -= (reference_pos - player_pos)
-    * CustomReferenceOffsetMultiplier;\r\n        PUSH, __0_reference_pos_Vector3\r\n
-    \       PUSH, __0_player_pos_Vector3\r\n        PUSH, __10_intnl_UnityEngineVector3\r\n
+    \       PUSH, __10_intnl_UnityEngineVector3\r\n        PUSH, __0_player_pos_Vector3\r\n
+    \       COPY\r\n        \r\n         # \t\t\tvar target_pos = ref_seat_pos - (ref_bone_pos
+    - player_pos) * CustomReferenceOffsetMultiplier;\r\n        PUSH, __0_ref_bone_pos_Vector3\r\n
+    \       PUSH, __0_player_pos_Vector3\r\n        PUSH, __11_intnl_UnityEngineVector3\r\n
     \       EXTERN, \"UnityEngineVector3.__op_Subtraction__UnityEngineVector3_UnityEngineVector3__UnityEngineVector3\"\r\n
-    \       PUSH, __10_intnl_UnityEngineVector3\r\n        PUSH, CustomReferenceOffsetMultiplier\r\n
-    \       PUSH, __11_intnl_UnityEngineVector3\r\n        EXTERN, \"UnityEngineVector3.__op_Multiply__UnityEngineVector3_SystemSingle__UnityEngineVector3\"\r\n
-    \       PUSH, __0_position_Vector3\r\n        PUSH, __11_intnl_UnityEngineVector3\r\n
-    \       PUSH, __12_intnl_UnityEngineVector3\r\n        EXTERN, \"UnityEngineVector3.__op_Subtraction__UnityEngineVector3_UnityEngineVector3__UnityEngineVector3\"\r\n
-    \       PUSH, __12_intnl_UnityEngineVector3\r\n        PUSH, __0_position_Vector3\r\n
-    \       COPY\r\n        \r\n         # \t\tif (KeepVertical) {\r\n        PUSH,
-    KeepVertical\r\n        JUMP_IF_FALSE, 0x00000C0C\r\n        \r\n         # \t\t\tvar
-    forward = ReferenceSeat.forward;\r\n        PUSH, ReferenceSeat\r\n        PUSH,
-    __4_intnl_UnityEngineVector3\r\n        EXTERN, \"UnityEngineTransform.__get_forward__UnityEngineVector3\"\r\n
-    \       PUSH, __4_intnl_UnityEngineVector3\r\n        PUSH, __1_forward_Vector3\r\n
+    \       PUSH, __11_intnl_UnityEngineVector3\r\n        PUSH, CustomReferenceOffsetMultiplier\r\n
+    \       PUSH, __12_intnl_UnityEngineVector3\r\n        EXTERN, \"UnityEngineVector3.__op_Multiply__UnityEngineVector3_SystemSingle__UnityEngineVector3\"\r\n
+    \       PUSH, __0_ref_seat_pos_Vector3\r\n        PUSH, __12_intnl_UnityEngineVector3\r\n
+    \       PUSH, __13_intnl_UnityEngineVector3\r\n        EXTERN, \"UnityEngineVector3.__op_Subtraction__UnityEngineVector3_UnityEngineVector3__UnityEngineVector3\"\r\n
+    \       PUSH, __13_intnl_UnityEngineVector3\r\n        PUSH, __0_target_pos_Vector3\r\n
+    \       COPY\r\n        \r\n         # \t\t\tposition = Vector3.Lerp(target_pos,
+    position, 0.9f);\r\n        PUSH, __0_target_pos_Vector3\r\n        PUSH, __0_position_Vector3\r\n
+    \       PUSH, __0_const_intnl_SystemSingle\r\n        PUSH, __0_position_Vector3\r\n
+    \       PUSH, __14_intnl_UnityEngineVector3\r\n        COPY # Copy-on-write symbol
+    value dirtied\r\n        PUSH, __0_position_Vector3\r\n        EXTERN, \"UnityEngineVector3.__Lerp__UnityEngineVector3_UnityEngineVector3_SystemSingle__UnityEngineVector3\"\r\n
+    \       \r\n         # \t\tif (KeepVertical) {\r\n        PUSH, KeepVertical\r\n
+    \       JUMP_IF_FALSE, 0x00000CB0\r\n        \r\n         # \t\t\tvar forward
+    = ReferenceSeat.forward;\r\n        PUSH, ReferenceSeat\r\n        PUSH, __5_intnl_UnityEngineVector3\r\n
+    \       EXTERN, \"UnityEngineTransform.__get_forward__UnityEngineVector3\"\r\n
+    \       PUSH, __5_intnl_UnityEngineVector3\r\n        PUSH, __1_forward_Vector3\r\n
     \       COPY\r\n        \r\n         # \t\t\tforward.y = 0;\r\n        PUSH, __0_const_intnl_SystemInt32\r\n
     \       PUSH, __1_intnl_SystemSingle\r\n        EXTERN, \"SystemConvert.__ToSingle__SystemInt32__SystemSingle\"\r\n
     \       PUSH, __1_forward_Vector3\r\n        PUSH, __1_intnl_SystemSingle\r\n
@@ -444,12 +461,12 @@ MonoBehaviour:
     \t\t\trotation = Quaternion.LookRotation(forward);\r\n        PUSH, __1_forward_Vector3\r\n
     \       PUSH, __0_rotation_Quaternion\r\n        EXTERN, \"UnityEngineQuaternion.__LookRotation__UnityEngineVector3__UnityEngineQuaternion\"\r\n
     \       \r\n         # \t\tif (AllowRotation) {\r\n        PUSH, AllowRotation\r\n
-    \       JUMP_IF_FALSE, 0x00001238\r\n        \r\n         # \t\t\tif (Networking.IsOwner(Controller.gameObject))
+    \       JUMP_IF_FALSE, 0x000012DC\r\n        \r\n         # \t\t\tif (Networking.IsOwner(Controller.gameObject))
     {\r\n        PUSH, Controller\r\n        PUSH, __1_intnl_UnityEngineGameObject\r\n
     \       EXTERN, \"UnityEngineComponent.__get_gameObject__UnityEngineGameObject\"\r\n
     \       PUSH, __1_intnl_UnityEngineGameObject\r\n        PUSH, __13_intnl_SystemBoolean\r\n
     \       EXTERN, \"VRCSDKBaseNetworking.__IsOwner__UnityEngineGameObject__SystemBoolean\"\r\n
-    \       PUSH, __13_intnl_SystemBoolean\r\n        JUMP_IF_FALSE, 0x00001038\r\n
+    \       PUSH, __13_intnl_SystemBoolean\r\n        JUMP_IF_FALSE, 0x000010DC\r\n
     \       \r\n         # \t\t\t\tvar custom_rotation = CurrentRotation;\r\n        PUSH,
     CurrentRotation\r\n        PUSH, __0_custom_rotation_Single\r\n        COPY\r\n
     \       \r\n         # \t\t\t\tcustom_rotation += Input.GetAxisRaw(\"Horizontal\")
@@ -464,17 +481,17 @@ MonoBehaviour:
     \       PUSH, __5_intnl_SystemSingle\r\n        EXTERN, \"SystemSingle.__op_Addition__SystemSingle_SystemSingle__SystemSingle\"\r\n
     \       PUSH, __5_intnl_SystemSingle\r\n        PUSH, __0_custom_rotation_Single\r\n
     \       COPY\r\n        \r\n         # \t\t\t\tif (MaxLeftRotation >= 0f && MaxLeftRotation
-    <= 180f)\r\n        PUSH, MaxLeftRotation\r\n        PUSH, __1_const_intnl_SystemSingle\r\n
+    <= 180f)\r\n        PUSH, MaxLeftRotation\r\n        PUSH, __2_const_intnl_SystemSingle\r\n
     \       PUSH, __15_intnl_SystemBoolean\r\n        EXTERN, \"SystemSingle.__op_GreaterThanOrEqual__SystemSingle_SystemSingle__SystemBoolean\"\r\n
     \       PUSH, __15_intnl_SystemBoolean\r\n        PUSH, __14_intnl_SystemBoolean\r\n
     \       COPY\r\n        PUSH, __14_intnl_SystemBoolean\r\n        JUMP_IF_FALSE,
-    0x00000DA4\r\n        PUSH, MaxLeftRotation\r\n        PUSH, __2_const_intnl_SystemSingle\r\n
+    0x00000E48\r\n        PUSH, MaxLeftRotation\r\n        PUSH, __3_const_intnl_SystemSingle\r\n
     \       PUSH, __16_intnl_SystemBoolean\r\n        EXTERN, \"SystemSingle.__op_LessThanOrEqual__SystemSingle_SystemSingle__SystemBoolean\"\r\n
     \       PUSH, __14_intnl_SystemBoolean\r\n        PUSH, __16_intnl_SystemBoolean\r\n
     \       PUSH, __17_intnl_SystemBoolean\r\n        EXTERN, \"SystemBoolean.__op_ConditionalAnd__SystemBoolean_SystemBoolean__SystemBoolean\"\r\n
     \       PUSH, __17_intnl_SystemBoolean\r\n        PUSH, __14_intnl_SystemBoolean\r\n
     \       COPY\r\n        PUSH, __14_intnl_SystemBoolean\r\n        JUMP_IF_FALSE,
-    0x00000E00\r\n        \r\n         # \t\t\t\t\tcustom_rotation = Mathf.Max(custom_rotation,
+    0x00000EA4\r\n        \r\n         # \t\t\t\t\tcustom_rotation = Mathf.Max(custom_rotation,
     -MaxLeftRotation);\r\n        PUSH, MaxLeftRotation\r\n        PUSH, __6_intnl_SystemSingle\r\n
     \       EXTERN, \"SystemSingle.__op_UnaryMinus__SystemSingle__SystemSingle\"\r\n
     \       PUSH, __0_custom_rotation_Single\r\n        PUSH, __6_intnl_SystemSingle\r\n
@@ -482,36 +499,36 @@ MonoBehaviour:
     \       COPY # Copy-on-write symbol value dirtied\r\n        PUSH, __0_custom_rotation_Single\r\n
     \       EXTERN, \"UnityEngineMathf.__Max__SystemSingle_SystemSingle__SystemSingle\"\r\n
     \       \r\n         # \t\t\t\tif (MaxRightRotation >= 0f && MaxRightRotation
-    <= 180f)\r\n        PUSH, MaxRightRotation\r\n        PUSH, __1_const_intnl_SystemSingle\r\n
+    <= 180f)\r\n        PUSH, MaxRightRotation\r\n        PUSH, __2_const_intnl_SystemSingle\r\n
     \       PUSH, __19_intnl_SystemBoolean\r\n        EXTERN, \"SystemSingle.__op_GreaterThanOrEqual__SystemSingle_SystemSingle__SystemBoolean\"\r\n
     \       PUSH, __19_intnl_SystemBoolean\r\n        PUSH, __18_intnl_SystemBoolean\r\n
     \       COPY\r\n        PUSH, __18_intnl_SystemBoolean\r\n        JUMP_IF_FALSE,
-    0x00000E98\r\n        PUSH, MaxRightRotation\r\n        PUSH, __2_const_intnl_SystemSingle\r\n
+    0x00000F3C\r\n        PUSH, MaxRightRotation\r\n        PUSH, __3_const_intnl_SystemSingle\r\n
     \       PUSH, __20_intnl_SystemBoolean\r\n        EXTERN, \"SystemSingle.__op_LessThanOrEqual__SystemSingle_SystemSingle__SystemBoolean\"\r\n
     \       PUSH, __18_intnl_SystemBoolean\r\n        PUSH, __20_intnl_SystemBoolean\r\n
     \       PUSH, __21_intnl_SystemBoolean\r\n        EXTERN, \"SystemBoolean.__op_ConditionalAnd__SystemBoolean_SystemBoolean__SystemBoolean\"\r\n
     \       PUSH, __21_intnl_SystemBoolean\r\n        PUSH, __18_intnl_SystemBoolean\r\n
     \       COPY\r\n        PUSH, __18_intnl_SystemBoolean\r\n        JUMP_IF_FALSE,
-    0x00000EDC\r\n        \r\n         # \t\t\t\t\tcustom_rotation = Mathf.Min(custom_rotation,
+    0x00000F80\r\n        \r\n         # \t\t\t\t\tcustom_rotation = Mathf.Min(custom_rotation,
     MaxRightRotation);\r\n        PUSH, __0_custom_rotation_Single\r\n        PUSH,
     MaxRightRotation\r\n        PUSH, __0_custom_rotation_Single\r\n        PUSH,
     __8_intnl_SystemSingle\r\n        COPY # Copy-on-write symbol value dirtied\r\n
     \       PUSH, __0_custom_rotation_Single\r\n        EXTERN, \"UnityEngineMathf.__Min__SystemSingle_SystemSingle__SystemSingle\"\r\n
-    \       \r\n         # \t\t\t\tif (custom_rotation < -180f)\r\n        PUSH, __2_const_intnl_SystemSingle\r\n
+    \       \r\n         # \t\t\t\tif (custom_rotation < -180f)\r\n        PUSH, __3_const_intnl_SystemSingle\r\n
     \       PUSH, __9_intnl_SystemSingle\r\n        EXTERN, \"SystemSingle.__op_UnaryMinus__SystemSingle__SystemSingle\"\r\n
     \       PUSH, __0_custom_rotation_Single\r\n        PUSH, __9_intnl_SystemSingle\r\n
     \       PUSH, __22_intnl_SystemBoolean\r\n        EXTERN, \"SystemSingle.__op_LessThan__SystemSingle_SystemSingle__SystemBoolean\"\r\n
-    \       PUSH, __22_intnl_SystemBoolean\r\n        JUMP_IF_FALSE, 0x00000F58\r\n
+    \       PUSH, __22_intnl_SystemBoolean\r\n        JUMP_IF_FALSE, 0x00000FFC\r\n
     \       \r\n         # \t\t\t\t\tcustom_rotation += 360f;\r\n        PUSH, __0_custom_rotation_Single\r\n
-    \       PUSH, __3_const_intnl_SystemSingle\r\n        PUSH, __10_intnl_SystemSingle\r\n
+    \       PUSH, __4_const_intnl_SystemSingle\r\n        PUSH, __10_intnl_SystemSingle\r\n
     \       EXTERN, \"SystemSingle.__op_Addition__SystemSingle_SystemSingle__SystemSingle\"\r\n
     \       PUSH, __10_intnl_SystemSingle\r\n        PUSH, __0_custom_rotation_Single\r\n
     \       COPY\r\n        \r\n         # \t\t\t\tif (custom_rotation > 180f)\r\n
-    \       PUSH, __0_custom_rotation_Single\r\n        PUSH, __2_const_intnl_SystemSingle\r\n
+    \       PUSH, __0_custom_rotation_Single\r\n        PUSH, __3_const_intnl_SystemSingle\r\n
     \       PUSH, __23_intnl_SystemBoolean\r\n        EXTERN, \"SystemSingle.__op_GreaterThan__SystemSingle_SystemSingle__SystemBoolean\"\r\n
-    \       PUSH, __23_intnl_SystemBoolean\r\n        JUMP_IF_FALSE, 0x00000FBC\r\n
+    \       PUSH, __23_intnl_SystemBoolean\r\n        JUMP_IF_FALSE, 0x00001060\r\n
     \       \r\n         # \t\t\t\t\tcustom_rotation -= 360f;\r\n        PUSH, __0_custom_rotation_Single\r\n
-    \       PUSH, __3_const_intnl_SystemSingle\r\n        PUSH, __11_intnl_SystemSingle\r\n
+    \       PUSH, __4_const_intnl_SystemSingle\r\n        PUSH, __11_intnl_SystemSingle\r\n
     \       EXTERN, \"SystemSingle.__op_Subtraction__SystemSingle_SystemSingle__SystemSingle\"\r\n
     \       PUSH, __11_intnl_SystemSingle\r\n        PUSH, __0_custom_rotation_Single\r\n
     \       COPY\r\n        \r\n         # \t\t\t\tif (Mathf.Abs(custom_rotation -
@@ -519,9 +536,9 @@ MonoBehaviour:
     CurrentRotation\r\n        PUSH, __12_intnl_SystemSingle\r\n        EXTERN, \"SystemSingle.__op_Subtraction__SystemSingle_SystemSingle__SystemSingle\"\r\n
     \       PUSH, __12_intnl_SystemSingle\r\n        PUSH, __13_intnl_SystemSingle\r\n
     \       EXTERN, \"UnityEngineMathf.__Abs__SystemSingle__SystemSingle\"\r\n        PUSH,
-    __13_intnl_SystemSingle\r\n        PUSH, __4_const_intnl_SystemSingle\r\n        PUSH,
+    __13_intnl_SystemSingle\r\n        PUSH, __5_const_intnl_SystemSingle\r\n        PUSH,
     __24_intnl_SystemBoolean\r\n        EXTERN, \"SystemSingle.__op_GreaterThan__SystemSingle_SystemSingle__SystemBoolean\"\r\n
-    \       PUSH, __24_intnl_SystemBoolean\r\n        JUMP_IF_FALSE, 0x00001038\r\n
+    \       PUSH, __24_intnl_SystemBoolean\r\n        JUMP_IF_FALSE, 0x000010DC\r\n
     \       \r\n         # \t\t\t\t\tCurrentRotation = custom_rotation;\r\n        PUSH,
     __0_custom_rotation_Single\r\n        PUSH, CurrentRotation\r\n        COPY\r\n
     \       \r\n         # \t\t\tif (occupant.isLocal && (Input.GetButton(\"Jump\")
@@ -529,17 +546,17 @@ MonoBehaviour:
     \       PUSH, __15_intnl_SystemBoolean\r\n        EXTERN, \"VRCSDKBaseVRCPlayerApi.__get_isLocal__SystemBoolean\"\r\n
     \       PUSH, __15_intnl_SystemBoolean\r\n        PUSH, __14_intnl_SystemBoolean\r\n
     \       COPY\r\n        PUSH, __14_intnl_SystemBoolean\r\n        JUMP_IF_FALSE,
-    0x00001180\r\n        PUSH, __23_const_intnl_SystemString\r\n        PUSH, __17_intnl_SystemBoolean\r\n
+    0x00001224\r\n        PUSH, __23_const_intnl_SystemString\r\n        PUSH, __17_intnl_SystemBoolean\r\n
     \       EXTERN, \"UnityEngineInput.__GetButton__SystemString__SystemBoolean\"\r\n
     \       PUSH, __17_intnl_SystemBoolean\r\n        PUSH, __16_intnl_SystemBoolean\r\n
     \       COPY\r\n        PUSH, __16_intnl_SystemBoolean\r\n        PUSH, __18_intnl_SystemBoolean\r\n
     \       EXTERN, \"SystemBoolean.__op_UnaryNegation__SystemBoolean__SystemBoolean\"\r\n
-    \       PUSH, __18_intnl_SystemBoolean\r\n        JUMP_IF_FALSE, 0x0000114C\r\n
+    \       PUSH, __18_intnl_SystemBoolean\r\n        JUMP_IF_FALSE, 0x000011F0\r\n
     \       PUSH, __24_const_intnl_SystemString\r\n        PUSH, __1_intnl_SystemSingle\r\n
     \       EXTERN, \"UnityEngineInput.__GetAxisRaw__SystemString__SystemSingle\"\r\n
     \       PUSH, __1_intnl_SystemSingle\r\n        PUSH, __2_intnl_SystemSingle\r\n
     \       EXTERN, \"UnityEngineMathf.__Abs__SystemSingle__SystemSingle\"\r\n        PUSH,
-    __2_intnl_SystemSingle\r\n        PUSH, __0_const_intnl_SystemSingle\r\n        PUSH,
+    __2_intnl_SystemSingle\r\n        PUSH, __1_const_intnl_SystemSingle\r\n        PUSH,
     __19_intnl_SystemBoolean\r\n        EXTERN, \"SystemSingle.__op_GreaterThan__SystemSingle_SystemSingle__SystemBoolean\"\r\n
     \       PUSH, __16_intnl_SystemBoolean\r\n        PUSH, __19_intnl_SystemBoolean\r\n
     \       PUSH, __20_intnl_SystemBoolean\r\n        EXTERN, \"SystemBoolean.__op_ConditionalOr__SystemBoolean_SystemBoolean__SystemBoolean\"\r\n
@@ -548,15 +565,15 @@ MonoBehaviour:
     \       PUSH, __21_intnl_SystemBoolean\r\n        EXTERN, \"SystemBoolean.__op_ConditionalAnd__SystemBoolean_SystemBoolean__SystemBoolean\"\r\n
     \       PUSH, __21_intnl_SystemBoolean\r\n        PUSH, __14_intnl_SystemBoolean\r\n
     \       COPY\r\n        PUSH, __14_intnl_SystemBoolean\r\n        JUMP_IF_FALSE,
-    0x000011DC\r\n        \r\n         # \t\t\t\tController.Station.ExitStation(occupant);\r\n
+    0x00001280\r\n        \r\n         # \t\t\t\tController.Station.ExitStation(occupant);\r\n
     \       PUSH, Controller\r\n        PUSH, __25_const_intnl_SystemString\r\n        PUSH,
     __2_intnl_SystemObject\r\n        EXTERN, \"VRCUdonCommonInterfacesIUdonEventReceiver.__GetProgramVariable__SystemString__SystemObject\"\r\n
     \       PUSH, __2_intnl_SystemObject\r\n        PUSH, __1_intnl_VRCSDK3ComponentsVRCStation\r\n
     \       COPY\r\n        PUSH, __1_intnl_VRCSDK3ComponentsVRCStation\r\n        PUSH,
     __0_occupant_VRCPlayerApi\r\n        EXTERN, \"VRCSDK3ComponentsVRCStation.__ExitStation__VRCSDKBaseVRCPlayerApi__SystemVoid\"\r\n
     \       \r\n         # \t\t\trotation *= Quaternion.Euler(0f, CurrentRotation,
-    0f);\r\n        PUSH, __1_const_intnl_SystemSingle\r\n        PUSH, CurrentRotation\r\n
-    \       PUSH, __1_const_intnl_SystemSingle\r\n        PUSH, __3_intnl_UnityEngineQuaternion\r\n
+    0f);\r\n        PUSH, __2_const_intnl_SystemSingle\r\n        PUSH, CurrentRotation\r\n
+    \       PUSH, __2_const_intnl_SystemSingle\r\n        PUSH, __3_intnl_UnityEngineQuaternion\r\n
     \       EXTERN, \"UnityEngineQuaternion.__Euler__SystemSingle_SystemSingle_SystemSingle__UnityEngineQuaternion\"\r\n
     \       PUSH, __0_rotation_Quaternion\r\n        PUSH, __3_intnl_UnityEngineQuaternion\r\n
     \       PUSH, __4_intnl_UnityEngineQuaternion\r\n        EXTERN, \"UnityEngineQuaternion.__op_Multiply__UnityEngineQuaternion_UnityEngineQuaternion__UnityEngineQuaternion\"\r\n
@@ -575,7 +592,7 @@ MonoBehaviour:
     \       PUSH, __0_intnl_UnityEngineTransform\r\n        EXTERN, \"UnityEngineTransform.__get_parent__UnityEngineTransform\"\r\n
     \       PUSH, __0_intnl_UnityEngineTransform\r\n        PUSH, __0_const_intnl_UnityEngineTransform\r\n
     \       PUSH, __25_intnl_SystemBoolean\r\n        EXTERN, \"UnityEngineObject.__op_Inequality__UnityEngineObject_UnityEngineObject__SystemBoolean\"\r\n
-    \       PUSH, __25_intnl_SystemBoolean\r\n        JUMP_IF_FALSE, 0x00001360\r\n
+    \       PUSH, __25_intnl_SystemBoolean\r\n        JUMP_IF_FALSE, 0x00001404\r\n
     \       \r\n         # \t\t\tt = t.parent;\r\n        PUSH, __0_t_Transform\r\n
     \       PUSH, __0_t_Transform\r\n        EXTERN, \"UnityEngineTransform.__get_parent__UnityEngineTransform\"\r\n
     \       \r\n         # \t\t\tpath = t.name + \"/\" + path;\r\n        PUSH, __0_t_Transform\r\n
@@ -584,7 +601,7 @@ MonoBehaviour:
     \       PUSH, __2_intnl_SystemString\r\n        EXTERN, \"SystemString.__op_Addition__SystemString_SystemString__SystemString\"\r\n
     \       PUSH, __2_intnl_SystemString\r\n        PUSH, __0_path_String\r\n        PUSH,
     __0_path_String\r\n        EXTERN, \"SystemString.__op_Addition__SystemString_SystemString__SystemString\"\r\n
-    \       JUMP, 0x000012A0\r\n        \r\n         # \t\treturn path;\r\n        PUSH,
+    \       JUMP, 0x00001344\r\n        \r\n         # \t\treturn path;\r\n        PUSH,
     __0_path_String\r\n        PUSH, __0_intnl_returnValSymbol_String\r\n        COPY\r\n
     \       PUSH, __0_intnl_returnTarget_UInt32 #Explicit return sequence\r\n        COPY\r\n
     \       JUMP_INDIRECT, __0_intnl_returnTarget_UInt32\r\n        PUSH, __0_intnl_returnTarget_UInt32
@@ -3603,2115 +3620,2346 @@ MonoBehaviour:
     - startInstruction: 2168
       endInstruction: 2167
       startSourceChar: 5276
-      endSourceChar: 5289
+      endSourceChar: 5293
       line: 149
+      lineChar: 2
+      spanCodeSection: 'var ref_seat_pos '
+    - startInstruction: 2168
+      endInstruction: 2167
+      startSourceChar: 5293
+      endSourceChar: 5295
+      line: 149
+      lineChar: 19
+      spanCodeSection: '= '
+    - startInstruction: 2168
+      endInstruction: 2167
+      startSourceChar: 5295
+      endSourceChar: 5295
+      line: 149
+      lineChar: 21
+      spanCodeSection: 
+    - startInstruction: 2168
+      endInstruction: 2167
+      startSourceChar: 5295
+      endSourceChar: 5309
+      line: 149
+      lineChar: 21
+      spanCodeSection: ReferenceSeat.
+    - startInstruction: 2168
+      endInstruction: 2211
+      startSourceChar: 5309
+      endSourceChar: 5322
+      line: 149
+      lineChar: 35
+      spanCodeSection: "position;\n\n\t\t"
+    - startInstruction: 2212
+      endInstruction: 2211
+      startSourceChar: 5322
+      endSourceChar: 5322
+      line: 151
+      lineChar: 2
+      spanCodeSection: 
+    - startInstruction: 2212
+      endInstruction: 2211
+      startSourceChar: 5322
+      endSourceChar: 5322
+      line: 151
+      lineChar: 2
+      spanCodeSection: 
+    - startInstruction: 2212
+      endInstruction: 2211
+      startSourceChar: 5322
+      endSourceChar: 5335
+      line: 151
       lineChar: 2
       spanCodeSection: 'var position '
-    - startInstruction: 2168
-      endInstruction: 2167
-      startSourceChar: 5289
-      endSourceChar: 5291
-      line: 149
+    - startInstruction: 2212
+      endInstruction: 2211
+      startSourceChar: 5335
+      endSourceChar: 5337
+      line: 151
       lineChar: 15
       spanCodeSection: '= '
-    - startInstruction: 2168
-      endInstruction: 2167
-      startSourceChar: 5291
-      endSourceChar: 5291
-      line: 149
+    - startInstruction: 2212
+      endInstruction: 2211
+      startSourceChar: 5337
+      endSourceChar: 5337
+      line: 151
       lineChar: 17
       spanCodeSection: 
-    - startInstruction: 2168
-      endInstruction: 2167
-      startSourceChar: 5291
-      endSourceChar: 5305
-      line: 149
-      lineChar: 17
-      spanCodeSection: ReferenceSeat.
-    - startInstruction: 2168
+    - startInstruction: 2212
       endInstruction: 2211
-      startSourceChar: 5305
-      endSourceChar: 5317
-      line: 149
-      lineChar: 31
+      startSourceChar: 5337
+      endSourceChar: 5349
+      line: 151
+      lineChar: 17
+      spanCodeSection: DynamicSeat.
+    - startInstruction: 2212
+      endInstruction: 2255
+      startSourceChar: 5349
+      endSourceChar: 5361
+      line: 151
+      lineChar: 29
       spanCodeSection: "position;\n\t\t"
-    - startInstruction: 2212
-      endInstruction: 2211
-      startSourceChar: 5317
-      endSourceChar: 5317
-      line: 150
+    - startInstruction: 2256
+      endInstruction: 2255
+      startSourceChar: 5361
+      endSourceChar: 5361
+      line: 152
       lineChar: 2
       spanCodeSection: 
-    - startInstruction: 2212
-      endInstruction: 2211
-      startSourceChar: 5317
-      endSourceChar: 5317
-      line: 150
+    - startInstruction: 2256
+      endInstruction: 2255
+      startSourceChar: 5361
+      endSourceChar: 5361
+      line: 152
       lineChar: 2
       spanCodeSection: 
-    - startInstruction: 2212
-      endInstruction: 2211
-      startSourceChar: 5317
-      endSourceChar: 5330
-      line: 150
+    - startInstruction: 2256
+      endInstruction: 2255
+      startSourceChar: 5361
+      endSourceChar: 5374
+      line: 152
       lineChar: 2
       spanCodeSection: 'var rotation '
-    - startInstruction: 2212
-      endInstruction: 2211
-      startSourceChar: 5330
-      endSourceChar: 5332
-      line: 150
+    - startInstruction: 2256
+      endInstruction: 2255
+      startSourceChar: 5374
+      endSourceChar: 5376
+      line: 152
       lineChar: 15
       spanCodeSection: '= '
-    - startInstruction: 2212
-      endInstruction: 2211
-      startSourceChar: 5332
-      endSourceChar: 5332
-      line: 150
+    - startInstruction: 2256
+      endInstruction: 2255
+      startSourceChar: 5376
+      endSourceChar: 5376
+      line: 152
       lineChar: 17
       spanCodeSection: 
-    - startInstruction: 2212
-      endInstruction: 2211
-      startSourceChar: 5332
-      endSourceChar: 5346
-      line: 150
+    - startInstruction: 2256
+      endInstruction: 2255
+      startSourceChar: 5376
+      endSourceChar: 5390
+      line: 152
       lineChar: 17
       spanCodeSection: ReferenceSeat.
-    - startInstruction: 2212
-      endInstruction: 2255
-      startSourceChar: 5346
-      endSourceChar: 5359
-      line: 150
+    - startInstruction: 2256
+      endInstruction: 2299
+      startSourceChar: 5390
+      endSourceChar: 5403
+      line: 152
       lineChar: 31
       spanCodeSection: "rotation;\n\n\t\t"
-    - startInstruction: 2256
-      endInstruction: 2255
-      startSourceChar: 5359
-      endSourceChar: 5363
-      line: 152
+    - startInstruction: 2300
+      endInstruction: 2299
+      startSourceChar: 5403
+      endSourceChar: 5407
+      line: 154
       lineChar: 2
       spanCodeSection: if (
-    - startInstruction: 2256
-      endInstruction: 2255
-      startSourceChar: 5363
-      endSourceChar: 5363
-      line: 152
+    - startInstruction: 2300
+      endInstruction: 2299
+      startSourceChar: 5407
+      endSourceChar: 5407
+      line: 154
       lineChar: 6
       spanCodeSection: 
-    - startInstruction: 2256
-      endInstruction: 2255
-      startSourceChar: 5363
-      endSourceChar: 5385
-      line: 152
+    - startInstruction: 2300
+      endInstruction: 2299
+      startSourceChar: 5407
+      endSourceChar: 5429
+      line: 154
       lineChar: 6
       spanCodeSection: 'UseCustomReference == '
-    - startInstruction: 2256
-      endInstruction: 2303
-      startSourceChar: 5385
-      endSourceChar: 5388
-      line: 152
+    - startInstruction: 2300
+      endInstruction: 2347
+      startSourceChar: 5429
+      endSourceChar: 5432
+      line: 154
       lineChar: 28
       spanCodeSection: '1) '
-    - startInstruction: 2304
-      endInstruction: 2303
-      startSourceChar: 5388
-      endSourceChar: 5453
-      line: 152
+    - startInstruction: 2348
+      endInstruction: 2347
+      startSourceChar: 5432
+      endSourceChar: 5497
+      line: 154
       lineChar: 31
       spanCodeSection: "{\n\t\t\t// \u0421\u043C\u0435\u0449\u0435\u043D\u0438\u0435
         \u043F\u043E\u0437\u0438\u0446\u0438\u0438 \u043F\u043E \u043E\u0434\u043D\u043E\u0439
         \u043A\u043E\u0441\u0442\u0438 (SingleReferenceBone)\n\t\t\t"
-    - startInstruction: 2304
-      endInstruction: 2303
-      startSourceChar: 5453
-      endSourceChar: 5453
-      line: 154
+    - startInstruction: 2348
+      endInstruction: 2347
+      startSourceChar: 5497
+      endSourceChar: 5497
+      line: 156
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 2304
-      endInstruction: 2303
-      startSourceChar: 5453
-      endSourceChar: 5453
-      line: 154
+    - startInstruction: 2348
+      endInstruction: 2347
+      startSourceChar: 5497
+      endSourceChar: 5497
+      line: 156
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 2304
-      endInstruction: 2303
-      startSourceChar: 5453
-      endSourceChar: 5471
-      line: 154
+    - startInstruction: 2348
+      endInstruction: 2347
+      startSourceChar: 5497
+      endSourceChar: 5514
+      line: 156
       lineChar: 3
-      spanCodeSection: 'var reference_pos '
-    - startInstruction: 2304
-      endInstruction: 2303
-      startSourceChar: 5471
-      endSourceChar: 5473
-      line: 154
-      lineChar: 21
+      spanCodeSection: 'var ref_bone_pos '
+    - startInstruction: 2348
+      endInstruction: 2347
+      startSourceChar: 5514
+      endSourceChar: 5516
+      line: 156
+      lineChar: 20
       spanCodeSection: '= '
-    - startInstruction: 2304
-      endInstruction: 2303
-      startSourceChar: 5473
-      endSourceChar: 5473
-      line: 154
-      lineChar: 23
+    - startInstruction: 2348
+      endInstruction: 2347
+      startSourceChar: 5516
+      endSourceChar: 5516
+      line: 156
+      lineChar: 22
       spanCodeSection: 
-    - startInstruction: 2304
-      endInstruction: 2303
-      startSourceChar: 5473
-      endSourceChar: 5473
-      line: 154
-      lineChar: 23
+    - startInstruction: 2348
+      endInstruction: 2347
+      startSourceChar: 5516
+      endSourceChar: 5516
+      line: 156
+      lineChar: 22
       spanCodeSection: 
-    - startInstruction: 2304
-      endInstruction: 2303
-      startSourceChar: 5473
-      endSourceChar: 5482
-      line: 154
-      lineChar: 23
+    - startInstruction: 2348
+      endInstruction: 2347
+      startSourceChar: 5516
+      endSourceChar: 5525
+      line: 156
+      lineChar: 22
       spanCodeSection: occupant.
-    - startInstruction: 2304
-      endInstruction: 2303
-      startSourceChar: 5482
-      endSourceChar: 5498
-      line: 154
-      lineChar: 32
+    - startInstruction: 2348
+      endInstruction: 2347
+      startSourceChar: 5525
+      endSourceChar: 5541
+      line: 156
+      lineChar: 31
       spanCodeSection: GetBonePosition(
-    - startInstruction: 2304
-      endInstruction: 2355
-      startSourceChar: 5498
-      endSourceChar: 5524
-      line: 154
-      lineChar: 48
-      spanCodeSection: "SingleReferenceBone);\n\n\t\t\t"
-    - startInstruction: 2356
-      endInstruction: 2355
-      startSourceChar: 5524
-      endSourceChar: 5524
+    - startInstruction: 2348
+      endInstruction: 2399
+      startSourceChar: 5541
+      endSourceChar: 5566
       line: 156
+      lineChar: 47
+      spanCodeSection: "SingleReferenceBone);\n\t\t\t"
+    - startInstruction: 2400
+      endInstruction: 2399
+      startSourceChar: 5566
+      endSourceChar: 5566
+      line: 157
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 2356
-      endInstruction: 2355
-      startSourceChar: 5524
-      endSourceChar: 5524
-      line: 156
+    - startInstruction: 2400
+      endInstruction: 2399
+      startSourceChar: 5566
+      endSourceChar: 5566
+      line: 157
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 2356
-      endInstruction: 2355
-      startSourceChar: 5524
-      endSourceChar: 5539
-      line: 156
+    - startInstruction: 2400
+      endInstruction: 2399
+      startSourceChar: 5566
+      endSourceChar: 5581
+      line: 157
       lineChar: 3
       spanCodeSection: 'var player_pos '
-    - startInstruction: 2356
-      endInstruction: 2355
-      startSourceChar: 5539
-      endSourceChar: 5541
-      line: 156
+    - startInstruction: 2400
+      endInstruction: 2399
+      startSourceChar: 5581
+      endSourceChar: 5583
+      line: 157
       lineChar: 18
       spanCodeSection: '= '
-    - startInstruction: 2356
-      endInstruction: 2355
-      startSourceChar: 5541
-      endSourceChar: 5541
-      line: 156
+    - startInstruction: 2400
+      endInstruction: 2399
+      startSourceChar: 5583
+      endSourceChar: 5583
+      line: 157
       lineChar: 20
       spanCodeSection: 
-    - startInstruction: 2356
-      endInstruction: 2355
-      startSourceChar: 5541
-      endSourceChar: 5541
-      line: 156
+    - startInstruction: 2400
+      endInstruction: 2399
+      startSourceChar: 5583
+      endSourceChar: 5583
+      line: 157
       lineChar: 20
       spanCodeSection: 
-    - startInstruction: 2356
-      endInstruction: 2355
-      startSourceChar: 5541
-      endSourceChar: 5550
-      line: 156
+    - startInstruction: 2400
+      endInstruction: 2399
+      startSourceChar: 5583
+      endSourceChar: 5592
+      line: 157
       lineChar: 20
       spanCodeSection: occupant.
-    - startInstruction: 2356
-      endInstruction: 2399
-      startSourceChar: 5550
-      endSourceChar: 5568
-      line: 156
+    - startInstruction: 2400
+      endInstruction: 2443
+      startSourceChar: 5592
+      endSourceChar: 5610
+      line: 157
       lineChar: 29
       spanCodeSection: "GetPosition();\n\t\t\t"
-    - startInstruction: 2400
-      endInstruction: 2399
-      startSourceChar: 5568
-      endSourceChar: 5568
-      line: 157
+    - startInstruction: 2444
+      endInstruction: 2443
+      startSourceChar: 5610
+      endSourceChar: 5610
+      line: 158
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 2400
-      endInstruction: 2399
-      startSourceChar: 5568
-      endSourceChar: 5568
-      line: 157
+    - startInstruction: 2444
+      endInstruction: 2443
+      startSourceChar: 5610
+      endSourceChar: 5610
+      line: 158
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 2400
-      endInstruction: 2399
-      startSourceChar: 5568
-      endSourceChar: 5580
-      line: 157
+    - startInstruction: 2444
+      endInstruction: 2443
+      startSourceChar: 5610
+      endSourceChar: 5625
+      line: 158
       lineChar: 3
-      spanCodeSection: 'position -= '
-    - startInstruction: 2400
-      endInstruction: 2399
-      startSourceChar: 5580
-      endSourceChar: 5580
-      line: 157
-      lineChar: 15
+      spanCodeSection: 'var target_pos '
+    - startInstruction: 2444
+      endInstruction: 2443
+      startSourceChar: 5625
+      endSourceChar: 5627
+      line: 158
+      lineChar: 18
+      spanCodeSection: '= '
+    - startInstruction: 2444
+      endInstruction: 2443
+      startSourceChar: 5627
+      endSourceChar: 5627
+      line: 158
+      lineChar: 20
       spanCodeSection: 
-    - startInstruction: 2400
-      endInstruction: 2399
-      startSourceChar: 5580
-      endSourceChar: 5581
-      line: 157
-      lineChar: 15
-      spanCodeSection: (
-    - startInstruction: 2400
-      endInstruction: 2399
-      startSourceChar: 5581
-      endSourceChar: 5581
-      line: 157
-      lineChar: 16
-      spanCodeSection: 
-    - startInstruction: 2400
-      endInstruction: 2399
-      startSourceChar: 5581
-      endSourceChar: 5597
-      line: 157
-      lineChar: 16
-      spanCodeSection: 'reference_pos - '
-    - startInstruction: 2400
-      endInstruction: 2431
-      startSourceChar: 5597
-      endSourceChar: 5611
-      line: 157
-      lineChar: 32
-      spanCodeSection: 'player_pos) * '
-    - startInstruction: 2432
-      endInstruction: 2523
-      startSourceChar: 5611
-      endSourceChar: 5648
-      line: 157
-      lineChar: 46
-      spanCodeSection: "CustomReferenceOffsetMultiplier;\n\t\t} "
-    - startInstruction: 2524
-      endInstruction: 2523
-      startSourceChar: 5648
-      endSourceChar: 5653
+    - startInstruction: 2444
+      endInstruction: 2443
+      startSourceChar: 5627
+      endSourceChar: 5642
       line: 158
-      lineChar: 4
-      spanCodeSection: 'else '
-    - startInstruction: 2524
-      endInstruction: 2523
-      startSourceChar: 5653
-      endSourceChar: 5657
-      line: 158
-      lineChar: 9
-      spanCodeSection: if (
-    - startInstruction: 2524
-      endInstruction: 2523
-      startSourceChar: 5657
-      endSourceChar: 5657
-      line: 158
-      lineChar: 13
-      spanCodeSection: 
-    - startInstruction: 2524
-      endInstruction: 2523
-      startSourceChar: 5657
-      endSourceChar: 5679
-      line: 158
-      lineChar: 13
-      spanCodeSection: 'UseCustomReference == '
-    - startInstruction: 2524
-      endInstruction: 2571
-      startSourceChar: 5679
-      endSourceChar: 5682
+      lineChar: 20
+      spanCodeSection: 'ref_seat_pos - '
+    - startInstruction: 2444
+      endInstruction: 2443
+      startSourceChar: 5642
+      endSourceChar: 5642
       line: 158
       lineChar: 35
-      spanCodeSection: '2) '
-    - startInstruction: 2572
-      endInstruction: 2571
-      startSourceChar: 5682
-      endSourceChar: 5759
+      spanCodeSection: 
+    - startInstruction: 2444
+      endInstruction: 2443
+      startSourceChar: 5642
+      endSourceChar: 5643
       line: 158
+      lineChar: 35
+      spanCodeSection: (
+    - startInstruction: 2444
+      endInstruction: 2443
+      startSourceChar: 5643
+      endSourceChar: 5643
+      line: 158
+      lineChar: 36
+      spanCodeSection: 
+    - startInstruction: 2444
+      endInstruction: 2443
+      startSourceChar: 5643
+      endSourceChar: 5658
+      line: 158
+      lineChar: 36
+      spanCodeSection: 'ref_bone_pos - '
+    - startInstruction: 2444
+      endInstruction: 2475
+      startSourceChar: 5658
+      endSourceChar: 5672
+      line: 158
+      lineChar: 51
+      spanCodeSection: 'player_pos) * '
+    - startInstruction: 2476
+      endInstruction: 2559
+      startSourceChar: 5672
+      endSourceChar: 5708
+      line: 158
+      lineChar: 65
+      spanCodeSection: "CustomReferenceOffsetMultiplier;\n\t\t\t"
+    - startInstruction: 2560
+      endInstruction: 2559
+      startSourceChar: 5708
+      endSourceChar: 5708
+      line: 159
+      lineChar: 3
+      spanCodeSection: 
+    - startInstruction: 2560
+      endInstruction: 2559
+      startSourceChar: 5708
+      endSourceChar: 5708
+      line: 159
+      lineChar: 3
+      spanCodeSection: 
+    - startInstruction: 2560
+      endInstruction: 2559
+      startSourceChar: 5708
+      endSourceChar: 5719
+      line: 159
+      lineChar: 3
+      spanCodeSection: 'position = '
+    - startInstruction: 2560
+      endInstruction: 2559
+      startSourceChar: 5719
+      endSourceChar: 5719
+      line: 159
+      lineChar: 14
+      spanCodeSection: 
+    - startInstruction: 2560
+      endInstruction: 2559
+      startSourceChar: 5719
+      endSourceChar: 5719
+      line: 159
+      lineChar: 14
+      spanCodeSection: 
+    - startInstruction: 2560
+      endInstruction: 2559
+      startSourceChar: 5719
+      endSourceChar: 5727
+      line: 159
+      lineChar: 14
+      spanCodeSection: Vector3.
+    - startInstruction: 2560
+      endInstruction: 2559
+      startSourceChar: 5727
+      endSourceChar: 5732
+      line: 159
+      lineChar: 22
+      spanCodeSection: Lerp(
+    - startInstruction: 2560
+      endInstruction: 2559
+      startSourceChar: 5732
+      endSourceChar: 5744
+      line: 159
+      lineChar: 27
+      spanCodeSection: 'target_pos, '
+    - startInstruction: 2560
+      endInstruction: 2559
+      startSourceChar: 5744
+      endSourceChar: 5754
+      line: 159
+      lineChar: 39
+      spanCodeSection: 'position, '
+    - startInstruction: 2560
+      endInstruction: 2627
+      startSourceChar: 5754
+      endSourceChar: 5766
+      line: 159
+      lineChar: 49
+      spanCodeSection: "0.9f);\n\n\t\t} "
+    - startInstruction: 2628
+      endInstruction: 2627
+      startSourceChar: 5766
+      endSourceChar: 5771
+      line: 161
+      lineChar: 4
+      spanCodeSection: 'else '
+    - startInstruction: 2628
+      endInstruction: 2627
+      startSourceChar: 5771
+      endSourceChar: 5775
+      line: 161
+      lineChar: 9
+      spanCodeSection: if (
+    - startInstruction: 2628
+      endInstruction: 2627
+      startSourceChar: 5775
+      endSourceChar: 5775
+      line: 161
+      lineChar: 13
+      spanCodeSection: 
+    - startInstruction: 2628
+      endInstruction: 2627
+      startSourceChar: 5775
+      endSourceChar: 5797
+      line: 161
+      lineChar: 13
+      spanCodeSection: 'UseCustomReference == '
+    - startInstruction: 2628
+      endInstruction: 2675
+      startSourceChar: 5797
+      endSourceChar: 5800
+      line: 161
+      lineChar: 35
+      spanCodeSection: '2) '
+    - startInstruction: 2676
+      endInstruction: 2675
+      startSourceChar: 5800
+      endSourceChar: 5877
+      line: 161
       lineChar: 38
       spanCodeSection: "{\n\t\t\t// \u0421\u043C\u0435\u0449\u0435\u043D\u0438\u0435
         \u043F\u043E\u0437\u0438\u0446\u0438\u0438 \u043F\u043E \u0434\u0432\u0443\u043C
         \u043A\u043E\u0441\u0442\u044F\u043C (ReferenceBoneA \u0438 ReferenceBoneB)\n\t\t\t"
-    - startInstruction: 2572
-      endInstruction: 2571
-      startSourceChar: 5759
-      endSourceChar: 5759
-      line: 160
+    - startInstruction: 2676
+      endInstruction: 2675
+      startSourceChar: 5877
+      endSourceChar: 5877
+      line: 163
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 2572
-      endInstruction: 2571
-      startSourceChar: 5759
-      endSourceChar: 5759
-      line: 160
+    - startInstruction: 2676
+      endInstruction: 2675
+      startSourceChar: 5877
+      endSourceChar: 5877
+      line: 163
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 2572
-      endInstruction: 2571
-      startSourceChar: 5759
-      endSourceChar: 5779
-      line: 160
+    - startInstruction: 2676
+      endInstruction: 2675
+      startSourceChar: 5877
+      endSourceChar: 5891
+      line: 163
       lineChar: 3
-      spanCodeSection: 'var reference_a_pos '
-    - startInstruction: 2572
-      endInstruction: 2571
-      startSourceChar: 5779
-      endSourceChar: 5781
-      line: 160
-      lineChar: 23
+      spanCodeSection: 'var ref_a_pos '
+    - startInstruction: 2676
+      endInstruction: 2675
+      startSourceChar: 5891
+      endSourceChar: 5893
+      line: 163
+      lineChar: 17
       spanCodeSection: '= '
-    - startInstruction: 2572
-      endInstruction: 2571
-      startSourceChar: 5781
-      endSourceChar: 5781
-      line: 160
-      lineChar: 25
+    - startInstruction: 2676
+      endInstruction: 2675
+      startSourceChar: 5893
+      endSourceChar: 5893
+      line: 163
+      lineChar: 19
       spanCodeSection: 
-    - startInstruction: 2572
-      endInstruction: 2571
-      startSourceChar: 5781
-      endSourceChar: 5781
-      line: 160
-      lineChar: 25
+    - startInstruction: 2676
+      endInstruction: 2675
+      startSourceChar: 5893
+      endSourceChar: 5893
+      line: 163
+      lineChar: 19
       spanCodeSection: 
-    - startInstruction: 2572
-      endInstruction: 2571
-      startSourceChar: 5781
-      endSourceChar: 5790
-      line: 160
-      lineChar: 25
+    - startInstruction: 2676
+      endInstruction: 2675
+      startSourceChar: 5893
+      endSourceChar: 5902
+      line: 163
+      lineChar: 19
       spanCodeSection: occupant.
-    - startInstruction: 2572
-      endInstruction: 2571
-      startSourceChar: 5790
-      endSourceChar: 5806
-      line: 160
-      lineChar: 34
+    - startInstruction: 2676
+      endInstruction: 2675
+      startSourceChar: 5902
+      endSourceChar: 5918
+      line: 163
+      lineChar: 28
       spanCodeSection: GetBonePosition(
-    - startInstruction: 2572
-      endInstruction: 2623
-      startSourceChar: 5806
-      endSourceChar: 5826
-      line: 160
-      lineChar: 50
+    - startInstruction: 2676
+      endInstruction: 2727
+      startSourceChar: 5918
+      endSourceChar: 5938
+      line: 163
+      lineChar: 44
       spanCodeSection: "ReferenceBoneA);\n\t\t\t"
-    - startInstruction: 2624
-      endInstruction: 2623
-      startSourceChar: 5826
-      endSourceChar: 5826
-      line: 161
+    - startInstruction: 2728
+      endInstruction: 2727
+      startSourceChar: 5938
+      endSourceChar: 5938
+      line: 164
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 2624
-      endInstruction: 2623
-      startSourceChar: 5826
-      endSourceChar: 5826
-      line: 161
+    - startInstruction: 2728
+      endInstruction: 2727
+      startSourceChar: 5938
+      endSourceChar: 5938
+      line: 164
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 2624
-      endInstruction: 2623
-      startSourceChar: 5826
-      endSourceChar: 5846
-      line: 161
+    - startInstruction: 2728
+      endInstruction: 2727
+      startSourceChar: 5938
+      endSourceChar: 5952
+      line: 164
       lineChar: 3
-      spanCodeSection: 'var reference_b_pos '
-    - startInstruction: 2624
-      endInstruction: 2623
-      startSourceChar: 5846
-      endSourceChar: 5848
-      line: 161
-      lineChar: 23
+      spanCodeSection: 'var ref_b_pos '
+    - startInstruction: 2728
+      endInstruction: 2727
+      startSourceChar: 5952
+      endSourceChar: 5954
+      line: 164
+      lineChar: 17
       spanCodeSection: '= '
-    - startInstruction: 2624
-      endInstruction: 2623
-      startSourceChar: 5848
-      endSourceChar: 5848
-      line: 161
-      lineChar: 25
+    - startInstruction: 2728
+      endInstruction: 2727
+      startSourceChar: 5954
+      endSourceChar: 5954
+      line: 164
+      lineChar: 19
       spanCodeSection: 
-    - startInstruction: 2624
-      endInstruction: 2623
-      startSourceChar: 5848
-      endSourceChar: 5848
-      line: 161
-      lineChar: 25
+    - startInstruction: 2728
+      endInstruction: 2727
+      startSourceChar: 5954
+      endSourceChar: 5954
+      line: 164
+      lineChar: 19
       spanCodeSection: 
-    - startInstruction: 2624
-      endInstruction: 2623
-      startSourceChar: 5848
-      endSourceChar: 5857
-      line: 161
-      lineChar: 25
+    - startInstruction: 2728
+      endInstruction: 2727
+      startSourceChar: 5954
+      endSourceChar: 5963
+      line: 164
+      lineChar: 19
       spanCodeSection: occupant.
-    - startInstruction: 2624
-      endInstruction: 2623
-      startSourceChar: 5857
-      endSourceChar: 5873
-      line: 161
-      lineChar: 34
+    - startInstruction: 2728
+      endInstruction: 2727
+      startSourceChar: 5963
+      endSourceChar: 5979
+      line: 164
+      lineChar: 28
       spanCodeSection: GetBonePosition(
-    - startInstruction: 2624
-      endInstruction: 2675
-      startSourceChar: 5873
-      endSourceChar: 5893
-      line: 161
-      lineChar: 50
+    - startInstruction: 2728
+      endInstruction: 2779
+      startSourceChar: 5979
+      endSourceChar: 5999
+      line: 164
+      lineChar: 44
       spanCodeSection: "ReferenceBoneB);\n\t\t\t"
-    - startInstruction: 2676
-      endInstruction: 2675
-      startSourceChar: 5893
-      endSourceChar: 5893
-      line: 162
+    - startInstruction: 2780
+      endInstruction: 2779
+      startSourceChar: 5999
+      endSourceChar: 5999
+      line: 165
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 2676
-      endInstruction: 2675
-      startSourceChar: 5893
-      endSourceChar: 5893
-      line: 162
+    - startInstruction: 2780
+      endInstruction: 2779
+      startSourceChar: 5999
+      endSourceChar: 5999
+      line: 165
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 2676
-      endInstruction: 2675
-      startSourceChar: 5893
-      endSourceChar: 5911
-      line: 162
+    - startInstruction: 2780
+      endInstruction: 2779
+      startSourceChar: 5999
+      endSourceChar: 6016
+      line: 165
       lineChar: 3
-      spanCodeSection: 'var reference_pos '
-    - startInstruction: 2676
-      endInstruction: 2675
-      startSourceChar: 5911
-      endSourceChar: 5913
-      line: 162
-      lineChar: 21
+      spanCodeSection: 'var ref_bone_pos '
+    - startInstruction: 2780
+      endInstruction: 2779
+      startSourceChar: 6016
+      endSourceChar: 6018
+      line: 165
+      lineChar: 20
       spanCodeSection: '= '
-    - startInstruction: 2676
-      endInstruction: 2675
-      startSourceChar: 5913
-      endSourceChar: 5913
-      line: 162
-      lineChar: 23
+    - startInstruction: 2780
+      endInstruction: 2779
+      startSourceChar: 6018
+      endSourceChar: 6018
+      line: 165
+      lineChar: 22
       spanCodeSection: 
-    - startInstruction: 2676
-      endInstruction: 2675
-      startSourceChar: 5913
-      endSourceChar: 5914
-      line: 162
-      lineChar: 23
+    - startInstruction: 2780
+      endInstruction: 2779
+      startSourceChar: 6018
+      endSourceChar: 6019
+      line: 165
+      lineChar: 22
       spanCodeSection: (
-    - startInstruction: 2676
-      endInstruction: 2675
-      startSourceChar: 5914
-      endSourceChar: 5914
-      line: 162
-      lineChar: 24
+    - startInstruction: 2780
+      endInstruction: 2779
+      startSourceChar: 6019
+      endSourceChar: 6019
+      line: 165
+      lineChar: 23
       spanCodeSection: 
-    - startInstruction: 2676
-      endInstruction: 2675
-      startSourceChar: 5914
-      endSourceChar: 5932
-      line: 162
-      lineChar: 24
-      spanCodeSection: 'reference_a_pos * '
-    - startInstruction: 2676
-      endInstruction: 2707
-      startSourceChar: 5932
-      endSourceChar: 5940
-      line: 162
-      lineChar: 42
+    - startInstruction: 2780
+      endInstruction: 2779
+      startSourceChar: 6019
+      endSourceChar: 6031
+      line: 165
+      lineChar: 23
+      spanCodeSection: 'ref_a_pos * '
+    - startInstruction: 2780
+      endInstruction: 2811
+      startSourceChar: 6031
+      endSourceChar: 6039
+      line: 165
+      lineChar: 35
       spanCodeSection: '0.5f) + '
-    - startInstruction: 2708
-      endInstruction: 2707
-      startSourceChar: 5940
-      endSourceChar: 5941
-      line: 162
-      lineChar: 50
+    - startInstruction: 2812
+      endInstruction: 2811
+      startSourceChar: 6039
+      endSourceChar: 6040
+      line: 165
+      lineChar: 43
       spanCodeSection: (
-    - startInstruction: 2708
-      endInstruction: 2707
-      startSourceChar: 5941
-      endSourceChar: 5941
-      line: 162
-      lineChar: 51
+    - startInstruction: 2812
+      endInstruction: 2811
+      startSourceChar: 6040
+      endSourceChar: 6040
+      line: 165
+      lineChar: 44
       spanCodeSection: 
-    - startInstruction: 2708
-      endInstruction: 2707
-      startSourceChar: 5941
-      endSourceChar: 5959
-      line: 162
-      lineChar: 51
-      spanCodeSection: 'reference_b_pos * '
-    - startInstruction: 2708
-      endInstruction: 2791
-      startSourceChar: 5959
-      endSourceChar: 5970
-      line: 162
-      lineChar: 69
-      spanCodeSection: "0.5f);\n\n\t\t\t"
-    - startInstruction: 2792
-      endInstruction: 2791
-      startSourceChar: 5970
-      endSourceChar: 5970
-      line: 164
+    - startInstruction: 2812
+      endInstruction: 2811
+      startSourceChar: 6040
+      endSourceChar: 6052
+      line: 165
+      lineChar: 44
+      spanCodeSection: 'ref_b_pos * '
+    - startInstruction: 2812
+      endInstruction: 2895
+      startSourceChar: 6052
+      endSourceChar: 6062
+      line: 165
+      lineChar: 56
+      spanCodeSection: "0.5f);\n\t\t\t"
+    - startInstruction: 2896
+      endInstruction: 2895
+      startSourceChar: 6062
+      endSourceChar: 6062
+      line: 166
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 2792
-      endInstruction: 2791
-      startSourceChar: 5970
-      endSourceChar: 5970
-      line: 164
+    - startInstruction: 2896
+      endInstruction: 2895
+      startSourceChar: 6062
+      endSourceChar: 6062
+      line: 166
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 2792
-      endInstruction: 2791
-      startSourceChar: 5970
-      endSourceChar: 5985
-      line: 164
+    - startInstruction: 2896
+      endInstruction: 2895
+      startSourceChar: 6062
+      endSourceChar: 6077
+      line: 166
       lineChar: 3
       spanCodeSection: 'var player_pos '
-    - startInstruction: 2792
-      endInstruction: 2791
-      startSourceChar: 5985
-      endSourceChar: 5987
-      line: 164
+    - startInstruction: 2896
+      endInstruction: 2895
+      startSourceChar: 6077
+      endSourceChar: 6079
+      line: 166
       lineChar: 18
       spanCodeSection: '= '
-    - startInstruction: 2792
-      endInstruction: 2791
-      startSourceChar: 5987
-      endSourceChar: 5987
-      line: 164
+    - startInstruction: 2896
+      endInstruction: 2895
+      startSourceChar: 6079
+      endSourceChar: 6079
+      line: 166
       lineChar: 20
       spanCodeSection: 
-    - startInstruction: 2792
-      endInstruction: 2791
-      startSourceChar: 5987
-      endSourceChar: 5987
-      line: 164
+    - startInstruction: 2896
+      endInstruction: 2895
+      startSourceChar: 6079
+      endSourceChar: 6079
+      line: 166
       lineChar: 20
       spanCodeSection: 
-    - startInstruction: 2792
-      endInstruction: 2791
-      startSourceChar: 5987
-      endSourceChar: 5996
-      line: 164
+    - startInstruction: 2896
+      endInstruction: 2895
+      startSourceChar: 6079
+      endSourceChar: 6088
+      line: 166
       lineChar: 20
       spanCodeSection: occupant.
-    - startInstruction: 2792
-      endInstruction: 2835
-      startSourceChar: 5996
-      endSourceChar: 6014
-      line: 164
+    - startInstruction: 2896
+      endInstruction: 2939
+      startSourceChar: 6088
+      endSourceChar: 6106
+      line: 166
       lineChar: 29
       spanCodeSection: "GetPosition();\n\t\t\t"
-    - startInstruction: 2836
-      endInstruction: 2835
-      startSourceChar: 6014
-      endSourceChar: 6014
-      line: 165
+    - startInstruction: 2940
+      endInstruction: 2939
+      startSourceChar: 6106
+      endSourceChar: 6106
+      line: 167
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 2836
-      endInstruction: 2835
-      startSourceChar: 6014
-      endSourceChar: 6014
-      line: 165
+    - startInstruction: 2940
+      endInstruction: 2939
+      startSourceChar: 6106
+      endSourceChar: 6106
+      line: 167
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 2836
-      endInstruction: 2835
-      startSourceChar: 6014
-      endSourceChar: 6026
-      line: 165
+    - startInstruction: 2940
+      endInstruction: 2939
+      startSourceChar: 6106
+      endSourceChar: 6121
+      line: 167
       lineChar: 3
-      spanCodeSection: 'position -= '
-    - startInstruction: 2836
-      endInstruction: 2835
-      startSourceChar: 6026
-      endSourceChar: 6026
-      line: 165
-      lineChar: 15
+      spanCodeSection: 'var target_pos '
+    - startInstruction: 2940
+      endInstruction: 2939
+      startSourceChar: 6121
+      endSourceChar: 6123
+      line: 167
+      lineChar: 18
+      spanCodeSection: '= '
+    - startInstruction: 2940
+      endInstruction: 2939
+      startSourceChar: 6123
+      endSourceChar: 6123
+      line: 167
+      lineChar: 20
       spanCodeSection: 
-    - startInstruction: 2836
-      endInstruction: 2835
-      startSourceChar: 6026
-      endSourceChar: 6027
-      line: 165
-      lineChar: 15
+    - startInstruction: 2940
+      endInstruction: 2939
+      startSourceChar: 6123
+      endSourceChar: 6138
+      line: 167
+      lineChar: 20
+      spanCodeSection: 'ref_seat_pos - '
+    - startInstruction: 2940
+      endInstruction: 2939
+      startSourceChar: 6138
+      endSourceChar: 6138
+      line: 167
+      lineChar: 35
+      spanCodeSection: 
+    - startInstruction: 2940
+      endInstruction: 2939
+      startSourceChar: 6138
+      endSourceChar: 6139
+      line: 167
+      lineChar: 35
       spanCodeSection: (
-    - startInstruction: 2836
-      endInstruction: 2835
-      startSourceChar: 6027
-      endSourceChar: 6027
-      line: 165
-      lineChar: 16
+    - startInstruction: 2940
+      endInstruction: 2939
+      startSourceChar: 6139
+      endSourceChar: 6139
+      line: 167
+      lineChar: 36
       spanCodeSection: 
-    - startInstruction: 2836
-      endInstruction: 2835
-      startSourceChar: 6027
-      endSourceChar: 6043
-      line: 165
-      lineChar: 16
-      spanCodeSection: 'reference_pos - '
-    - startInstruction: 2836
-      endInstruction: 2867
-      startSourceChar: 6043
-      endSourceChar: 6057
-      line: 165
-      lineChar: 32
+    - startInstruction: 2940
+      endInstruction: 2939
+      startSourceChar: 6139
+      endSourceChar: 6154
+      line: 167
+      lineChar: 36
+      spanCodeSection: 'ref_bone_pos - '
+    - startInstruction: 2940
+      endInstruction: 2971
+      startSourceChar: 6154
+      endSourceChar: 6168
+      line: 167
+      lineChar: 51
       spanCodeSection: 'player_pos) * '
-    - startInstruction: 2868
-      endInstruction: 2951
-      startSourceChar: 6057
-      endSourceChar: 6097
-      line: 165
-      lineChar: 46
-      spanCodeSection: "CustomReferenceOffsetMultiplier;\n\t\t}\n\n\t\t"
-    - startInstruction: 2952
-      endInstruction: 2951
-      startSourceChar: 6097
-      endSourceChar: 6101
+    - startInstruction: 2972
+      endInstruction: 3055
+      startSourceChar: 6168
+      endSourceChar: 6204
+      line: 167
+      lineChar: 65
+      spanCodeSection: "CustomReferenceOffsetMultiplier;\n\t\t\t"
+    - startInstruction: 3056
+      endInstruction: 3055
+      startSourceChar: 6204
+      endSourceChar: 6204
       line: 168
+      lineChar: 3
+      spanCodeSection: 
+    - startInstruction: 3056
+      endInstruction: 3055
+      startSourceChar: 6204
+      endSourceChar: 6204
+      line: 168
+      lineChar: 3
+      spanCodeSection: 
+    - startInstruction: 3056
+      endInstruction: 3055
+      startSourceChar: 6204
+      endSourceChar: 6215
+      line: 168
+      lineChar: 3
+      spanCodeSection: 'position = '
+    - startInstruction: 3056
+      endInstruction: 3055
+      startSourceChar: 6215
+      endSourceChar: 6215
+      line: 168
+      lineChar: 14
+      spanCodeSection: 
+    - startInstruction: 3056
+      endInstruction: 3055
+      startSourceChar: 6215
+      endSourceChar: 6215
+      line: 168
+      lineChar: 14
+      spanCodeSection: 
+    - startInstruction: 3056
+      endInstruction: 3055
+      startSourceChar: 6215
+      endSourceChar: 6223
+      line: 168
+      lineChar: 14
+      spanCodeSection: Vector3.
+    - startInstruction: 3056
+      endInstruction: 3055
+      startSourceChar: 6223
+      endSourceChar: 6228
+      line: 168
+      lineChar: 22
+      spanCodeSection: Lerp(
+    - startInstruction: 3056
+      endInstruction: 3055
+      startSourceChar: 6228
+      endSourceChar: 6240
+      line: 168
+      lineChar: 27
+      spanCodeSection: 'target_pos, '
+    - startInstruction: 3056
+      endInstruction: 3055
+      startSourceChar: 6240
+      endSourceChar: 6250
+      line: 168
+      lineChar: 39
+      spanCodeSection: 'position, '
+    - startInstruction: 3056
+      endInstruction: 3115
+      startSourceChar: 6250
+      endSourceChar: 6264
+      line: 168
+      lineChar: 49
+      spanCodeSection: "0.9f);\n\t\t}\n\n\t\t"
+    - startInstruction: 3116
+      endInstruction: 3115
+      startSourceChar: 6264
+      endSourceChar: 6268
+      line: 171
       lineChar: 2
       spanCodeSection: if (
-    - startInstruction: 2952
-      endInstruction: 2967
-      startSourceChar: 6101
-      endSourceChar: 6115
-      line: 168
+    - startInstruction: 3116
+      endInstruction: 3131
+      startSourceChar: 6268
+      endSourceChar: 6282
+      line: 171
       lineChar: 6
       spanCodeSection: 'KeepVertical) '
-    - startInstruction: 2968
-      endInstruction: 2967
-      startSourceChar: 6115
-      endSourceChar: 6120
-      line: 168
+    - startInstruction: 3132
+      endInstruction: 3131
+      startSourceChar: 6282
+      endSourceChar: 6287
+      line: 171
       lineChar: 20
       spanCodeSection: "{\n\t\t\t"
-    - startInstruction: 2968
-      endInstruction: 2967
-      startSourceChar: 6120
-      endSourceChar: 6120
-      line: 169
+    - startInstruction: 3132
+      endInstruction: 3131
+      startSourceChar: 6287
+      endSourceChar: 6287
+      line: 172
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 2968
-      endInstruction: 2967
-      startSourceChar: 6120
-      endSourceChar: 6120
-      line: 169
+    - startInstruction: 3132
+      endInstruction: 3131
+      startSourceChar: 6287
+      endSourceChar: 6287
+      line: 172
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 2968
-      endInstruction: 2967
-      startSourceChar: 6120
-      endSourceChar: 6132
-      line: 169
+    - startInstruction: 3132
+      endInstruction: 3131
+      startSourceChar: 6287
+      endSourceChar: 6299
+      line: 172
       lineChar: 3
       spanCodeSection: 'var forward '
-    - startInstruction: 2968
-      endInstruction: 2967
-      startSourceChar: 6132
-      endSourceChar: 6134
-      line: 169
+    - startInstruction: 3132
+      endInstruction: 3131
+      startSourceChar: 6299
+      endSourceChar: 6301
+      line: 172
       lineChar: 15
       spanCodeSection: '= '
-    - startInstruction: 2968
-      endInstruction: 2967
-      startSourceChar: 6134
-      endSourceChar: 6134
-      line: 169
+    - startInstruction: 3132
+      endInstruction: 3131
+      startSourceChar: 6301
+      endSourceChar: 6301
+      line: 172
       lineChar: 17
       spanCodeSection: 
-    - startInstruction: 2968
-      endInstruction: 2967
-      startSourceChar: 6134
-      endSourceChar: 6148
-      line: 169
+    - startInstruction: 3132
+      endInstruction: 3131
+      startSourceChar: 6301
+      endSourceChar: 6315
+      line: 172
       lineChar: 17
       spanCodeSection: ReferenceSeat.
-    - startInstruction: 2968
-      endInstruction: 3011
-      startSourceChar: 6148
-      endSourceChar: 6160
-      line: 169
+    - startInstruction: 3132
+      endInstruction: 3175
+      startSourceChar: 6315
+      endSourceChar: 6327
+      line: 172
       lineChar: 31
       spanCodeSection: "forward;\n\t\t\t"
-    - startInstruction: 3012
-      endInstruction: 3011
-      startSourceChar: 6160
-      endSourceChar: 6160
-      line: 170
+    - startInstruction: 3176
+      endInstruction: 3175
+      startSourceChar: 6327
+      endSourceChar: 6327
+      line: 173
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 3012
-      endInstruction: 3011
-      startSourceChar: 6160
-      endSourceChar: 6160
-      line: 170
+    - startInstruction: 3176
+      endInstruction: 3175
+      startSourceChar: 6327
+      endSourceChar: 6327
+      line: 173
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 3012
-      endInstruction: 3011
-      startSourceChar: 6160
-      endSourceChar: 6160
-      line: 170
+    - startInstruction: 3176
+      endInstruction: 3175
+      startSourceChar: 6327
+      endSourceChar: 6327
+      line: 173
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 3012
-      endInstruction: 3011
-      startSourceChar: 6160
-      endSourceChar: 6168
-      line: 170
+    - startInstruction: 3176
+      endInstruction: 3175
+      startSourceChar: 6327
+      endSourceChar: 6335
+      line: 173
       lineChar: 3
       spanCodeSection: forward.
-    - startInstruction: 3012
-      endInstruction: 3011
-      startSourceChar: 6168
-      endSourceChar: 6172
-      line: 170
+    - startInstruction: 3176
+      endInstruction: 3175
+      startSourceChar: 6335
+      endSourceChar: 6339
+      line: 173
       lineChar: 11
       spanCodeSection: 'y = '
-    - startInstruction: 3012
-      endInstruction: 3059
-      startSourceChar: 6172
-      endSourceChar: 6248
-      line: 170
+    - startInstruction: 3176
+      endInstruction: 3223
+      startSourceChar: 6339
+      endSourceChar: 6415
+      line: 173
       lineChar: 15
       spanCodeSection: "0;\n\t\t\t// \u041A\u043E\u0433\u0434\u0430 forward (0,0,0)
         \u043E\u043D\u043E \u0440\u0430\u0431\u043E\u0442\u0430\u0435\u0442 \u043A\u0430\u043A
         (0,0,1), \u0442\u0430\u043A \u0447\u0442\u043E \u0432\u0441\u0451 \u043E\u043A.\n\t\t\t"
-    - startInstruction: 3060
-      endInstruction: 3059
-      startSourceChar: 6248
-      endSourceChar: 6248
-      line: 172
+    - startInstruction: 3224
+      endInstruction: 3223
+      startSourceChar: 6415
+      endSourceChar: 6415
+      line: 175
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 3060
-      endInstruction: 3059
-      startSourceChar: 6248
-      endSourceChar: 6248
-      line: 172
+    - startInstruction: 3224
+      endInstruction: 3223
+      startSourceChar: 6415
+      endSourceChar: 6415
+      line: 175
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 3060
-      endInstruction: 3059
-      startSourceChar: 6248
-      endSourceChar: 6259
-      line: 172
+    - startInstruction: 3224
+      endInstruction: 3223
+      startSourceChar: 6415
+      endSourceChar: 6426
+      line: 175
       lineChar: 3
       spanCodeSection: 'rotation = '
-    - startInstruction: 3060
-      endInstruction: 3059
-      startSourceChar: 6259
-      endSourceChar: 6259
-      line: 172
+    - startInstruction: 3224
+      endInstruction: 3223
+      startSourceChar: 6426
+      endSourceChar: 6426
+      line: 175
       lineChar: 14
       spanCodeSection: 
-    - startInstruction: 3060
-      endInstruction: 3059
-      startSourceChar: 6259
-      endSourceChar: 6259
-      line: 172
+    - startInstruction: 3224
+      endInstruction: 3223
+      startSourceChar: 6426
+      endSourceChar: 6426
+      line: 175
       lineChar: 14
       spanCodeSection: 
-    - startInstruction: 3060
-      endInstruction: 3059
-      startSourceChar: 6259
-      endSourceChar: 6270
-      line: 172
+    - startInstruction: 3224
+      endInstruction: 3223
+      startSourceChar: 6426
+      endSourceChar: 6437
+      line: 175
       lineChar: 14
       spanCodeSection: Quaternion.
-    - startInstruction: 3060
-      endInstruction: 3059
-      startSourceChar: 6270
-      endSourceChar: 6283
-      line: 172
+    - startInstruction: 3224
+      endInstruction: 3223
+      startSourceChar: 6437
+      endSourceChar: 6450
+      line: 175
       lineChar: 25
       spanCodeSection: LookRotation(
-    - startInstruction: 3060
-      endInstruction: 3083
-      startSourceChar: 6283
-      endSourceChar: 6300
-      line: 172
+    - startInstruction: 3224
+      endInstruction: 3247
+      startSourceChar: 6450
+      endSourceChar: 6467
+      line: 175
       lineChar: 38
       spanCodeSection: "forward);\n\t\t}\n\n\t\t"
-    - startInstruction: 3084
-      endInstruction: 3083
-      startSourceChar: 6300
-      endSourceChar: 6304
-      line: 175
+    - startInstruction: 3248
+      endInstruction: 3247
+      startSourceChar: 6467
+      endSourceChar: 6471
+      line: 178
       lineChar: 2
       spanCodeSection: if (
-    - startInstruction: 3084
-      endInstruction: 3099
-      startSourceChar: 6304
-      endSourceChar: 6319
-      line: 175
+    - startInstruction: 3248
+      endInstruction: 3263
+      startSourceChar: 6471
+      endSourceChar: 6486
+      line: 178
       lineChar: 6
       spanCodeSection: 'AllowRotation) '
-    - startInstruction: 3100
-      endInstruction: 3099
-      startSourceChar: 6319
-      endSourceChar: 6324
-      line: 175
+    - startInstruction: 3264
+      endInstruction: 3263
+      startSourceChar: 6486
+      endSourceChar: 6491
+      line: 178
       lineChar: 21
       spanCodeSection: "{\n\t\t\t"
-    - startInstruction: 3100
-      endInstruction: 3099
-      startSourceChar: 6324
-      endSourceChar: 6328
-      line: 176
+    - startInstruction: 3264
+      endInstruction: 3263
+      startSourceChar: 6491
+      endSourceChar: 6495
+      line: 179
       lineChar: 3
       spanCodeSection: if (
-    - startInstruction: 3100
-      endInstruction: 3099
-      startSourceChar: 6328
-      endSourceChar: 6328
-      line: 176
+    - startInstruction: 3264
+      endInstruction: 3263
+      startSourceChar: 6495
+      endSourceChar: 6495
+      line: 179
       lineChar: 7
       spanCodeSection: 
-    - startInstruction: 3100
-      endInstruction: 3099
-      startSourceChar: 6328
-      endSourceChar: 6328
-      line: 176
+    - startInstruction: 3264
+      endInstruction: 3263
+      startSourceChar: 6495
+      endSourceChar: 6495
+      line: 179
       lineChar: 7
       spanCodeSection: 
-    - startInstruction: 3100
-      endInstruction: 3099
-      startSourceChar: 6328
-      endSourceChar: 6339
-      line: 176
+    - startInstruction: 3264
+      endInstruction: 3263
+      startSourceChar: 6495
+      endSourceChar: 6506
+      line: 179
       lineChar: 7
       spanCodeSection: Networking.
-    - startInstruction: 3100
-      endInstruction: 3099
-      startSourceChar: 6339
-      endSourceChar: 6347
-      line: 176
+    - startInstruction: 3264
+      endInstruction: 3263
+      startSourceChar: 6506
+      endSourceChar: 6514
+      line: 179
       lineChar: 18
       spanCodeSection: IsOwner(
-    - startInstruction: 3100
-      endInstruction: 3099
-      startSourceChar: 6347
-      endSourceChar: 6347
-      line: 176
+    - startInstruction: 3264
+      endInstruction: 3263
+      startSourceChar: 6514
+      endSourceChar: 6514
+      line: 179
       lineChar: 26
       spanCodeSection: 
-    - startInstruction: 3100
-      endInstruction: 3099
-      startSourceChar: 6347
-      endSourceChar: 6358
-      line: 176
+    - startInstruction: 3264
+      endInstruction: 3263
+      startSourceChar: 6514
+      endSourceChar: 6525
+      line: 179
       lineChar: 26
       spanCodeSection: Controller.
-    - startInstruction: 3100
-      endInstruction: 3163
-      startSourceChar: 6358
-      endSourceChar: 6371
-      line: 176
+    - startInstruction: 3264
+      endInstruction: 3327
+      startSourceChar: 6525
+      endSourceChar: 6538
+      line: 179
       lineChar: 37
       spanCodeSection: 'gameObject)) '
-    - startInstruction: 3164
-      endInstruction: 3163
-      startSourceChar: 6371
-      endSourceChar: 6377
-      line: 176
+    - startInstruction: 3328
+      endInstruction: 3327
+      startSourceChar: 6538
+      endSourceChar: 6544
+      line: 179
       lineChar: 50
       spanCodeSection: "{\n\t\t\t\t"
-    - startInstruction: 3164
-      endInstruction: 3163
-      startSourceChar: 6377
-      endSourceChar: 6377
-      line: 177
+    - startInstruction: 3328
+      endInstruction: 3327
+      startSourceChar: 6544
+      endSourceChar: 6544
+      line: 180
       lineChar: 4
       spanCodeSection: 
-    - startInstruction: 3164
-      endInstruction: 3163
-      startSourceChar: 6377
-      endSourceChar: 6377
-      line: 177
+    - startInstruction: 3328
+      endInstruction: 3327
+      startSourceChar: 6544
+      endSourceChar: 6544
+      line: 180
       lineChar: 4
       spanCodeSection: 
-    - startInstruction: 3164
-      endInstruction: 3163
-      startSourceChar: 6377
-      endSourceChar: 6397
-      line: 177
+    - startInstruction: 3328
+      endInstruction: 3327
+      startSourceChar: 6544
+      endSourceChar: 6564
+      line: 180
       lineChar: 4
       spanCodeSection: 'var custom_rotation '
-    - startInstruction: 3164
-      endInstruction: 3163
-      startSourceChar: 6397
-      endSourceChar: 6399
-      line: 177
+    - startInstruction: 3328
+      endInstruction: 3327
+      startSourceChar: 6564
+      endSourceChar: 6566
+      line: 180
       lineChar: 24
       spanCodeSection: '= '
-    - startInstruction: 3164
-      endInstruction: 3183
-      startSourceChar: 6399
-      endSourceChar: 6420
-      line: 177
+    - startInstruction: 3328
+      endInstruction: 3347
+      startSourceChar: 6566
+      endSourceChar: 6587
+      line: 180
       lineChar: 26
       spanCodeSection: "CurrentRotation;\n\t\t\t\t"
-    - startInstruction: 3184
-      endInstruction: 3183
-      startSourceChar: 6420
-      endSourceChar: 6420
-      line: 178
+    - startInstruction: 3348
+      endInstruction: 3347
+      startSourceChar: 6587
+      endSourceChar: 6587
+      line: 181
       lineChar: 4
       spanCodeSection: 
-    - startInstruction: 3184
-      endInstruction: 3183
-      startSourceChar: 6420
-      endSourceChar: 6420
-      line: 178
+    - startInstruction: 3348
+      endInstruction: 3347
+      startSourceChar: 6587
+      endSourceChar: 6587
+      line: 181
       lineChar: 4
       spanCodeSection: 
-    - startInstruction: 3184
-      endInstruction: 3183
-      startSourceChar: 6420
-      endSourceChar: 6439
-      line: 178
+    - startInstruction: 3348
+      endInstruction: 3347
+      startSourceChar: 6587
+      endSourceChar: 6606
+      line: 181
       lineChar: 4
       spanCodeSection: 'custom_rotation += '
-    - startInstruction: 3184
-      endInstruction: 3183
-      startSourceChar: 6439
-      endSourceChar: 6439
-      line: 178
+    - startInstruction: 3348
+      endInstruction: 3347
+      startSourceChar: 6606
+      endSourceChar: 6606
+      line: 181
       lineChar: 23
       spanCodeSection: 
-    - startInstruction: 3184
-      endInstruction: 3183
-      startSourceChar: 6439
-      endSourceChar: 6439
-      line: 178
+    - startInstruction: 3348
+      endInstruction: 3347
+      startSourceChar: 6606
+      endSourceChar: 6606
+      line: 181
       lineChar: 23
       spanCodeSection: 
-    - startInstruction: 3184
-      endInstruction: 3183
-      startSourceChar: 6439
-      endSourceChar: 6439
-      line: 178
+    - startInstruction: 3348
+      endInstruction: 3347
+      startSourceChar: 6606
+      endSourceChar: 6606
+      line: 181
       lineChar: 23
       spanCodeSection: 
-    - startInstruction: 3184
-      endInstruction: 3183
-      startSourceChar: 6439
-      endSourceChar: 6439
-      line: 178
+    - startInstruction: 3348
+      endInstruction: 3347
+      startSourceChar: 6606
+      endSourceChar: 6606
+      line: 181
       lineChar: 23
       spanCodeSection: 
-    - startInstruction: 3184
-      endInstruction: 3183
-      startSourceChar: 6439
-      endSourceChar: 6445
-      line: 178
+    - startInstruction: 3348
+      endInstruction: 3347
+      startSourceChar: 6606
+      endSourceChar: 6612
+      line: 181
       lineChar: 23
       spanCodeSection: Input.
-    - startInstruction: 3184
-      endInstruction: 3183
-      startSourceChar: 6445
-      endSourceChar: 6456
-      line: 178
+    - startInstruction: 3348
+      endInstruction: 3347
+      startSourceChar: 6612
+      endSourceChar: 6623
+      line: 181
       lineChar: 29
       spanCodeSection: GetAxisRaw(
-    - startInstruction: 3184
-      endInstruction: 3207
-      startSourceChar: 6456
-      endSourceChar: 6472
-      line: 178
+    - startInstruction: 3348
+      endInstruction: 3371
+      startSourceChar: 6623
+      endSourceChar: 6639
+      line: 181
       lineChar: 40
       spanCodeSection: '"Horizontal") * '
-    - startInstruction: 3208
-      endInstruction: 3207
-      startSourceChar: 6472
-      endSourceChar: 6472
-      line: 178
+    - startInstruction: 3372
+      endInstruction: 3371
+      startSourceChar: 6639
+      endSourceChar: 6639
+      line: 181
       lineChar: 56
       spanCodeSection: 
-    - startInstruction: 3208
-      endInstruction: 3207
-      startSourceChar: 6472
-      endSourceChar: 6477
-      line: 178
+    - startInstruction: 3372
+      endInstruction: 3371
+      startSourceChar: 6639
+      endSourceChar: 6644
+      line: 181
       lineChar: 56
       spanCodeSection: Time.
-    - startInstruction: 3208
-      endInstruction: 3255
-      startSourceChar: 6477
-      endSourceChar: 6489
-      line: 178
+    - startInstruction: 3372
+      endInstruction: 3419
+      startSourceChar: 6644
+      endSourceChar: 6656
+      line: 181
       lineChar: 61
       spanCodeSection: 'deltaTime * '
-    - startInstruction: 3256
-      endInstruction: 3339
-      startSourceChar: 6489
-      endSourceChar: 6508
-      line: 178
+    - startInstruction: 3420
+      endInstruction: 3503
+      startSourceChar: 6656
+      endSourceChar: 6675
+      line: 181
       lineChar: 73
       spanCodeSection: "RotationSpeed;\n\t\t\t\t"
-    - startInstruction: 3340
-      endInstruction: 3339
-      startSourceChar: 6508
-      endSourceChar: 6512
-      line: 179
+    - startInstruction: 3504
+      endInstruction: 3503
+      startSourceChar: 6675
+      endSourceChar: 6679
+      line: 182
       lineChar: 4
       spanCodeSection: if (
-    - startInstruction: 3340
-      endInstruction: 3339
-      startSourceChar: 6512
-      endSourceChar: 6512
-      line: 179
+    - startInstruction: 3504
+      endInstruction: 3503
+      startSourceChar: 6679
+      endSourceChar: 6679
+      line: 182
       lineChar: 8
       spanCodeSection: 
-    - startInstruction: 3340
-      endInstruction: 3339
-      startSourceChar: 6512
-      endSourceChar: 6512
-      line: 179
+    - startInstruction: 3504
+      endInstruction: 3503
+      startSourceChar: 6679
+      endSourceChar: 6679
+      line: 182
       lineChar: 8
       spanCodeSection: 
-    - startInstruction: 3340
-      endInstruction: 3339
-      startSourceChar: 6512
-      endSourceChar: 6531
-      line: 179
+    - startInstruction: 3504
+      endInstruction: 3503
+      startSourceChar: 6679
+      endSourceChar: 6698
+      line: 182
       lineChar: 8
       spanCodeSection: 'MaxLeftRotation >= '
-    - startInstruction: 3340
-      endInstruction: 3407
-      startSourceChar: 6531
-      endSourceChar: 6537
-      line: 179
+    - startInstruction: 3504
+      endInstruction: 3571
+      startSourceChar: 6698
+      endSourceChar: 6704
+      line: 182
       lineChar: 27
       spanCodeSection: '0f && '
-    - startInstruction: 3408
-      endInstruction: 3407
-      startSourceChar: 6537
-      endSourceChar: 6537
-      line: 179
+    - startInstruction: 3572
+      endInstruction: 3571
+      startSourceChar: 6704
+      endSourceChar: 6704
+      line: 182
       lineChar: 33
       spanCodeSection: 
-    - startInstruction: 3408
-      endInstruction: 3407
-      startSourceChar: 6537
-      endSourceChar: 6556
-      line: 179
+    - startInstruction: 3572
+      endInstruction: 3571
+      startSourceChar: 6704
+      endSourceChar: 6723
+      line: 182
       lineChar: 33
       spanCodeSection: 'MaxLeftRotation <= '
-    - startInstruction: 3408
-      endInstruction: 3507
-      startSourceChar: 6556
-      endSourceChar: 6567
-      line: 179
+    - startInstruction: 3572
+      endInstruction: 3671
+      startSourceChar: 6723
+      endSourceChar: 6734
+      line: 182
       lineChar: 52
       spanCodeSection: "180f)\n\t\t\t\t\t"
-    - startInstruction: 3508
-      endInstruction: 3507
-      startSourceChar: 6567
-      endSourceChar: 6567
-      line: 180
+    - startInstruction: 3672
+      endInstruction: 3671
+      startSourceChar: 6734
+      endSourceChar: 6734
+      line: 183
       lineChar: 5
       spanCodeSection: 
-    - startInstruction: 3508
-      endInstruction: 3507
-      startSourceChar: 6567
-      endSourceChar: 6567
-      line: 180
+    - startInstruction: 3672
+      endInstruction: 3671
+      startSourceChar: 6734
+      endSourceChar: 6734
+      line: 183
       lineChar: 5
       spanCodeSection: 
-    - startInstruction: 3508
-      endInstruction: 3507
-      startSourceChar: 6567
-      endSourceChar: 6585
-      line: 180
+    - startInstruction: 3672
+      endInstruction: 3671
+      startSourceChar: 6734
+      endSourceChar: 6752
+      line: 183
       lineChar: 5
       spanCodeSection: 'custom_rotation = '
-    - startInstruction: 3508
-      endInstruction: 3507
-      startSourceChar: 6585
-      endSourceChar: 6585
-      line: 180
+    - startInstruction: 3672
+      endInstruction: 3671
+      startSourceChar: 6752
+      endSourceChar: 6752
+      line: 183
       lineChar: 23
       spanCodeSection: 
-    - startInstruction: 3508
-      endInstruction: 3507
-      startSourceChar: 6585
-      endSourceChar: 6585
-      line: 180
+    - startInstruction: 3672
+      endInstruction: 3671
+      startSourceChar: 6752
+      endSourceChar: 6752
+      line: 183
       lineChar: 23
       spanCodeSection: 
-    - startInstruction: 3508
-      endInstruction: 3507
-      startSourceChar: 6585
-      endSourceChar: 6591
-      line: 180
+    - startInstruction: 3672
+      endInstruction: 3671
+      startSourceChar: 6752
+      endSourceChar: 6758
+      line: 183
       lineChar: 23
       spanCodeSection: Mathf.
-    - startInstruction: 3508
-      endInstruction: 3507
-      startSourceChar: 6591
-      endSourceChar: 6595
-      line: 180
+    - startInstruction: 3672
+      endInstruction: 3671
+      startSourceChar: 6758
+      endSourceChar: 6762
+      line: 183
       lineChar: 29
       spanCodeSection: Max(
-    - startInstruction: 3508
-      endInstruction: 3507
-      startSourceChar: 6595
-      endSourceChar: 6612
-      line: 180
+    - startInstruction: 3672
+      endInstruction: 3671
+      startSourceChar: 6762
+      endSourceChar: 6779
+      line: 183
       lineChar: 33
       spanCodeSection: 'custom_rotation, '
-    - startInstruction: 3508
-      endInstruction: 3507
-      startSourceChar: 6612
-      endSourceChar: 6613
-      line: 180
+    - startInstruction: 3672
+      endInstruction: 3671
+      startSourceChar: 6779
+      endSourceChar: 6780
+      line: 183
       lineChar: 50
       spanCodeSection: '-'
-    - startInstruction: 3508
-      endInstruction: 3583
-      startSourceChar: 6613
-      endSourceChar: 6635
-      line: 180
+    - startInstruction: 3672
+      endInstruction: 3747
+      startSourceChar: 6780
+      endSourceChar: 6802
+      line: 183
       lineChar: 51
       spanCodeSection: "MaxLeftRotation);\n\t\t\t\t"
-    - startInstruction: 3584
-      endInstruction: 3583
-      startSourceChar: 6635
-      endSourceChar: 6639
-      line: 181
+    - startInstruction: 3748
+      endInstruction: 3747
+      startSourceChar: 6802
+      endSourceChar: 6806
+      line: 184
       lineChar: 4
       spanCodeSection: if (
-    - startInstruction: 3584
-      endInstruction: 3583
-      startSourceChar: 6639
-      endSourceChar: 6639
-      line: 181
+    - startInstruction: 3748
+      endInstruction: 3747
+      startSourceChar: 6806
+      endSourceChar: 6806
+      line: 184
       lineChar: 8
       spanCodeSection: 
-    - startInstruction: 3584
-      endInstruction: 3583
-      startSourceChar: 6639
-      endSourceChar: 6639
-      line: 181
+    - startInstruction: 3748
+      endInstruction: 3747
+      startSourceChar: 6806
+      endSourceChar: 6806
+      line: 184
       lineChar: 8
       spanCodeSection: 
-    - startInstruction: 3584
-      endInstruction: 3583
-      startSourceChar: 6639
-      endSourceChar: 6659
-      line: 181
+    - startInstruction: 3748
+      endInstruction: 3747
+      startSourceChar: 6806
+      endSourceChar: 6826
+      line: 184
       lineChar: 8
       spanCodeSection: 'MaxRightRotation >= '
-    - startInstruction: 3584
-      endInstruction: 3651
-      startSourceChar: 6659
-      endSourceChar: 6665
-      line: 181
+    - startInstruction: 3748
+      endInstruction: 3815
+      startSourceChar: 6826
+      endSourceChar: 6832
+      line: 184
       lineChar: 28
       spanCodeSection: '0f && '
-    - startInstruction: 3652
-      endInstruction: 3651
-      startSourceChar: 6665
-      endSourceChar: 6665
-      line: 181
+    - startInstruction: 3816
+      endInstruction: 3815
+      startSourceChar: 6832
+      endSourceChar: 6832
+      line: 184
       lineChar: 34
       spanCodeSection: 
-    - startInstruction: 3652
-      endInstruction: 3651
-      startSourceChar: 6665
-      endSourceChar: 6685
-      line: 181
+    - startInstruction: 3816
+      endInstruction: 3815
+      startSourceChar: 6832
+      endSourceChar: 6852
+      line: 184
       lineChar: 34
       spanCodeSection: 'MaxRightRotation <= '
-    - startInstruction: 3652
-      endInstruction: 3751
-      startSourceChar: 6685
-      endSourceChar: 6696
-      line: 181
+    - startInstruction: 3816
+      endInstruction: 3915
+      startSourceChar: 6852
+      endSourceChar: 6863
+      line: 184
       lineChar: 54
       spanCodeSection: "180f)\n\t\t\t\t\t"
-    - startInstruction: 3752
-      endInstruction: 3751
-      startSourceChar: 6696
-      endSourceChar: 6696
-      line: 182
+    - startInstruction: 3916
+      endInstruction: 3915
+      startSourceChar: 6863
+      endSourceChar: 6863
+      line: 185
       lineChar: 5
       spanCodeSection: 
-    - startInstruction: 3752
-      endInstruction: 3751
-      startSourceChar: 6696
-      endSourceChar: 6696
-      line: 182
+    - startInstruction: 3916
+      endInstruction: 3915
+      startSourceChar: 6863
+      endSourceChar: 6863
+      line: 185
       lineChar: 5
       spanCodeSection: 
-    - startInstruction: 3752
-      endInstruction: 3751
-      startSourceChar: 6696
-      endSourceChar: 6714
-      line: 182
+    - startInstruction: 3916
+      endInstruction: 3915
+      startSourceChar: 6863
+      endSourceChar: 6881
+      line: 185
       lineChar: 5
       spanCodeSection: 'custom_rotation = '
-    - startInstruction: 3752
-      endInstruction: 3751
-      startSourceChar: 6714
-      endSourceChar: 6714
-      line: 182
+    - startInstruction: 3916
+      endInstruction: 3915
+      startSourceChar: 6881
+      endSourceChar: 6881
+      line: 185
       lineChar: 23
       spanCodeSection: 
-    - startInstruction: 3752
-      endInstruction: 3751
-      startSourceChar: 6714
-      endSourceChar: 6714
-      line: 182
+    - startInstruction: 3916
+      endInstruction: 3915
+      startSourceChar: 6881
+      endSourceChar: 6881
+      line: 185
       lineChar: 23
       spanCodeSection: 
-    - startInstruction: 3752
-      endInstruction: 3751
-      startSourceChar: 6714
-      endSourceChar: 6720
-      line: 182
+    - startInstruction: 3916
+      endInstruction: 3915
+      startSourceChar: 6881
+      endSourceChar: 6887
+      line: 185
       lineChar: 23
       spanCodeSection: Mathf.
-    - startInstruction: 3752
-      endInstruction: 3751
-      startSourceChar: 6720
-      endSourceChar: 6724
-      line: 182
+    - startInstruction: 3916
+      endInstruction: 3915
+      startSourceChar: 6887
+      endSourceChar: 6891
+      line: 185
       lineChar: 29
       spanCodeSection: Min(
-    - startInstruction: 3752
-      endInstruction: 3751
-      startSourceChar: 6724
-      endSourceChar: 6741
-      line: 182
+    - startInstruction: 3916
+      endInstruction: 3915
+      startSourceChar: 6891
+      endSourceChar: 6908
+      line: 185
       lineChar: 33
       spanCodeSection: 'custom_rotation, '
-    - startInstruction: 3752
-      endInstruction: 3803
-      startSourceChar: 6741
-      endSourceChar: 6764
-      line: 182
+    - startInstruction: 3916
+      endInstruction: 3967
+      startSourceChar: 6908
+      endSourceChar: 6931
+      line: 185
       lineChar: 50
       spanCodeSection: "MaxRightRotation);\n\t\t\t\t"
-    - startInstruction: 3804
-      endInstruction: 3803
-      startSourceChar: 6764
-      endSourceChar: 6768
-      line: 183
+    - startInstruction: 3968
+      endInstruction: 3967
+      startSourceChar: 6931
+      endSourceChar: 6935
+      line: 186
       lineChar: 4
       spanCodeSection: if (
-    - startInstruction: 3804
-      endInstruction: 3803
-      startSourceChar: 6768
-      endSourceChar: 6768
-      line: 183
+    - startInstruction: 3968
+      endInstruction: 3967
+      startSourceChar: 6935
+      endSourceChar: 6935
+      line: 186
       lineChar: 8
       spanCodeSection: 
-    - startInstruction: 3804
-      endInstruction: 3803
-      startSourceChar: 6768
-      endSourceChar: 6786
-      line: 183
+    - startInstruction: 3968
+      endInstruction: 3967
+      startSourceChar: 6935
+      endSourceChar: 6953
+      line: 186
       lineChar: 8
       spanCodeSection: 'custom_rotation < '
-    - startInstruction: 3804
-      endInstruction: 3803
-      startSourceChar: 6786
-      endSourceChar: 6787
-      line: 183
+    - startInstruction: 3968
+      endInstruction: 3967
+      startSourceChar: 6953
+      endSourceChar: 6954
+      line: 186
       lineChar: 26
       spanCodeSection: '-'
-    - startInstruction: 3804
-      endInstruction: 3875
-      startSourceChar: 6787
-      endSourceChar: 6798
-      line: 183
+    - startInstruction: 3968
+      endInstruction: 4039
+      startSourceChar: 6954
+      endSourceChar: 6965
+      line: 186
       lineChar: 27
       spanCodeSection: "180f)\n\t\t\t\t\t"
-    - startInstruction: 3876
-      endInstruction: 3875
-      startSourceChar: 6798
-      endSourceChar: 6798
-      line: 184
+    - startInstruction: 4040
+      endInstruction: 4039
+      startSourceChar: 6965
+      endSourceChar: 6965
+      line: 187
       lineChar: 5
       spanCodeSection: 
-    - startInstruction: 3876
-      endInstruction: 3875
-      startSourceChar: 6798
-      endSourceChar: 6798
-      line: 184
+    - startInstruction: 4040
+      endInstruction: 4039
+      startSourceChar: 6965
+      endSourceChar: 6965
+      line: 187
       lineChar: 5
       spanCodeSection: 
-    - startInstruction: 3876
-      endInstruction: 3875
-      startSourceChar: 6798
-      endSourceChar: 6817
-      line: 184
+    - startInstruction: 4040
+      endInstruction: 4039
+      startSourceChar: 6965
+      endSourceChar: 6984
+      line: 187
       lineChar: 5
       spanCodeSection: 'custom_rotation += '
-    - startInstruction: 3876
-      endInstruction: 3927
-      startSourceChar: 6817
-      endSourceChar: 6827
-      line: 184
+    - startInstruction: 4040
+      endInstruction: 4091
+      startSourceChar: 6984
+      endSourceChar: 6994
+      line: 187
       lineChar: 24
       spanCodeSection: "360f;\n\t\t\t\t"
-    - startInstruction: 3928
-      endInstruction: 3927
-      startSourceChar: 6827
-      endSourceChar: 6831
-      line: 185
+    - startInstruction: 4092
+      endInstruction: 4091
+      startSourceChar: 6994
+      endSourceChar: 6998
+      line: 188
       lineChar: 4
       spanCodeSection: if (
-    - startInstruction: 3928
-      endInstruction: 3927
-      startSourceChar: 6831
-      endSourceChar: 6831
-      line: 185
+    - startInstruction: 4092
+      endInstruction: 4091
+      startSourceChar: 6998
+      endSourceChar: 6998
+      line: 188
       lineChar: 8
       spanCodeSection: 
-    - startInstruction: 3928
-      endInstruction: 3927
-      startSourceChar: 6831
-      endSourceChar: 6849
-      line: 185
+    - startInstruction: 4092
+      endInstruction: 4091
+      startSourceChar: 6998
+      endSourceChar: 7016
+      line: 188
       lineChar: 8
       spanCodeSection: 'custom_rotation > '
-    - startInstruction: 3928
-      endInstruction: 3975
-      startSourceChar: 6849
-      endSourceChar: 6860
-      line: 185
+    - startInstruction: 4092
+      endInstruction: 4139
+      startSourceChar: 7016
+      endSourceChar: 7027
+      line: 188
       lineChar: 26
       spanCodeSection: "180f)\n\t\t\t\t\t"
-    - startInstruction: 3976
-      endInstruction: 3975
-      startSourceChar: 6860
-      endSourceChar: 6860
-      line: 186
+    - startInstruction: 4140
+      endInstruction: 4139
+      startSourceChar: 7027
+      endSourceChar: 7027
+      line: 189
       lineChar: 5
       spanCodeSection: 
-    - startInstruction: 3976
-      endInstruction: 3975
-      startSourceChar: 6860
-      endSourceChar: 6860
-      line: 186
+    - startInstruction: 4140
+      endInstruction: 4139
+      startSourceChar: 7027
+      endSourceChar: 7027
+      line: 189
       lineChar: 5
       spanCodeSection: 
-    - startInstruction: 3976
-      endInstruction: 3975
-      startSourceChar: 6860
-      endSourceChar: 6879
-      line: 186
+    - startInstruction: 4140
+      endInstruction: 4139
+      startSourceChar: 7027
+      endSourceChar: 7046
+      line: 189
       lineChar: 5
       spanCodeSection: 'custom_rotation -= '
-    - startInstruction: 3976
-      endInstruction: 4027
-      startSourceChar: 6879
-      endSourceChar: 6889
-      line: 186
+    - startInstruction: 4140
+      endInstruction: 4191
+      startSourceChar: 7046
+      endSourceChar: 7056
+      line: 189
       lineChar: 24
       spanCodeSection: "360f;\n\t\t\t\t"
-    - startInstruction: 4028
-      endInstruction: 4027
-      startSourceChar: 6889
-      endSourceChar: 6893
-      line: 187
+    - startInstruction: 4192
+      endInstruction: 4191
+      startSourceChar: 7056
+      endSourceChar: 7060
+      line: 190
       lineChar: 4
       spanCodeSection: if (
-    - startInstruction: 4028
-      endInstruction: 4027
-      startSourceChar: 6893
-      endSourceChar: 6893
-      line: 187
+    - startInstruction: 4192
+      endInstruction: 4191
+      startSourceChar: 7060
+      endSourceChar: 7060
+      line: 190
       lineChar: 8
       spanCodeSection: 
-    - startInstruction: 4028
-      endInstruction: 4027
-      startSourceChar: 6893
-      endSourceChar: 6893
-      line: 187
+    - startInstruction: 4192
+      endInstruction: 4191
+      startSourceChar: 7060
+      endSourceChar: 7060
+      line: 190
       lineChar: 8
       spanCodeSection: 
-    - startInstruction: 4028
-      endInstruction: 4027
-      startSourceChar: 6893
-      endSourceChar: 6893
-      line: 187
+    - startInstruction: 4192
+      endInstruction: 4191
+      startSourceChar: 7060
+      endSourceChar: 7060
+      line: 190
       lineChar: 8
       spanCodeSection: 
-    - startInstruction: 4028
-      endInstruction: 4027
-      startSourceChar: 6893
-      endSourceChar: 6899
-      line: 187
+    - startInstruction: 4192
+      endInstruction: 4191
+      startSourceChar: 7060
+      endSourceChar: 7066
+      line: 190
       lineChar: 8
       spanCodeSection: Mathf.
-    - startInstruction: 4028
-      endInstruction: 4027
-      startSourceChar: 6899
-      endSourceChar: 6903
-      line: 187
+    - startInstruction: 4192
+      endInstruction: 4191
+      startSourceChar: 7066
+      endSourceChar: 7070
+      line: 190
       lineChar: 14
       spanCodeSection: Abs(
-    - startInstruction: 4028
-      endInstruction: 4027
-      startSourceChar: 6903
-      endSourceChar: 6903
-      line: 187
+    - startInstruction: 4192
+      endInstruction: 4191
+      startSourceChar: 7070
+      endSourceChar: 7070
+      line: 190
       lineChar: 18
       spanCodeSection: 
-    - startInstruction: 4028
-      endInstruction: 4027
-      startSourceChar: 6903
-      endSourceChar: 6921
-      line: 187
+    - startInstruction: 4192
+      endInstruction: 4191
+      startSourceChar: 7070
+      endSourceChar: 7088
+      line: 190
       lineChar: 18
       spanCodeSection: 'custom_rotation - '
-    - startInstruction: 4028
-      endInstruction: 4083
-      startSourceChar: 6921
-      endSourceChar: 6940
-      line: 187
+    - startInstruction: 4192
+      endInstruction: 4247
+      startSourceChar: 7088
+      endSourceChar: 7107
+      line: 190
       lineChar: 36
       spanCodeSection: 'CurrentRotation) > '
-    - startInstruction: 4084
-      endInstruction: 4131
-      startSourceChar: 6940
-      endSourceChar: 6953
-      line: 187
+    - startInstruction: 4248
+      endInstruction: 4295
+      startSourceChar: 7107
+      endSourceChar: 7120
+      line: 190
       lineChar: 55
       spanCodeSection: "0.001f)\n\t\t\t\t\t"
-    - startInstruction: 4132
-      endInstruction: 4131
-      startSourceChar: 6953
-      endSourceChar: 6953
-      line: 188
+    - startInstruction: 4296
+      endInstruction: 4295
+      startSourceChar: 7120
+      endSourceChar: 7120
+      line: 191
       lineChar: 5
       spanCodeSection: 
-    - startInstruction: 4132
-      endInstruction: 4131
-      startSourceChar: 6953
-      endSourceChar: 6953
-      line: 188
+    - startInstruction: 4296
+      endInstruction: 4295
+      startSourceChar: 7120
+      endSourceChar: 7120
+      line: 191
       lineChar: 5
       spanCodeSection: 
-    - startInstruction: 4132
-      endInstruction: 4131
-      startSourceChar: 6953
-      endSourceChar: 6971
-      line: 188
+    - startInstruction: 4296
+      endInstruction: 4295
+      startSourceChar: 7120
+      endSourceChar: 7138
+      line: 191
       lineChar: 5
       spanCodeSection: 'CurrentRotation = '
-    - startInstruction: 4132
-      endInstruction: 4151
-      startSourceChar: 6971
-      endSourceChar: 7010
-      line: 188
+    - startInstruction: 4296
+      endInstruction: 4315
+      startSourceChar: 7138
+      endSourceChar: 7177
+      line: 191
       lineChar: 23
       spanCodeSection: "custom_rotation;\n\t\t\t}\n\n\t\t\t// \u0412\u044B\u0445\u043E\u0434
         \n\t\t\t"
-    - startInstruction: 4152
-      endInstruction: 4151
-      startSourceChar: 7010
-      endSourceChar: 7014
-      line: 192
+    - startInstruction: 4316
+      endInstruction: 4315
+      startSourceChar: 7177
+      endSourceChar: 7181
+      line: 195
       lineChar: 3
       spanCodeSection: if (
-    - startInstruction: 4152
-      endInstruction: 4151
-      startSourceChar: 7014
-      endSourceChar: 7014
-      line: 192
+    - startInstruction: 4316
+      endInstruction: 4315
+      startSourceChar: 7181
+      endSourceChar: 7181
+      line: 195
       lineChar: 7
       spanCodeSection: 
-    - startInstruction: 4152
-      endInstruction: 4151
-      startSourceChar: 7014
-      endSourceChar: 7014
-      line: 192
+    - startInstruction: 4316
+      endInstruction: 4315
+      startSourceChar: 7181
+      endSourceChar: 7181
+      line: 195
       lineChar: 7
       spanCodeSection: 
-    - startInstruction: 4152
-      endInstruction: 4151
-      startSourceChar: 7014
-      endSourceChar: 7023
-      line: 192
-      lineChar: 7
-      spanCodeSection: occupant.
-    - startInstruction: 4152
-      endInstruction: 4211
-      startSourceChar: 7023
-      endSourceChar: 7034
-      line: 192
-      lineChar: 16
-      spanCodeSection: 'isLocal && '
-    - startInstruction: 4212
-      endInstruction: 4211
-      startSourceChar: 7034
-      endSourceChar: 7035
-      line: 192
-      lineChar: 27
-      spanCodeSection: (
-    - startInstruction: 4212
-      endInstruction: 4211
-      startSourceChar: 7035
-      endSourceChar: 7035
-      line: 192
-      lineChar: 28
-      spanCodeSection: 
-    - startInstruction: 4212
-      endInstruction: 4211
-      startSourceChar: 7035
-      endSourceChar: 7035
-      line: 192
-      lineChar: 28
-      spanCodeSection: 
-    - startInstruction: 4212
-      endInstruction: 4211
-      startSourceChar: 7035
-      endSourceChar: 7035
-      line: 192
-      lineChar: 28
-      spanCodeSection: 
-    - startInstruction: 4212
-      endInstruction: 4211
-      startSourceChar: 7035
-      endSourceChar: 7041
-      line: 192
-      lineChar: 28
-      spanCodeSection: Input.
-    - startInstruction: 4212
-      endInstruction: 4211
-      startSourceChar: 7041
-      endSourceChar: 7051
-      line: 192
-      lineChar: 34
-      spanCodeSection: GetButton(
-    - startInstruction: 4212
-      endInstruction: 4295
-      startSourceChar: 7051
-      endSourceChar: 7062
-      line: 192
-      lineChar: 44
-      spanCodeSection: '"Jump") || '
-    - startInstruction: 4296
-      endInstruction: 4295
-      startSourceChar: 7062
-      endSourceChar: 7062
-      line: 192
-      lineChar: 55
-      spanCodeSection: 
-    - startInstruction: 4296
-      endInstruction: 4295
-      startSourceChar: 7062
-      endSourceChar: 7062
-      line: 192
-      lineChar: 55
-      spanCodeSection: 
-    - startInstruction: 4296
-      endInstruction: 4295
-      startSourceChar: 7062
-      endSourceChar: 7062
-      line: 192
-      lineChar: 55
-      spanCodeSection: 
-    - startInstruction: 4296
-      endInstruction: 4295
-      startSourceChar: 7062
-      endSourceChar: 7068
-      line: 192
-      lineChar: 55
-      spanCodeSection: Mathf.
-    - startInstruction: 4296
-      endInstruction: 4295
-      startSourceChar: 7068
-      endSourceChar: 7072
-      line: 192
-      lineChar: 61
-      spanCodeSection: Abs(
-    - startInstruction: 4296
-      endInstruction: 4295
-      startSourceChar: 7072
-      endSourceChar: 7072
-      line: 192
-      lineChar: 65
-      spanCodeSection: 
-    - startInstruction: 4296
-      endInstruction: 4295
-      startSourceChar: 7072
-      endSourceChar: 7072
-      line: 192
-      lineChar: 65
-      spanCodeSection: 
-    - startInstruction: 4296
-      endInstruction: 4295
-      startSourceChar: 7072
-      endSourceChar: 7078
-      line: 192
-      lineChar: 65
-      spanCodeSection: Input.
-    - startInstruction: 4296
-      endInstruction: 4295
-      startSourceChar: 7078
-      endSourceChar: 7089
-      line: 192
-      lineChar: 71
-      spanCodeSection: GetAxisRaw(
-    - startInstruction: 4296
-      endInstruction: 4343
-      startSourceChar: 7089
-      endSourceChar: 7104
-      line: 192
-      lineChar: 82
-      spanCodeSection: '"Vertical")) > '
-    - startInstruction: 4344
-      endInstruction: 4495
-      startSourceChar: 7104
-      endSourceChar: 7115
-      line: 192
-      lineChar: 97
-      spanCodeSection: "0.5f))\n\t\t\t\t"
-    - startInstruction: 4496
-      endInstruction: 4495
-      startSourceChar: 7115
-      endSourceChar: 7115
-      line: 193
-      lineChar: 4
-      spanCodeSection: 
-    - startInstruction: 4496
-      endInstruction: 4495
-      startSourceChar: 7115
-      endSourceChar: 7115
-      line: 193
-      lineChar: 4
-      spanCodeSection: 
-    - startInstruction: 4496
-      endInstruction: 4495
-      startSourceChar: 7115
-      endSourceChar: 7115
-      line: 193
-      lineChar: 4
-      spanCodeSection: 
-    - startInstruction: 4496
-      endInstruction: 4495
-      startSourceChar: 7115
-      endSourceChar: 7115
-      line: 193
-      lineChar: 4
-      spanCodeSection: 
-    - startInstruction: 4496
-      endInstruction: 4495
-      startSourceChar: 7115
-      endSourceChar: 7126
-      line: 193
-      lineChar: 4
-      spanCodeSection: Controller.
-    - startInstruction: 4496
-      endInstruction: 4495
-      startSourceChar: 7126
-      endSourceChar: 7134
-      line: 193
-      lineChar: 15
-      spanCodeSection: Station.
-    - startInstruction: 4496
-      endInstruction: 4547
-      startSourceChar: 7134
-      endSourceChar: 7146
-      line: 193
-      lineChar: 23
-      spanCodeSection: ExitStation(
-    - startInstruction: 4548
-      endInstruction: 4571
-      startSourceChar: 7146
-      endSourceChar: 7161
-      line: 193
-      lineChar: 35
-      spanCodeSection: "occupant);\n\n\t\t\t"
-    - startInstruction: 4572
-      endInstruction: 4571
-      startSourceChar: 7161
-      endSourceChar: 7161
-      line: 195
-      lineChar: 3
-      spanCodeSection: 
-    - startInstruction: 4572
-      endInstruction: 4571
-      startSourceChar: 7161
-      endSourceChar: 7161
-      line: 195
-      lineChar: 3
-      spanCodeSection: 
-    - startInstruction: 4572
-      endInstruction: 4571
-      startSourceChar: 7161
-      endSourceChar: 7173
-      line: 195
-      lineChar: 3
-      spanCodeSection: 'rotation *= '
-    - startInstruction: 4572
-      endInstruction: 4571
-      startSourceChar: 7173
-      endSourceChar: 7173
-      line: 195
-      lineChar: 15
-      spanCodeSection: 
-    - startInstruction: 4572
-      endInstruction: 4571
-      startSourceChar: 7173
-      endSourceChar: 7173
-      line: 195
-      lineChar: 15
-      spanCodeSection: 
-    - startInstruction: 4572
-      endInstruction: 4571
-      startSourceChar: 7173
-      endSourceChar: 7184
-      line: 195
-      lineChar: 15
-      spanCodeSection: Quaternion.
-    - startInstruction: 4572
-      endInstruction: 4571
-      startSourceChar: 7184
+    - startInstruction: 4316
+      endInstruction: 4315
+      startSourceChar: 7181
       endSourceChar: 7190
       line: 195
+      lineChar: 7
+      spanCodeSection: occupant.
+    - startInstruction: 4316
+      endInstruction: 4375
+      startSourceChar: 7190
+      endSourceChar: 7201
+      line: 195
+      lineChar: 16
+      spanCodeSection: 'isLocal && '
+    - startInstruction: 4376
+      endInstruction: 4375
+      startSourceChar: 7201
+      endSourceChar: 7202
+      line: 195
+      lineChar: 27
+      spanCodeSection: (
+    - startInstruction: 4376
+      endInstruction: 4375
+      startSourceChar: 7202
+      endSourceChar: 7202
+      line: 195
+      lineChar: 28
+      spanCodeSection: 
+    - startInstruction: 4376
+      endInstruction: 4375
+      startSourceChar: 7202
+      endSourceChar: 7202
+      line: 195
+      lineChar: 28
+      spanCodeSection: 
+    - startInstruction: 4376
+      endInstruction: 4375
+      startSourceChar: 7202
+      endSourceChar: 7202
+      line: 195
+      lineChar: 28
+      spanCodeSection: 
+    - startInstruction: 4376
+      endInstruction: 4375
+      startSourceChar: 7202
+      endSourceChar: 7208
+      line: 195
+      lineChar: 28
+      spanCodeSection: Input.
+    - startInstruction: 4376
+      endInstruction: 4375
+      startSourceChar: 7208
+      endSourceChar: 7218
+      line: 195
+      lineChar: 34
+      spanCodeSection: GetButton(
+    - startInstruction: 4376
+      endInstruction: 4459
+      startSourceChar: 7218
+      endSourceChar: 7229
+      line: 195
+      lineChar: 44
+      spanCodeSection: '"Jump") || '
+    - startInstruction: 4460
+      endInstruction: 4459
+      startSourceChar: 7229
+      endSourceChar: 7229
+      line: 195
+      lineChar: 55
+      spanCodeSection: 
+    - startInstruction: 4460
+      endInstruction: 4459
+      startSourceChar: 7229
+      endSourceChar: 7229
+      line: 195
+      lineChar: 55
+      spanCodeSection: 
+    - startInstruction: 4460
+      endInstruction: 4459
+      startSourceChar: 7229
+      endSourceChar: 7229
+      line: 195
+      lineChar: 55
+      spanCodeSection: 
+    - startInstruction: 4460
+      endInstruction: 4459
+      startSourceChar: 7229
+      endSourceChar: 7235
+      line: 195
+      lineChar: 55
+      spanCodeSection: Mathf.
+    - startInstruction: 4460
+      endInstruction: 4459
+      startSourceChar: 7235
+      endSourceChar: 7239
+      line: 195
+      lineChar: 61
+      spanCodeSection: Abs(
+    - startInstruction: 4460
+      endInstruction: 4459
+      startSourceChar: 7239
+      endSourceChar: 7239
+      line: 195
+      lineChar: 65
+      spanCodeSection: 
+    - startInstruction: 4460
+      endInstruction: 4459
+      startSourceChar: 7239
+      endSourceChar: 7239
+      line: 195
+      lineChar: 65
+      spanCodeSection: 
+    - startInstruction: 4460
+      endInstruction: 4459
+      startSourceChar: 7239
+      endSourceChar: 7245
+      line: 195
+      lineChar: 65
+      spanCodeSection: Input.
+    - startInstruction: 4460
+      endInstruction: 4459
+      startSourceChar: 7245
+      endSourceChar: 7256
+      line: 195
+      lineChar: 71
+      spanCodeSection: GetAxisRaw(
+    - startInstruction: 4460
+      endInstruction: 4507
+      startSourceChar: 7256
+      endSourceChar: 7271
+      line: 195
+      lineChar: 82
+      spanCodeSection: '"Vertical")) > '
+    - startInstruction: 4508
+      endInstruction: 4659
+      startSourceChar: 7271
+      endSourceChar: 7282
+      line: 195
+      lineChar: 97
+      spanCodeSection: "0.5f))\n\t\t\t\t"
+    - startInstruction: 4660
+      endInstruction: 4659
+      startSourceChar: 7282
+      endSourceChar: 7282
+      line: 196
+      lineChar: 4
+      spanCodeSection: 
+    - startInstruction: 4660
+      endInstruction: 4659
+      startSourceChar: 7282
+      endSourceChar: 7282
+      line: 196
+      lineChar: 4
+      spanCodeSection: 
+    - startInstruction: 4660
+      endInstruction: 4659
+      startSourceChar: 7282
+      endSourceChar: 7282
+      line: 196
+      lineChar: 4
+      spanCodeSection: 
+    - startInstruction: 4660
+      endInstruction: 4659
+      startSourceChar: 7282
+      endSourceChar: 7282
+      line: 196
+      lineChar: 4
+      spanCodeSection: 
+    - startInstruction: 4660
+      endInstruction: 4659
+      startSourceChar: 7282
+      endSourceChar: 7293
+      line: 196
+      lineChar: 4
+      spanCodeSection: Controller.
+    - startInstruction: 4660
+      endInstruction: 4659
+      startSourceChar: 7293
+      endSourceChar: 7301
+      line: 196
+      lineChar: 15
+      spanCodeSection: Station.
+    - startInstruction: 4660
+      endInstruction: 4711
+      startSourceChar: 7301
+      endSourceChar: 7313
+      line: 196
+      lineChar: 23
+      spanCodeSection: ExitStation(
+    - startInstruction: 4712
+      endInstruction: 4735
+      startSourceChar: 7313
+      endSourceChar: 7328
+      line: 196
+      lineChar: 35
+      spanCodeSection: "occupant);\n\n\t\t\t"
+    - startInstruction: 4736
+      endInstruction: 4735
+      startSourceChar: 7328
+      endSourceChar: 7328
+      line: 198
+      lineChar: 3
+      spanCodeSection: 
+    - startInstruction: 4736
+      endInstruction: 4735
+      startSourceChar: 7328
+      endSourceChar: 7328
+      line: 198
+      lineChar: 3
+      spanCodeSection: 
+    - startInstruction: 4736
+      endInstruction: 4735
+      startSourceChar: 7328
+      endSourceChar: 7340
+      line: 198
+      lineChar: 3
+      spanCodeSection: 'rotation *= '
+    - startInstruction: 4736
+      endInstruction: 4735
+      startSourceChar: 7340
+      endSourceChar: 7340
+      line: 198
+      lineChar: 15
+      spanCodeSection: 
+    - startInstruction: 4736
+      endInstruction: 4735
+      startSourceChar: 7340
+      endSourceChar: 7340
+      line: 198
+      lineChar: 15
+      spanCodeSection: 
+    - startInstruction: 4736
+      endInstruction: 4735
+      startSourceChar: 7340
+      endSourceChar: 7351
+      line: 198
+      lineChar: 15
+      spanCodeSection: Quaternion.
+    - startInstruction: 4736
+      endInstruction: 4735
+      startSourceChar: 7351
+      endSourceChar: 7357
+      line: 198
       lineChar: 26
       spanCodeSection: Euler(
-    - startInstruction: 4572
-      endInstruction: 4571
-      startSourceChar: 7190
-      endSourceChar: 7194
-      line: 195
+    - startInstruction: 4736
+      endInstruction: 4735
+      startSourceChar: 7357
+      endSourceChar: 7361
+      line: 198
       lineChar: 32
       spanCodeSection: '0f, '
-    - startInstruction: 4572
-      endInstruction: 4571
-      startSourceChar: 7194
-      endSourceChar: 7211
-      line: 195
+    - startInstruction: 4736
+      endInstruction: 4735
+      startSourceChar: 7361
+      endSourceChar: 7378
+      line: 198
       lineChar: 36
       spanCodeSection: 'CurrentRotation, '
-    - startInstruction: 4572
-      endInstruction: 4663
-      startSourceChar: 7211
-      endSourceChar: 7223
-      line: 195
+    - startInstruction: 4736
+      endInstruction: 4827
+      startSourceChar: 7378
+      endSourceChar: 7390
+      line: 198
       lineChar: 53
       spanCodeSection: "0f);\n\t\t}\n\n\t\t"
-    - startInstruction: 4664
-      endInstruction: 4663
-      startSourceChar: 7223
-      endSourceChar: 7223
-      line: 198
+    - startInstruction: 4828
+      endInstruction: 4827
+      startSourceChar: 7390
+      endSourceChar: 7390
+      line: 201
       lineChar: 2
       spanCodeSection: 
-    - startInstruction: 4664
-      endInstruction: 4663
-      startSourceChar: 7223
-      endSourceChar: 7223
-      line: 198
+    - startInstruction: 4828
+      endInstruction: 4827
+      startSourceChar: 7390
+      endSourceChar: 7390
+      line: 201
       lineChar: 2
       spanCodeSection: 
-    - startInstruction: 4664
-      endInstruction: 4663
-      startSourceChar: 7223
-      endSourceChar: 7223
-      line: 198
+    - startInstruction: 4828
+      endInstruction: 4827
+      startSourceChar: 7390
+      endSourceChar: 7390
+      line: 201
       lineChar: 2
       spanCodeSection: 
-    - startInstruction: 4664
-      endInstruction: 4663
-      startSourceChar: 7223
-      endSourceChar: 7235
-      line: 198
+    - startInstruction: 4828
+      endInstruction: 4827
+      startSourceChar: 7390
+      endSourceChar: 7402
+      line: 201
       lineChar: 2
       spanCodeSection: DynamicSeat.
-    - startInstruction: 4664
-      endInstruction: 4663
-      startSourceChar: 7235
-      endSourceChar: 7258
-      line: 198
+    - startInstruction: 4828
+      endInstruction: 4827
+      startSourceChar: 7402
+      endSourceChar: 7425
+      line: 201
       lineChar: 14
       spanCodeSection: SetPositionAndRotation(
-    - startInstruction: 4664
-      endInstruction: 4663
-      startSourceChar: 7258
-      endSourceChar: 7268
-      line: 198
+    - startInstruction: 4828
+      endInstruction: 4827
+      startSourceChar: 7425
+      endSourceChar: 7435
+      line: 201
       lineChar: 37
       spanCodeSection: 'position, '
-    - startInstruction: 4664
-      endInstruction: 4715
-      startSourceChar: 7268
-      endSourceChar: 7298
-      line: 198
+    - startInstruction: 4828
+      endInstruction: 4879
+      startSourceChar: 7435
+      endSourceChar: 7465
+      line: 201
       lineChar: 47
       spanCodeSection: "rotation);\n\t}\n\n\t/* Utils */\n\n\t"
-    - startInstruction: 4716
-      endInstruction: 4715
-      startSourceChar: 7298
-      endSourceChar: 7321
-      line: 203
+    - startInstruction: 4880
+      endInstruction: 4879
+      startSourceChar: 7465
+      endSourceChar: 7488
+      line: 206
       lineChar: 1
       spanCodeSection: private string GetPath(
-    - startInstruction: 4716
-      endInstruction: 4723
-      startSourceChar: 7321
-      endSourceChar: 7334
-      line: 203
+    - startInstruction: 4880
+      endInstruction: 4887
+      startSourceChar: 7488
+      endSourceChar: 7501
+      line: 206
       lineChar: 24
       spanCodeSection: 'Transform t) '
-    - startInstruction: 4724
-      endInstruction: 4723
-      startSourceChar: 7334
-      endSourceChar: 7338
-      line: 203
+    - startInstruction: 4888
+      endInstruction: 4887
+      startSourceChar: 7501
+      endSourceChar: 7505
+      line: 206
       lineChar: 37
       spanCodeSection: "{\n\t\t"
-    - startInstruction: 4724
-      endInstruction: 4723
-      startSourceChar: 7338
-      endSourceChar: 7338
-      line: 204
+    - startInstruction: 4888
+      endInstruction: 4887
+      startSourceChar: 7505
+      endSourceChar: 7505
+      line: 207
       lineChar: 2
       spanCodeSection: 
-    - startInstruction: 4724
-      endInstruction: 4723
-      startSourceChar: 7338
-      endSourceChar: 7338
-      line: 204
+    - startInstruction: 4888
+      endInstruction: 4887
+      startSourceChar: 7505
+      endSourceChar: 7505
+      line: 207
       lineChar: 2
       spanCodeSection: 
-    - startInstruction: 4724
-      endInstruction: 4723
-      startSourceChar: 7338
-      endSourceChar: 7347
-      line: 204
+    - startInstruction: 4888
+      endInstruction: 4887
+      startSourceChar: 7505
+      endSourceChar: 7514
+      line: 207
       lineChar: 2
       spanCodeSection: 'var path '
-    - startInstruction: 4724
-      endInstruction: 4723
-      startSourceChar: 7347
-      endSourceChar: 7349
-      line: 204
+    - startInstruction: 4888
+      endInstruction: 4887
+      startSourceChar: 7514
+      endSourceChar: 7516
+      line: 207
       lineChar: 11
       spanCodeSection: '= '
-    - startInstruction: 4724
-      endInstruction: 4723
-      startSourceChar: 7349
-      endSourceChar: 7349
-      line: 204
+    - startInstruction: 4888
+      endInstruction: 4887
+      startSourceChar: 7516
+      endSourceChar: 7516
+      line: 207
       lineChar: 13
       spanCodeSection: 
-    - startInstruction: 4724
-      endInstruction: 4723
-      startSourceChar: 7349
-      endSourceChar: 7351
-      line: 204
+    - startInstruction: 4888
+      endInstruction: 4887
+      startSourceChar: 7516
+      endSourceChar: 7518
+      line: 207
       lineChar: 13
       spanCodeSection: t.
-    - startInstruction: 4724
-      endInstruction: 4767
-      startSourceChar: 7351
-      endSourceChar: 7359
-      line: 204
+    - startInstruction: 4888
+      endInstruction: 4931
+      startSourceChar: 7518
+      endSourceChar: 7526
+      line: 207
       lineChar: 15
       spanCodeSection: "name;\n\t\t"
-    - startInstruction: 4768
-      endInstruction: 4767
-      startSourceChar: 7359
-      endSourceChar: 7366
-      line: 205
+    - startInstruction: 4932
+      endInstruction: 4931
+      startSourceChar: 7526
+      endSourceChar: 7533
+      line: 208
       lineChar: 2
       spanCodeSection: while (
-    - startInstruction: 4768
-      endInstruction: 4767
-      startSourceChar: 7366
-      endSourceChar: 7366
-      line: 205
+    - startInstruction: 4932
+      endInstruction: 4931
+      startSourceChar: 7533
+      endSourceChar: 7533
+      line: 208
       lineChar: 9
       spanCodeSection: 
-    - startInstruction: 4768
-      endInstruction: 4767
-      startSourceChar: 7366
-      endSourceChar: 7366
-      line: 205
+    - startInstruction: 4932
+      endInstruction: 4931
+      startSourceChar: 7533
+      endSourceChar: 7533
+      line: 208
       lineChar: 9
       spanCodeSection: 
-    - startInstruction: 4768
-      endInstruction: 4767
-      startSourceChar: 7366
-      endSourceChar: 7368
-      line: 205
+    - startInstruction: 4932
+      endInstruction: 4931
+      startSourceChar: 7533
+      endSourceChar: 7535
+      line: 208
       lineChar: 9
       spanCodeSection: t.
-    - startInstruction: 4768
-      endInstruction: 4791
-      startSourceChar: 7368
-      endSourceChar: 7378
-      line: 205
+    - startInstruction: 4932
+      endInstruction: 4955
+      startSourceChar: 7535
+      endSourceChar: 7545
+      line: 208
       lineChar: 11
       spanCodeSection: 'parent != '
-    - startInstruction: 4792
-      endInstruction: 4839
-      startSourceChar: 7378
-      endSourceChar: 7384
-      line: 205
+    - startInstruction: 4956
+      endInstruction: 5003
+      startSourceChar: 7545
+      endSourceChar: 7551
+      line: 208
       lineChar: 21
       spanCodeSection: 'null) '
-    - startInstruction: 4840
-      endInstruction: 4839
-      startSourceChar: 7384
-      endSourceChar: 7389
-      line: 205
+    - startInstruction: 5004
+      endInstruction: 5003
+      startSourceChar: 7551
+      endSourceChar: 7556
+      line: 208
       lineChar: 27
       spanCodeSection: "{\n\t\t\t"
-    - startInstruction: 4840
-      endInstruction: 4839
-      startSourceChar: 7389
-      endSourceChar: 7389
-      line: 206
+    - startInstruction: 5004
+      endInstruction: 5003
+      startSourceChar: 7556
+      endSourceChar: 7556
+      line: 209
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 4840
-      endInstruction: 4839
-      startSourceChar: 7389
-      endSourceChar: 7389
-      line: 206
+    - startInstruction: 5004
+      endInstruction: 5003
+      startSourceChar: 7556
+      endSourceChar: 7556
+      line: 209
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 4840
-      endInstruction: 4839
-      startSourceChar: 7389
-      endSourceChar: 7393
-      line: 206
+    - startInstruction: 5004
+      endInstruction: 5003
+      startSourceChar: 7556
+      endSourceChar: 7560
+      line: 209
       lineChar: 3
       spanCodeSection: 't = '
-    - startInstruction: 4840
-      endInstruction: 4839
-      startSourceChar: 7393
-      endSourceChar: 7393
-      line: 206
+    - startInstruction: 5004
+      endInstruction: 5003
+      startSourceChar: 7560
+      endSourceChar: 7560
+      line: 209
       lineChar: 7
       spanCodeSection: 
-    - startInstruction: 4840
-      endInstruction: 4839
-      startSourceChar: 7393
-      endSourceChar: 7395
-      line: 206
+    - startInstruction: 5004
+      endInstruction: 5003
+      startSourceChar: 7560
+      endSourceChar: 7562
+      line: 209
       lineChar: 7
       spanCodeSection: t.
-    - startInstruction: 4840
-      endInstruction: 4863
-      startSourceChar: 7395
-      endSourceChar: 7406
-      line: 206
+    - startInstruction: 5004
+      endInstruction: 5027
+      startSourceChar: 7562
+      endSourceChar: 7573
+      line: 209
       lineChar: 9
       spanCodeSection: "parent;\n\t\t\t"
-    - startInstruction: 4864
-      endInstruction: 4863
-      startSourceChar: 7406
-      endSourceChar: 7406
-      line: 207
+    - startInstruction: 5028
+      endInstruction: 5027
+      startSourceChar: 7573
+      endSourceChar: 7573
+      line: 210
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 4864
-      endInstruction: 4863
-      startSourceChar: 7406
-      endSourceChar: 7406
-      line: 207
+    - startInstruction: 5028
+      endInstruction: 5027
+      startSourceChar: 7573
+      endSourceChar: 7573
+      line: 210
       lineChar: 3
       spanCodeSection: 
-    - startInstruction: 4864
-      endInstruction: 4863
-      startSourceChar: 7406
-      endSourceChar: 7413
-      line: 207
+    - startInstruction: 5028
+      endInstruction: 5027
+      startSourceChar: 7573
+      endSourceChar: 7580
+      line: 210
       lineChar: 3
       spanCodeSection: 'path = '
-    - startInstruction: 4864
-      endInstruction: 4863
-      startSourceChar: 7413
-      endSourceChar: 7413
-      line: 207
+    - startInstruction: 5028
+      endInstruction: 5027
+      startSourceChar: 7580
+      endSourceChar: 7580
+      line: 210
       lineChar: 10
       spanCodeSection: 
-    - startInstruction: 4864
-      endInstruction: 4863
-      startSourceChar: 7413
-      endSourceChar: 7413
-      line: 207
+    - startInstruction: 5028
+      endInstruction: 5027
+      startSourceChar: 7580
+      endSourceChar: 7580
+      line: 210
       lineChar: 10
       spanCodeSection: 
-    - startInstruction: 4864
-      endInstruction: 4863
-      startSourceChar: 7413
-      endSourceChar: 7413
-      line: 207
+    - startInstruction: 5028
+      endInstruction: 5027
+      startSourceChar: 7580
+      endSourceChar: 7580
+      line: 210
       lineChar: 10
       spanCodeSection: 
-    - startInstruction: 4864
-      endInstruction: 4863
-      startSourceChar: 7413
-      endSourceChar: 7415
-      line: 207
+    - startInstruction: 5028
+      endInstruction: 5027
+      startSourceChar: 7580
+      endSourceChar: 7582
+      line: 210
       lineChar: 10
       spanCodeSection: t.
-    - startInstruction: 4864
-      endInstruction: 4887
-      startSourceChar: 7415
-      endSourceChar: 7422
-      line: 207
+    - startInstruction: 5028
+      endInstruction: 5051
+      startSourceChar: 7582
+      endSourceChar: 7589
+      line: 210
       lineChar: 12
       spanCodeSection: 'name + '
-    - startInstruction: 4888
-      endInstruction: 4919
-      startSourceChar: 7422
-      endSourceChar: 7428
-      line: 207
+    - startInstruction: 5052
+      endInstruction: 5083
+      startSourceChar: 7589
+      endSourceChar: 7595
+      line: 210
       lineChar: 19
       spanCodeSection: '"/" + '
-    - startInstruction: 4920
-      endInstruction: 4959
-      startSourceChar: 7428
-      endSourceChar: 7440
-      line: 207
+    - startInstruction: 5084
+      endInstruction: 5123
+      startSourceChar: 7595
+      endSourceChar: 7607
+      line: 210
       lineChar: 25
       spanCodeSection: "path;\n\t\t}\n\t\t"
-    - startInstruction: 4960
-      endInstruction: 4959
-      startSourceChar: 7440
-      endSourceChar: 7447
-      line: 209
+    - startInstruction: 5124
+      endInstruction: 5123
+      startSourceChar: 7607
+      endSourceChar: 7614
+      line: 212
       lineChar: 2
       spanCodeSection: 'return '
-    - startInstruction: 4960
-      endInstruction: 4960
-      startSourceChar: 7447
-      endSourceChar: 7447
-      line: 209
+    - startInstruction: 5124
+      endInstruction: 5124
+      startSourceChar: 7614
+      endSourceChar: 7614
+      line: 212
       lineChar: 9
       spanCodeSection: 
   hasInteractEvent: 0
