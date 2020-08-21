@@ -1,0 +1,15 @@
+{
+  "name": "kawashirov.general",
+  "displayName": "Kawapack: General scripts",
+  "version": "1.0.1",
+  "unity": "2018.4",
+  "description": "",
+  "keywords": ["kawashirov"],
+  "dependencies": {
+    "kawashirov.commons": "1.0.1"
+  },
+  "author": {
+    "name": "kawashirov",
+    "url": "https://github.com/kawashirov/kawapack/"
+  }
+}

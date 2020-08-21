@@ -1,0 +1,12 @@
+{
+  "name": "kawashirov.commons",
+  "displayName": "Kawapack: Commons (library)",
+  "version": "1.0.1",
+  "unity": "2018.4",
+  "description": "Must be installed for any Kawapack tool.",
+  "keywords": ["kawashirov"],
+  "author": {
+    "name": "kawashirov",
+    "url": "https://github.com/kawashirov/kawapack/"
+  }
+}

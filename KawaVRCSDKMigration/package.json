@@ -1,0 +1,15 @@
+{
+  "name": "kawashirov.vrcsdkmigration",
+  "displayName": "Kawapack: VRCSDK migration",
+  "version": "1.0.1",
+  "unity": "2018.4",
+  "description": "Tools for migration VRChat worlds from VRCSDK2 to VRCSDK3.\nMust have VRCSDK3 for worlds installed in project.",
+  "keywords": ["kawashirov", "VRChat", "VRCSDK3"],
+  "dependencies": {
+    "kawashirov.commons": "1.0.1"
+  },
+  "author": {
+    "name": "kawashirov",
+    "url": "https://github.com/kawashirov/kawapack/"
+  }
+}

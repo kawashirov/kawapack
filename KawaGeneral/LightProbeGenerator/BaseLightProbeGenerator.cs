@@ -183,6 +183,7 @@ namespace Kawashirov {
 					.Where(x => x.f != null && x.f.sharedMesh != null && x.b.Intersects(self_bounds))
 					.Select(x => x.mr)
 					.ToList();
+			Debug.LogFormat("near_renderers {0}", near_renderers.Count);
 			if (debug)
 				_debug_renderrers_ = near_renderers.Count;
 			return near_renderers;

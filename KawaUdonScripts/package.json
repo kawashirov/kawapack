@@ -1,0 +1,16 @@
+{
+  "name": "kawashirov.udonscripts",
+  "displayName": "Kawapack: Udon scripts",
+  "version": "1.0.1",
+  "unity": "2018.4",
+  "description": "Must have VRCSDK3 for worlds (Udon) installed in project.\nMust have UdonSharp installed in project.",
+  "keywords": ["kawashirov", "VRChat", "VRCSDK3", "Udon"],
+  "dependencies": {
+    "kawashirov.commons": "1.0.1",
+    "kawashirov.udoncommons": "1.0.1"
+  },
+  "author": {
+    "name": "kawashirov",
+    "url": "https://github.com/kawashirov/kawapack/"
+  }
+}

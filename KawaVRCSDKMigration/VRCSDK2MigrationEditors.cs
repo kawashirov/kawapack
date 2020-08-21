@@ -153,7 +153,7 @@ namespace Kawashirov.VRCSDKMigration {
 			new Migration<SDK2.VRC_SpatialAudioSource, SDK3.VRCSpatialAudioSource>("SpatialAudioSource"),
 			new Migration<SDK2.VRC_Station, SDK3.VRCStation>("Station"),
 			new Migration<SDK2.VRC_UiShape, SDK3.VRCUiShape>("UiShape"),
-		}; 
+		};  
 
 		public static IEnumerable<IMigration> FindMigrations(MonoBehaviour source) 
 			=> migrations.Where(m => m.GetSourceType().IsInstanceOfType(source));
