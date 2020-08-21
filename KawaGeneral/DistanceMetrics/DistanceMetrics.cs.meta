@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: b9fd96019235cd54b9efc4c38bc18350
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - samplerMask: {fileID: 2800000, guid: f5c2ef93f0e2dca41a0c7890fbc4eb8e, type: 3}
+  - distanceRTDebug: {fileID: 2100000, guid: 9809e491cfd9bfd43b346e0e5f22f2d3, type: 2}
+  - __cam: {instanceID: 0}
+  - __cmdShader: {instanceID: 0}
+  - __cmdMaterial: {instanceID: 0}
+  - __distanceRT: {instanceID: 0}
+  - __reader: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
