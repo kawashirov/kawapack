@@ -9,6 +9,7 @@ Shader "Kawashirov/CmdBuffer-DistanceMetrics"
 		_MainTex ("Base (RGB)", 2D) = "white" {}
 		_Mask ("Mask (R)", 2D) = "white" {}
 		_FocusSize ("Focus Area Size ", Range (0, 1)) = 0.333333
+		_FocusLocation ("Focus Area Location", Vector) = (0.5, 0.5, 0, 0)
 	}
 	SubShader
 	{
@@ -30,6 +31,7 @@ Shader "Kawashirov/CmdBuffer-DistanceMetrics"
 			uniform float4 _Mask_TexelSize;
 
 			uniform float _FocusSize;
+			uniform float4 _FocusLocation;
 
 			struct appdata
 			{
@@ -53,7 +55,13 @@ Shader "Kawashirov/CmdBuffer-DistanceMetrics"
 				float target_size = min(_MainTex_TexelSize.z, _MainTex_TexelSize.w);
 				target_size *= _FocusSize;
 				float2 uv_scale = target_size * _MainTex_TexelSize.xy; // target_size/width, target_size/height
-				float2 uv_offset = float2(1, 1) * 0.5 - uv_scale * 0.5;
+
+				float2 focus = _FocusLocation.xy;
+				#if UNITY_UV_STARTS_AT_TOP
+					focus.y = 1 - focus.y;
+				#endif
+
+				float2 uv_offset = focus - uv_scale * 0.5;
 
 				o.uv1 = v.uv;
 				o.uv2 = o.uv1 * uv_scale + uv_offset;

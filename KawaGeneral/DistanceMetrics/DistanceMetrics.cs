@@ -70,7 +70,8 @@ public class DistanceMetrics : MonoBehaviour
 	public bool autoUpdate = false;
 	[Range(16, 256)] public int samplerSize = 64;
 	public Texture2D samplerMask;
-	[Range(0, 1)] public float focusAreaSize = 1f / 3f;
+	[Range(0, 1)] public float focusAreaSize = 0.25f;
+	public Vector2 focusAreaLocation = Vector2.one * 0.5f;
 	public Material distanceRTDebug;
 
 	[NonSerialized] public float distance;
@@ -92,7 +93,8 @@ public class DistanceMetrics : MonoBehaviour
 		autoUpdate = false;
 		samplerSize = 64;
 		samplerMask = null;
-		focusAreaSize = 1f / 3f;
+		focusAreaSize = 0.25f;
+		focusAreaLocation = Vector2.one * 0.5f;
 		distanceRTDebug = null;
 
 		UpdateSetup();
@@ -130,13 +132,17 @@ public class DistanceMetrics : MonoBehaviour
 	{
 		if (__cam)
 		{
-			var fov = __cam.fieldOfView;
-			if (__cam.pixelHeight > __cam.pixelWidth)
-				fov = fov / __cam.pixelHeight * __cam.pixelWidth;
-			fov *= Mathf.Clamp01(focusAreaSize);
-			Gizmos.matrix = transform.localToWorldMatrix;
+			var fov_v = __cam.fieldOfView;
+			var fov_h = fov_v / __cam.pixelHeight * __cam.pixelWidth;
+			var fov = Mathf.Clamp01(focusAreaSize) * ((__cam.pixelHeight > __cam.pixelWidth) ? fov_h : fov_v);
+
+			var angle_h = Mathf.Lerp(-0.5f, 0.5f, Mathf.Clamp01(focusAreaLocation.x)) * fov_h;
+			var angle_v = Mathf.Lerp(-0.5f, 0.5f, Mathf.Clamp01(focusAreaLocation.y)) * fov_v;
+
+			Gizmos.matrix = transform.localToWorldMatrix * Matrix4x4.Rotate(Quaternion.Euler(angle_v, angle_h, 0));
 			Gizmos.color = new Color(0, 0.75f, 0.75f, 1);
 			Gizmos.DrawFrustum(Vector3.zero, fov, __cam.farClipPlane, __cam.nearClipPlane, 1);
+			
 		}
 	}
 #endif // UNITY_EDITOR
@@ -179,7 +185,11 @@ public class DistanceMetrics : MonoBehaviour
 		__cmdMaterial.name = "__" + GetType().Name + nameof(__cmdMaterial);
 		__cmdMaterial.shader = __cmdShader;
 		__cmdMaterial.mainTexture = null;
-		__cmdMaterial.SetFloat("_FocusSize", focusAreaSize);
+		__cmdMaterial.SetFloat("_FocusSize", Mathf.Clamp01(focusAreaSize));
+		var _FocusLocation = Vector4.zero;
+		_FocusLocation.x = Mathf.Clamp01(focusAreaLocation.x);
+		_FocusLocation.y = Mathf.Clamp01(focusAreaLocation.y);
+		__cmdMaterial.SetVector("_FocusLocation", _FocusLocation);
 		__cmdMaterial.SetTexture("_Mask", samplerMask);
 
 		if (__distanceRT == null || __distanceRT.width != samplerSize || __distanceRT.height != samplerSize)
