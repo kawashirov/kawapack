@@ -48,22 +48,12 @@ public class SmartStationController : UdonSharpBehaviour {
 		CheckUpdater();
 	}
 
-	public void OnLocalStationEntered() {
-		LocallyOccupied = true;
+	public override void OnStationEntered(VRCPlayerApi player) {
+		LocallyOccupied = player != null && player.isLocal;
 		UpdateOccupant();
 	}
 
-	public void OnLocalStationExited() {
-		LocallyOccupied = false;
-		UpdateOccupant();
-	}
-
-	public void OnRemoteStationEntered() {
-		LocallyOccupied = false;
-		UpdateOccupant();
-	}
-
-	public void OnRemoteStationExited() {
+	public override void OnStationExited(VRCPlayerApi player) {
 		LocallyOccupied = false;
 		UpdateOccupant();
 	}
