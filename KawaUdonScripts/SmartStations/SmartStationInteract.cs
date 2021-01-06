@@ -26,7 +26,7 @@ public class SmartStationInteract : UdonSharpBehaviour {
 	}
 
 	public override void Interact() {
-		if (Controller == null || Controller.OccupantID > 0)
+		if (Controller == null || Controller.Occupant != null)
 			return;
 		var updater = Controller.Updater;
 		if (updater == null) {

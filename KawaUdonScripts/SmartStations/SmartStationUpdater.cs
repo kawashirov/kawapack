@@ -135,8 +135,7 @@ public class SmartStationUpdater : UdonSharpBehaviour {
 	}
 
 	private void UpdateDynamicSeat() {
-		var occupant_id = Controller.OccupantID;
-		var occupant = (VRCPlayerApi)(occupant_id < 0 ? null : VRCPlayerApi.GetPlayerById(occupant_id));
+		var occupant = Controller.Occupant;
 		if (occupant == null) {
 			DynamicSeat.SetPositionAndRotation(ReferenceSeat.position, Quaternion.identity);
 		} else {

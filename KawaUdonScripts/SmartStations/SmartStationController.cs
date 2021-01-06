@@ -13,10 +13,8 @@ public class SmartStationController : UdonSharpBehaviour {
 	public SmartStationUpdater Updater;
 
 	/* Runtime variables */
-
 	[NonSerialized] public VRCStation Station;
-	[NonSerialized] public bool LocallyOccupied = false;
-	[NonSerialized, UdonSynced(UdonSyncMode.None)] public int OccupantID = -1;
+	[NonSerialized] public VRCPlayerApi Occupant = null;
 
 	/* Internal variables */
 
@@ -33,9 +31,6 @@ public class SmartStationController : UdonSharpBehaviour {
 			gameObject.SetActive(false);
 		}
 
-		OccupantID = -1;
-		LocallyOccupied = false;
-
 		Station = (VRCStation)GetComponent(typeof(VRCStation));
 		if (Station == null) {
 			Debug.LogErrorFormat(gameObject, "[Kawa|SmartStationController] No VRCStation attached! @ {0}", _path);
@@ -45,99 +40,80 @@ public class SmartStationController : UdonSharpBehaviour {
 		Debug.LogFormat(gameObject, "[Kawa|SmartStationController] Initialized. @ {0}", _path);
 
 		UpdateOccupant();
-		CheckUpdater();
 	}
 
 	public override void OnStationEntered(VRCPlayerApi player) {
-		LocallyOccupied = player != null && player.isLocal;
+		VRCPlayerApi exit = Occupant != null && Occupant != player ? player : null;
+
+		if (Occupant == null || Occupant == player) {
+			LogChangeOccupant(Occupant, player, "OnStationEntered");
+			Occupant = player;
+		}
+
 		UpdateOccupant();
+
+		if (exit != null)
+			Station.ExitStation(exit);
 	}
 
 	public override void OnStationExited(VRCPlayerApi player) {
-		LocallyOccupied = false;
-		UpdateOccupant();
-	}
+		VRCPlayerApi exit = Occupant == player ? null : Occupant;
 
-	/*
-	public override void OnOwnershipTransferred()
-	{
-			Debug.LogFormat(gameObject, "[Kawa|SmartStationController] Updating OnOwnershipTransferred... @ {0}", _path);
-			SendCustomNetworkEvent(NetworkEventTarget.All, "UpdateOccupant");
+		LogChangeOccupant(Occupant, null, "OnStationExited");
+		Occupant = null;
+
+		UpdateOccupant();
+		
+		if (exit != null)
+			Station.ExitStation(exit);
 	}
-	*/
 
 	public override void OnPlayerLeft(VRCPlayerApi player) {
-		if (OccupantID != player.playerId)
-			return;
-		LogChangeOccupant(OccupantID, -1, "OnPlayerLeft");
-		OccupantID = -1;
-		CheckUpdater();
+		if (Occupant == player) {
+			LogChangeOccupant(Occupant, null, "OnPlayerLeft");
+			Occupant = null;
+			UpdateOccupant();
+		}
 	}
 
 	public override void OnDeserialization() {
-		// Если OccupantID изменился
-		CheckUpdater();
+		// ???
+		UpdateOccupant();
 	}
 
 	/* Logics */
 
 	public void UpdateOccupant() {
-		var player_local = Networking.LocalPlayer;
-		if (player_local == null)
-			return;
-		var player_local_id = player_local.playerId;
-		var is_owner_ctrl = Networking.IsOwner(gameObject);
+		var is_occupied = Occupant != null;
+		var occupant_str = PlayerToString(Occupant);
+		var updater_go = Updater != null ? Updater.gameObject : null;
 
-		var current_occupant_id = OccupantID;
-
-		// var occupant_str = PlayerIDToString(current_occupant_id);
-		// Debug.LogFormat(gameObject, "[Kawa|SmartStationController] Updating occupant: {1} @ {0}", _path, occupant_str);
-
-		if (LocallyOccupied && is_owner_ctrl && current_occupant_id != player_local_id) {
-			LogChangeOccupant(current_occupant_id, player_local_id, "locally occupied");
-			OccupantID = player_local_id;
-			CheckUpdater();
+		if (is_occupied && !Occupant.IsOwner(gameObject)) {
+			Debug.LogFormat(gameObject, "[Kawa|SmartStationController] Setting Controller owner to {1}. @ {0}", _path, occupant_str);
+			Networking.SetOwner(Occupant, gameObject);
 		}
 
-		if (!LocallyOccupied && is_owner_ctrl && current_occupant_id != -1) {
-			LogChangeOccupant(current_occupant_id, -1, "not locally occupied");
-			OccupantID = -1;
-			CheckUpdater();
+		if (is_occupied && updater_go != null && !Occupant.IsOwner(updater_go)) {
+			Debug.LogFormat(gameObject, "[Kawa|SmartStationController] Setting Updater owner to {1}. @ {0}", _path, occupant_str);
+			Networking.SetOwner(Occupant, updater_go);
 		}
-
-		if (LocallyOccupied && !is_owner_ctrl) {
-			Networking.SetOwner(player_local, gameObject);
-		}
-
-		if (Updater != null) {
-			var updater_go = Updater.gameObject; // getter
-			if (LocallyOccupied && !Networking.IsOwner(updater_go)) {
-				Networking.SetOwner(player_local, updater_go);
-			}
-		}
-	}
-
-	private void CheckUpdater() {
-		if (Updater != null) {
-			var is_occupied = OccupantID != -1;
-			var updater_go = Updater.gameObject;
-			if (is_occupied != updater_go.activeSelf) {
-				Debug.LogFormat(gameObject, "[Kawa|SmartStationController] Setting updataer state to {1}. @ {0}", _path, is_occupied);
-				updater_go.SetActive(is_occupied);
-			}
+		
+		if (updater_go != null && is_occupied != updater_go.activeSelf) {
+			Debug.LogFormat(gameObject, "[Kawa|SmartStationController] Setting updataer state to {1}. @ {0}", _path, is_occupied);
+			updater_go.SetActive(is_occupied);
 		}
 	}
 
 	/* Utils */
 
-	private void LogChangeOccupant(int old_occupant, int new_occupant, string reason) {
-		var old_occupant_str = PlayerIDToString(old_occupant);
-		var new_occupant_str = PlayerIDToString(new_occupant);
-		Debug.LogFormat(gameObject, "[Kawa|SmartStationController] Changing occupant {1} -> {2}, reason: {3}. @ {0}", _path, old_occupant_str, new_occupant_str, reason);
-	}
-
-	private string PlayerIDToString(int player) {
-		return PlayerToString(player < 0 ? null : VRCPlayerApi.GetPlayerById(player));
+	private void LogChangeOccupant(VRCPlayerApi old_occupant, VRCPlayerApi new_occupant, string reason) {
+		var old_occupant_str = PlayerToString(old_occupant);
+		var new_occupant_str = PlayerToString(new_occupant);
+		if (old_occupant != null && new_occupant != null) {
+			Debug.LogWarningFormat(gameObject, "[Kawa|SmartStationController] Changing occupant {1} -> {2}, reason: {3}. @ {0}", _path, old_occupant_str, new_occupant_str, reason);
+		} else {
+			Debug.LogFormat(gameObject, "[Kawa|SmartStationController] Changing occupant {1} -> {2}, reason: {3}. @ {0}", _path, old_occupant_str, new_occupant_str, reason);
+		}
 	}
 
 	private string PlayerToString(VRCPlayerApi player) {
