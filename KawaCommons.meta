@@ -1,6 +1,9 @@
 fileFormatVersion: 2
-guid: 122e5e1c27f594b4ab7bd8e8f78a112b
-TextScriptImporter:
+guid: 736d4e9f5ba6a324ca7a40e8b771e213
+labels:
+- Kawashirov
+folderAsset: yes
+DefaultImporter:
   externalObjects: {}
   userData: 
   assetBundleName: 

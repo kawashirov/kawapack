@@ -1,7 +1,7 @@
 # kawapack
 My shitty things for Unity (Generally for VRChat).
 
-Includes 6 [UPM packages](https://docs.unity3d.com/Packages/com.unity.package-manager-ui@2.0/manual/index.html) :
+Includes 6 categories:
 
 * **Commons** - Things used in my other scripts, includes:
   * **Refreshables** - Concept of editor-time helper things (ScriptableObjects assets and/or Components in scenes) to automete some editing processes that can be "refreshed".
