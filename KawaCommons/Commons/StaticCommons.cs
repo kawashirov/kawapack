@@ -20,6 +20,14 @@ namespace Kawashirov {
 		public static IEnumerable<T> UnityNotNull<T>(this IEnumerable<T> iter) where T : class 
 			=> iter.Where(obj => (obj as UnityEngine.Object) != null);
 
+		public static T GetOrAddComponent<T>(this GameObject gobj) where T : Component {
+			var c = gobj.GetComponent<T>();
+			if (c == null) {
+				c = gobj.AddComponent<T>();
+			}
+			return c;
+		}
+
 		public static string KawaGetHierarchyPath(this Transform transform) {
 			var path = transform.name;
 			while (transform.parent != null) {
