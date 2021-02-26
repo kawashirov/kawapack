@@ -14,7 +14,7 @@ struct v2f {
 
 	// Shared values
 	float4 pos : SV_POSITION;
-	half2 uv0 : TEXCOORD1;
+	half2 uv0 : TEXCOORD0;
 	float4 pos_world : KAWASMNT_POS_WORLD;
 	half3 normal_world : KAWASMNT_NORMAL_WORLD;
 
@@ -28,7 +28,6 @@ struct v2f {
 	
 	// Forward-only
 	#if defined(KAWAFLT_PASS_FORWARD)
-		half2 uv1 : TEXCOORD2;
 		half3 tangent_world : KAWASMNT_TANGENT_WORLD;
 		half3 bitangent_world : KAWASMNT_BITANGENT_WORLD;
 		#if defined(MATCAP_ON)

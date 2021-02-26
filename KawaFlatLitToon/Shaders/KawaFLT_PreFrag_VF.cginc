@@ -19,6 +19,9 @@ VERTEX_OUT vert(appdata_full v_in) {
 	half3 normal_obj = normalize(v_in.normal);
 
 	v_out.uv0 = v_in.texcoord;
+	#if defined(NEED_UV1)
+		v_out.uv1 = v_in.texcoord1;
+	#endif
 	
 	fps_vertex(v_in, v_out);
 
@@ -29,7 +32,6 @@ VERTEX_OUT vert(appdata_full v_in) {
 	screencoords_fragment_in(v_out);
 	
 	#if defined(KAWAFLT_PASS_FORWARD)
-		v_out.uv1 = v_in.texcoord1;
 
 		// Тангентное-пространство в координатах 
 		half tangent_w = v_in.tangent.w; // Определяет леворукость/праворукость/зеркальность?

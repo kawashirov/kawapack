@@ -11,12 +11,14 @@ struct v2g {
 	UNITY_VERTEX_OUTPUT_STEREO
 
 	half2 uv0 : TEXCOORD0;
+	#if defined(NEED_UV1)
+		half2 uv1 : TEXCOORD1;
+	#endif
 	float4 vertex : KAWASMNT_VERTEX;
 	half3 normal_obj : KAWASMNT_NORMAL_OBJ;
 	
 	#if defined(KAWAFLT_PASS_FORWARD)
 		// Forward-specific
-		half2 uv1 : TEXCOORD1;
 		half3 tangent_obj : KAWASMNT_TANGENT_OBJ;
 		half3 bitangent_obj : KAWASMNT_BITANGENT_OBJ;
 		#if defined(KAWAFLT_PASS_FORWARDBASE) && defined(SHADE_KAWAFLT)
@@ -30,7 +32,11 @@ struct g2f {
 	UNITY_VERTEX_OUTPUT_STEREO
 
 	float4 pos : SV_POSITION;
-	half2 uv0 : TEXCOORD1;
+	half2 uv0 : TEXCOORD0;
+	#if defined(NEED_UV1)
+		half2 uv1 : TEXCOORD1;
+	#endif
+	
 	float4 pos_world : KAWASMNT_POS_WORLD;
 	half3 normal_world : KAWASMNT_NORMAL_WORLD;
 
@@ -39,7 +45,6 @@ struct g2f {
 	#endif
 
 	#if defined(KAWAFLT_PASS_FORWARD)
-		half2 uv1 : TEXCOORD2;
 		half3 tangent_world : KAWASMNT_TANGENT_WORLD;
 		half3 bitangent_world : KAWASMNT_BITANGENT_WORLD;
 		float4 vertex : KAWASMNT_VERTEX;
@@ -67,7 +72,7 @@ struct g2f {
 		half iwd_tint : IWD_FACTOR;
 	#endif
 
-	#if defined(PCW_ON)
+	#if defined(PCW_ON) && defined(KAWAFLT_PASS_FORWARDBASE)
 		half4 pcw_color : PCW_COLOR;
 	#endif
 };

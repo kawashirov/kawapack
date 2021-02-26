@@ -23,12 +23,13 @@ VERTEX_OUT vert(appdata_full v_in) {
 	//uint rnd = rnd_from_float2(v_in.texcoord);
 	
 	v_out.uv0 = v_in.texcoord;
+	#if defined(NEED_UV1)
+		v_out.uv1 = v_in.texcoord1;
+	#endif
 	v_out.vertex = v_in.vertex;
 	v_out.normal_obj = normalize(v_in.normal);
 	
 	#if defined(KAWAFLT_PASS_FORWARD)
-		v_out.uv1 = v_in.texcoord1;
-
 		// С большой вероятностью на geom стейдже система изменится и нужно буде
 		// пересчитывать o->w, по этому сохраняем тангентное-пространство в координатах меши
 		// TODO оптимизировать
@@ -127,10 +128,12 @@ DOMAIN_OUT domain (TessellationFactors tessFactors, const OutputPatch<DOMAIN_IN,
 	DOMAIN_OUT v_out;
 
 	v_out.uv0 = DOMAIN_INTERPOLATE_3D(v_in, uv0, bary);
+	#if defined(NEED_UV1)
+		v_out.uv1 = DOMAIN_INTERPOLATE_3D(v_in, uv1, bary);
+	#endif
 	v_out.normal_obj = normalize(DOMAIN_INTERPOLATE_3D(v_in, normal_obj, bary));
 
 	#if defined(KAWAFLT_PASS_FORWARD)
-		v_out.uv1 = DOMAIN_INTERPOLATE_3D(v_in, uv1, bary);
 		v_out.tangent_obj = normalize(DOMAIN_INTERPOLATE_3D(v_in, tangent_obj, bary));
 		v_out.bitangent_obj = normalize(DOMAIN_INTERPOLATE_3D(v_in, bitangent_obj, bary));
 		#if defined(KAWAFLT_PASS_FORWARDBASE) && defined(SHADE_KAWAFLT)
@@ -173,7 +176,7 @@ void geom(triangle GEOMETRY_IN v_in[3], uint p_id : SV_PrimitiveID, uint g_id : 
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(v_in[0]);
 	GEOMETRY_OUT v_out[3];
 	UNITY_UNROLL for (int i1 = 0; i1 < 3; i1++) {
-		// UNITY_INITIALIZE_OUTPUT(GEOMETRY_OUT, v_out[i1]);
+		UNITY_INITIALIZE_OUTPUT(GEOMETRY_OUT, v_out[i1]); // FIXME
 		UNITY_TRANSFER_INSTANCE_ID(v_in[i1], v_out[i1]);
 		UNITY_TRANSFER_VERTEX_OUTPUT_STEREO(v_in[i1], v_out[i1]);
 	}
@@ -216,11 +219,12 @@ void geom(triangle GEOMETRY_IN v_in[3], uint p_id : SV_PrimitiveID, uint g_id : 
 		// Модификация в ворлд-спейсе завершена, можно обсчитывать клип-спейс и прочее
 
 		v_out[i2].uv0 = v_in[i2].uv0;
+		#if defined(NEED_UV1)
+			v_out[i2].uv1 = v_in[i2].uv1;
+		#endif
 		v_out[i2].pos = UnityWorldToClipPos(v_out[i2].pos_world);
 
 		#if defined(KAWAFLT_PASS_FORWARD)
-			v_out[i2].uv1 = v_in[i2].uv1;
-
 			v_out[i2].vertex = v_in[i2].vertex;
 			v_out[i2].tangent_world = normalize(UnityObjectToWorldDir(v_in[i2].tangent_obj));
 			v_out[i2].bitangent_world = normalize(UnityObjectToWorldDir(v_in[i2].bitangent_obj));

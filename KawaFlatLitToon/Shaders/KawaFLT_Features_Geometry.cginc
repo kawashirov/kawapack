@@ -46,7 +46,9 @@ inline void outline_geometry_apply_offset(inout GEOMETRY_OUT v_out, bool is_outl
 
 // (OUT[i].uv0, OUT[i].uv1, OUT[i].vertex, rnd) -> (OUT[i].pcw_color, rnd)
 inline void pcw_geometry_out(inout GEOMETRY_OUT OUT[3], inout uint rnd) {
-	#if defined(PCW_ON)
+	#if defined(PCW_ON) && defined(KAWAFLT_PASS_FORWARDBASE)
+		// Используется только в базовом проходе
+		// assuming NEED_UV1
 		float2 uv0Mid = (OUT[0].uv0 + OUT[1].uv0 + OUT[2].uv0) / 3.0;
 		float2 uv1Mid = (OUT[0].uv1 + OUT[1].uv1 + OUT[2].uv1) / 3.0;
 		float4 vertexMid = (OUT[0].vertex + OUT[1].vertex + OUT[2].vertex) / 3.0;

@@ -87,7 +87,8 @@ inline half4 fps_mix(half4 color) {
 /* PolyColorWave features */
 
 inline half3 pcw_mix(half3 color, FRAGMENT_IN i, bool is_emission) {
-	#if defined(PCW_ON)
+	// Mix-in Poly Color Wave but only in BASE pass
+	#if defined(PCW_ON) && defined(KAWAFLT_PASS_FORWARDBASE)
 		color = lerp(color, i.pcw_color.rgb, i.pcw_color.a * (is_emission ? _PCW_Em : (1.0 - _PCW_Em)));
 	#endif
 	return color;

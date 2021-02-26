@@ -198,7 +198,7 @@ namespace Kawashirov.FLT
 			EGUIL.Space();
 			using (new DisabledScope(!complexity_VGF && !complexity_VHDGF)) {
 				var outline = serializedObject.FindProperty("outline");
-				ToggleLeft(FPS, gui_feature_outline);
+				ToggleLeft(outline, gui_feature_outline);
 				using (new DisabledScope(
 					outline.hasMultipleDifferentValues || !outline.boolValue || (!complexity_VGF && !complexity_VHDGF)
 				)) {

@@ -2,7 +2,7 @@
 #define KAWAFLT_FRAG_FORWARD_BASE_INCLUDED
 
 #if !defined(KAWAFLT_PASS_FORWARDBASE)
-	#error KAWAFLT_PASS_FORWAR_BASE not defined, but KAWAFLT_STAGE_FRAGMENT_FORWARD_BASE included. 
+	#error KAWAFLT_PASS_FORWARDBASE not defined, but KAWAFLT_STAGE_FRAGMENT_FORWARD_BASE included. 
 #endif
 
 // #include "UnityInstancing.cginc"

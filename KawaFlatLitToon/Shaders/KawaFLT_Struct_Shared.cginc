@@ -201,6 +201,7 @@ uniform float4 _Color;
 // #pragma shader_feature _ PCW_ON
 #define PCW_RND_SEED 22443
 #if defined(PCW_ON)
+	#define NEED_UV1
 	uniform float _PCW_WvTmLo;
 	uniform float _PCW_WvTmAs;
 	uniform float _PCW_WvTmHi;
