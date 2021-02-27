@@ -61,6 +61,8 @@ namespace Kawashirov.FLT {
 		internal static readonly string F_Matcap = "KawaFLT_Feature_Matcap";
 		internal static readonly string F_MatcapMode = "KawaFLT_Feature_MatcapMode";
 
+		internal static readonly string F_WNoise = "KawaFLT_Feature_WNoise";
+
 		internal static readonly string F_FPS = "KawaFLT_Feature_FPS";
 		internal static readonly string F_FPSMode = "KawaFLT_Feature_FPSMode";
 

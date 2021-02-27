@@ -46,6 +46,7 @@ namespace Kawashirov.FLT {
 
 		public bool rndMixTime = false;
 		public bool rndMixCords = false;
+		public bool rndScreenScale = false;
 		[NonSerialized] private bool needRandomVert = false;
 		[NonSerialized] private bool needRandomFrag = false;
 		public Texture2D rndDefaultTexture = null;
@@ -57,6 +58,8 @@ namespace Kawashirov.FLT {
 
 		public bool distanceFade = false;
 		public DistanceFadeMode distanceFadeMode = DistanceFadeMode.Range;
+
+		public bool wnoise = false;
 
 		public bool FPS = false;
 		public FPSMode FPSMode = FPSMode.ColorTint;
@@ -195,6 +198,7 @@ namespace Kawashirov.FLT {
 
 			ConfigureFeatureMatcap(shader);
 			ConfigureFeatureDistanceFade(shader);
+			ConfigureFeatureWNoise(shader);
 			ConfigureFeatureFPS(shader);
 
 			ConfigureFeatureOutline(shader);
@@ -641,6 +645,18 @@ namespace Kawashirov.FLT {
 			}
 		}
 
+		private void ConfigureFeatureWNoise(ShaderSetup shader) {
+			shader.TagBool(KFLTC.F_WNoise, wnoise);
+			if (wnoise) {
+				needRandomFrag = true;
+				shader.Define("WNOISE_ON 1");
+				shader.properties.Add(new PropertyFloat() { name = "_WNoise_Albedo", defualt = 1, range = new Vector2(0, 1) });
+				shader.properties.Add(new PropertyFloat() { name = "_WNoise_Em", defualt = 1, range = new Vector2(0, 1) });
+			} else {
+				shader.Define("WNOISE_OFF 1");
+			}
+		}
+
 		private void ConfigureFeatureFPS(ShaderSetup shader) {
 			shader.TagBool(KFLTC.F_FPS, FPS);
 			if (FPS) {
@@ -751,6 +767,10 @@ namespace Kawashirov.FLT {
 				}
 				if (rndMixCords) {
 					shader.Define("RANDOM_MIX_COORD 1");
+				}
+				if (rndScreenScale) {
+					shader.Define("RANDOM_SCREEN_SCALE 1");
+					shader.properties.Add(new PropertyVector() { name = "_Rnd_ScreenScale", defualt = new Vector4(1, 1, 0, 0) });
 				}
 			} else {
 				shader.TagBool(KFLTC.F_Random, false);

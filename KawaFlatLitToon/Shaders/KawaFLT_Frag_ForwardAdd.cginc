@@ -66,7 +66,7 @@ half4 frag_forwardadd(FRAGMENT_IN i) : COLOR {
 	dstfd_frag_clip(i, rnd4_sc);
 	
 	half3 normal3 = frag_forward_get_normal(i, texST);
-	half4 albedo = frag_forward_get_albedo(i, texST);
+	half4 albedo = frag_forward_get_albedo(i, texST, rnd4_sc);
 	half originalA = albedo.a;
 	
 	frag_alphatest(i, rnd4_sc, albedo.a);

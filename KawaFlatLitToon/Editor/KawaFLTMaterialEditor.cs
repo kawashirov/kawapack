@@ -66,37 +66,39 @@ internal class KawaFLTMaterialEditor : Kawashirov.ShaderBaking.MaterialEditor<Ge
 	}
 
 	protected void OnGUI_Random() {
-		var _Rnd_Seed = FindProperty("_Rnd_Seed");
-		var label = new GUIContent(
-			"Seed Noise", "R16 texture filled with random values to help generating random numbers."
-		);
-
-		if (_Rnd_Seed != null) {
-			using(new GUILayout.HorizontalScope()) {
-				this.TexturePropertySmol(label, _Rnd_Seed, false);
-				if (GUILayout.Button("Default")) {
-					_Rnd_Seed.textureValue = Generator.GetRndDefaultTexture();
+		EGUIL.LabelField("PRNG Settings");
+		using (new IndentLevelScope()) {
+			var _Rnd_Seed = FindProperty("_Rnd_Seed");
+			var label_tex = new GUIContent("Seed Noise", "R16 texture filled with random values to help generating random numbers.");
+			if (_Rnd_Seed != null) {
+				using (new GUILayout.HorizontalScope()) {
+					this.TexturePropertySmol(label_tex, _Rnd_Seed, false);
+					if (GUILayout.Button("Default")) {
+						_Rnd_Seed.textureValue = Generator.GetRndDefaultTexture();
+					}
 				}
+
+				var value = _Rnd_Seed.textureValue as Texture2D;
+				if (value == null) {
+					EGUIL.HelpBox(
+						"No seed noise texture is set!\n" +
+						"Some of enabled features using Pseudo-Random Number Generator.\n" +
+						"This texture is required, and shader will not properly work without this.",
+						MessageType.Error
+					);
+				} else if (value.format != TextureFormat.R16) {
+					EGUIL.HelpBox(
+						"Seed noise texture is not encoded as R16!\n(Single red channel, 16 bit integer.)\n" +
+						"Pseudo-Random Number Generator features is guaranteed to work only with R16 format.",
+						MessageType.Warning
+					);
+				}
+			} else {
+				using (new DisabledScope(true))
+					EGUIL.LabelField(label_tex, new GUIContent("Disabled"));
 			}
 
-			var value = _Rnd_Seed.textureValue as Texture2D;
-			if (value == null) {
-				EGUIL.HelpBox(
-					"No seed noise texture is set!\n" +
-					"Some of enabled features using Pseudo-Random Number Generator.\n" +
-					"This texture is required, and shader will not properly work without this.",
-					MessageType.Error
-				);
-			} else if (value.format != TextureFormat.R16) {
-				EGUIL.HelpBox(
-					"Seed noise texture is not encoded as R16!\n(Single red channel, 16 bit integer.)\n" +
-					"Pseudo-Random Number Generator features is guaranteed to work only with R16 format.",
-					MessageType.Warning
-				);
-			}
-		} else {
-			using (new DisabledScope(true))
-				EGUIL.LabelField(label, new GUIContent("Disabled"));
+			ShaderPropertyDisabled(FindProperty("_Rnd_ScreenScale"), "Screen Space Scale");
 		}
 	}
 
@@ -275,6 +277,22 @@ internal class KawaFLTMaterialEditor : Kawashirov.ShaderBaking.MaterialEditor<Ge
 					ShaderPropertyDisabled(_DstFd_Far, "Far Distance");
 					ShaderPropertyDisabled(_DstFd_AdjustPower, "Power Adjust");
 					ShaderPropertyDisabled(_DstFd_AdjustScale, "Scale Adjust");
+				}
+			}
+		}
+	}
+
+	protected void OnGUI_WNoise() {
+		// Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_FPS);
+		var _WNoise_Albedo = FindProperty("_WNoise_Albedo");
+		var _WNoise_Em = FindProperty("_WNoise_Em");
+		var f_wnoise = SC.AnyNotNull(_WNoise_Albedo, _WNoise_Em);
+		using (new DisabledScope(!f_wnoise)) {
+			EGUIL.LabelField("White Noise Feature", f_wnoise ? "Enabled" : "Disabled");
+			using (new IndentLevelScope()) {
+				if (f_wnoise) {
+					ShaderPropertyDisabled(_WNoise_Albedo, "Noise on Albedo");
+					ShaderPropertyDisabled(_WNoise_Em, "Noise on Emission");
 				}
 			}
 		}
@@ -517,6 +535,9 @@ internal class KawaFLTMaterialEditor : Kawashirov.ShaderBaking.MaterialEditor<Ge
 
 		EGUIL.Space();
 		OnGUI_DistanceFade();
+
+		EGUIL.Space();
+		OnGUI_WNoise();
 
 		EGUIL.Space();
 		OnGUI_FPS();

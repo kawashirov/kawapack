@@ -18,11 +18,9 @@ namespace Kawashirov.FLT
 	[CanEditMultipleObjects]
 	[CustomEditor(typeof(Generator))]
 	public class GeneratorEditor : ShaderBaking.BaseGenerator.Editor<Generator> {
-
-
-		
 		private static readonly GUIContent gui_feature_matcap = new GUIContent("Matcap Feature");
 		private static readonly GUIContent gui_feature_dstfd = new GUIContent("Distance Dithering Fade Feature");
+		private static readonly GUIContent gui_feature_wnoise = new GUIContent("White Noise Feature");
 		private static readonly GUIContent gui_feature_fps = new GUIContent("FPS Feature");
 		private static readonly GUIContent gui_feature_outline = new GUIContent("Outline Feature");
 		private static readonly GUIContent gui_feature_iwd = new GUIContent("Infinity War Decimation Feature");
@@ -155,6 +153,7 @@ namespace Kawashirov.FLT
 				);
 				DefaultPrpertyField("rndMixTime", "Use Time where possible");
 				DefaultPrpertyField("rndMixCords", "Use Screen-Space coords where possible");
+				DefaultPrpertyField("rndScreenScale", "Screen-Space scaling");
 				using (new GUIL.HorizontalScope()) {
 					var rndDefaultTexture = serializedObject.FindProperty("rndDefaultTexture");
 					DefaultPrpertyField(rndDefaultTexture, "Default noise texture.");
@@ -183,6 +182,15 @@ namespace Kawashirov.FLT
 			using (new DisabledScope(distanceFade.hasMultipleDifferentValues || !distanceFade.boolValue)) {
 				using (new IndentLevelScope()) {
 					DefaultPrpertyField("distanceFadeMode", "Mode");
+				}
+			}
+
+			EGUIL.Space();
+			var wnoise = serializedObject.FindProperty("wnoise");
+			ToggleLeft(wnoise, gui_feature_wnoise);
+			using (new DisabledScope(wnoise.hasMultipleDifferentValues || !wnoise.boolValue)) {
+				using (new IndentLevelScope()) {
+					// 
 				}
 			}
 

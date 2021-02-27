@@ -17,6 +17,9 @@ inline float2 frag_pixelcoords(FRAGMENT_IN i) {
 inline uint frag_rnd_init(FRAGMENT_IN i) {
 	float2 sc_raw = frag_pixelcoords(i);
 	float2 sc_floor = floor(sc_raw);
+	#if defined(RANDOM_SCREEN_SCALE)
+		sc_floor = floor(sc_raw / _Rnd_ScreenScale) * _Rnd_ScreenScale;
+	#endif
 	uint rnd = rnd_init_noise_coords((uint2) sc_floor);
 	#if defined(RANDOM_MIX_COORD)
 		rnd = rnd_apply_uint2(rnd, asuint(sc_floor));
@@ -77,9 +80,24 @@ inline void fps_frag(inout FRAGMENT_IN i) {
 	#endif
 }
 
-inline half4 fps_mix(half4 color) {
+inline half3 fps_mix(half3 color) {
 	#if defined(FPS_ON)
 		color *= lerp(_FPS_TLo, _FPS_THi, unity_DeltaTime.w / 91.0h);
+	#endif
+	return color;
+}
+
+/* White Noise features */
+
+inline half3 wnoise_mix(half3 color, FRAGMENT_IN i, bool is_emission, inout uint rnd) {
+	#if defined(WNOISE_ON)
+		float wnoise = rnd_next_float_01(rnd);
+		float factor_em = 0;
+		#if defined(EMISSION_ON)
+			factor_em = _WNoise_Em;
+		#endif
+		float factor = is_emission ? factor_em : _WNoise_Albedo;
+		color.rgb = lerp(color.rgb, wnoise.rrr, factor);
 	#endif
 	return color;
 }
@@ -130,7 +148,7 @@ inline void frag_cull(FRAGMENT_IN i) {
 	#endif
 }
 
-inline half4 frag_forward_get_albedo(FRAGMENT_IN i, float2 texST) {
+inline half4 frag_forward_get_albedo(FRAGMENT_IN i, float2 texST, inout uint rnd) {
 	half4 color;
 	#if defined(AVAILABLE_MAINTEX)
 		color = UNITY_SAMPLE_TEX2D(_MainTex, texST);
@@ -144,7 +162,8 @@ inline half4 frag_forward_get_albedo(FRAGMENT_IN i, float2 texST) {
 		color = _Color;
 	#endif
 
-	color = fps_mix(color);
+	color.rgb = wnoise_mix(color.rgb, i, false, rnd);
+	color.rgb = fps_mix(color.rgb);
 	color.rgb = pcw_mix(color.rgb, i, false); // Mix-in Poly Color Wave
 	color = iwd_mix_albedo(color, i);
 

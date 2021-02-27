@@ -95,6 +95,9 @@ uniform float4 _Color;
 
 #if defined(RANDOM_SEED_TEX)
 	Texture2D<uint> _Rnd_Seed; // DX11, no sampler
+	#if defined(RANDOM_SCREEN_SCALE)
+		uniform float2 _Rnd_ScreenScale;
+	#endif
 #endif
 
 /*
@@ -194,6 +197,14 @@ uniform float4 _Color;
 	#endif
 #endif
 
+#define WNOISE_RND_SEED 43178
+#if defined(WNOISE_ON)
+	uniform float _WNoise_Albedo;
+	#if defined(EMISSION_ON)
+		uniform float _WNoise_Em;
+	#endif
+	// uniform float _WNoise_Scale;
+#endif
 
 /* PolyColorWave features */
 

@@ -12,7 +12,7 @@
 
 /* ForwardBase only utils */
 
-inline half3 frag_forward_get_emission_color(inout FRAGMENT_IN i, half3 baseColor, float2 texST) {
+inline half3 frag_forward_get_emission_color(inout FRAGMENT_IN i, half3 baseColor, float2 texST, inout uint rnd) {
 	half3 em = half3(0,0,0);
 	#if defined(EMISSION_ALBEDO_NOMASK)
 		em = baseColor;
@@ -25,6 +25,7 @@ inline half3 frag_forward_get_emission_color(inout FRAGMENT_IN i, half3 baseColo
 		em = em * _EmissionColor.rgb * _EmissionColor.a;
 		em = em * em; // TODO FIXME Gamma fix?
 	#endif
+	em = wnoise_mix(em, i, true, rnd);
 	em = fps_mix(half4(em, 0)).rgb;
 	em = pcw_mix(em, i, true); // Mix-in Poly Color Wave
 	em = iwd_mix_emission(em, i);
@@ -137,8 +138,8 @@ half4 frag_forwardbase(FRAGMENT_IN i) : COLOR {
 	dstfd_frag_clip(i, rnd4_sc);
 
 	half3 normal3 = frag_forward_get_normal(i, texST);
-	half4 albedo = frag_forward_get_albedo(i, texST);
-	half3 emissive = frag_forward_get_emission_color(i, albedo, texST);
+	half4 albedo = frag_forward_get_albedo(i, texST, rnd4_sc);
+	half3 emissive = frag_forward_get_emission_color(i, albedo, texST, rnd4_sc);
 	
 	frag_alphatest(i, rnd4_sc, albedo.a);
 
