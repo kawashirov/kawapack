@@ -97,18 +97,12 @@ uniform float4 _Color;
 */
 
 #if defined(KAWAFLT_PASS_FORWARD)
-	#if defined(SHADE_CUBEDPARADOXFLT)
-
-		uniform float _Sh_Cbdprdx_Shadow;
-		
-	#elif defined(SHADE_KAWAFLT_LOG)
+	#if defined(SHADE_KAWAFLT_LOG)
 		#define SHADE_KAWAFLT 1
 	#elif defined(SHADE_KAWAFLT_RAMP)
 		#define SHADE_KAWAFLT 1
 	#elif defined(SHADE_KAWAFLT_SINGLE)
 		#define SHADE_KAWAFLT 1
-	#else
-		#error SHADE_???
 	#endif
 #endif
 
@@ -126,13 +120,6 @@ uniform float4 _Color;
 #endif
 
 // v2g & g2f entries
-
-static const half3 grayscale_vector = half3(0, 0.3823529, 0.01845836);
-
-inline half grayscaleSH9(half3 normalDirection) {
-	return dot(ShadeSH9(half4(normalDirection, 1)), grayscale_vector);
-}
-
 
 /* Helper functions */
 

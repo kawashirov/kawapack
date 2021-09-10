@@ -9,23 +9,10 @@
 
 #include ".\kawa_feature_matcap.cginc"
 
+#include ".\kawa_shading_cubedparadox.cginc"
 #include ".\kawa_shading_kawaflt_log.cginc"
 #include ".\kawa_shading_kawaflt_ramp.cginc"
 #include ".\kawa_shading_kawaflt_single.cginc"
-
-#if defined(SHADE_CUBEDPARADOXFLT)
-	inline half3 frag_shade_cbdprdx_forward_add(FRAGMENT_IN i, half3 baseColor, half3 normal) {
-		// float4 objPos = mul(unity_ObjectToWorld, float4(0,0,0,1));
-		//float3 lightDirection = normalize(_WorldSpaceLightPos0.xyz);
-		//float3 lightColor = _LightColor0.rgb;
-		UNITY_LIGHT_ATTENUATION(attenuation, i, i.pos_world.xyz);
-		half lightContribution = dot(normalize(_WorldSpaceLightPos0.xyz - i.pos_world.xyz),normal)*attenuation;
-		half3 directContribution = floor(saturate(lightContribution) * 2.0h);
-		half lerp_v = saturate(directContribution + ((1.0h - _Sh_Cbdprdx_Shadow) * attenuation));
-		return baseColor * lerp(0.0h, _LightColor0.rgb, lerp_v);
-	}
-#endif
-
 
 /* General fragment function */
 half4 frag_forwardadd(FRAGMENT_IN i) : COLOR {
