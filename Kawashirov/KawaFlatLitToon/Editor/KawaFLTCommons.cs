@@ -67,6 +67,8 @@ namespace Kawashirov.FLT {
 		internal static readonly string F_FPS = "KawaFLT_Feature_FPS";
 		internal static readonly string F_FPSMode = "KawaFLT_Feature_FPSMode";
 
+		internal static readonly string F_PSX = "KawaFLT_Feature_PSX";
+
 		internal static readonly string F_Outline = "KawaFLT_Feature_Outline";
 		internal static readonly string F_OutlineMode = "KawaFLT_Feature_OutlineMode";
 

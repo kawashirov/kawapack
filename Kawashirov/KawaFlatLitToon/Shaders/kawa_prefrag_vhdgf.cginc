@@ -12,6 +12,7 @@
 #include ".\kawa_feature_distance_fade.cginc"
 #include ".\kawa_feature_fps.cginc"
 #include ".\kawa_feature_matcap.cginc"
+#include ".\kawa_feature_psx.cginc"
 
 #include ".\kawa_feature_infinity_war.cginc"
 #include ".\kawa_feature_poly_color_wave.cginc"
@@ -252,6 +253,8 @@ void geom(triangle GEOMETRY_IN v_in[3], uint p_id : SV_PrimitiveID, uint g_id : 
 			UNITY_TRANSFER_FOG(v_out[i2], v_out[i2].pos);
 		#endif
 
+		// (v_out.pos) -> (v_out.pos)
+		psx_prefrag(v_out[i2]);
 		// (v_out.pos) -> (v_out.pos_screen)
 		screencoords_fragment_in(v_out[i2]);
 		// (v_out.pos_world) -> (v_out.dstfd_distance)

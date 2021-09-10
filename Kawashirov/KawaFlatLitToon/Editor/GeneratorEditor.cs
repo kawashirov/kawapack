@@ -22,6 +22,7 @@ namespace Kawashirov.FLT
 		private static readonly GUIContent gui_feature_dstfd = new GUIContent("Distance Dithering Fade Feature");
 		private static readonly GUIContent gui_feature_wnoise = new GUIContent("White Noise Feature");
 		private static readonly GUIContent gui_feature_fps = new GUIContent("FPS Feature");
+		private static readonly GUIContent gui_feature_psx = new GUIContent("PSX Feature");
 		private static readonly GUIContent gui_feature_outline = new GUIContent("Outline Feature");
 		private static readonly GUIContent gui_feature_iwd = new GUIContent("Infinity War Decimation Feature");
 		private static readonly GUIContent gui_feature_pcw = new GUIContent("Poly ColorWave Feature");
@@ -203,6 +204,17 @@ namespace Kawashirov.FLT
 					DefaultPrpertyField("FPSMode", "Mode");
 				}
 			}
+
+			EGUIL.Space();
+			var PSX = serializedObject.FindProperty("PSX");
+			ToggleLeft(PSX, gui_feature_psx);
+			//using (new DisabledScope(PSX.hasMultipleDifferentValues || !PSX.boolValue))
+			//{
+			//	using (new IndentLevelScope())
+			//	{
+			//		//
+			//	}
+			//}
 
 			EGUIL.Space();
 			using (new DisabledScope(!complexity_VGF && !complexity_VHDGF)) {

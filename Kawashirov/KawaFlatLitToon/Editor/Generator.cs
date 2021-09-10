@@ -65,6 +65,8 @@ namespace Kawashirov.FLT {
 		public bool FPS = false;
 		public FPSMode FPSMode = FPSMode.ColorTint;
 
+		public bool PSX = false;
+
 		public bool outline = false;
 		public OutlineMode outlineMode = OutlineMode.Tinted;
 
@@ -201,6 +203,7 @@ namespace Kawashirov.FLT {
 			ConfigureFeatureDistanceFade(shader);
 			ConfigureFeatureWNoise(shader);
 			ConfigureFeatureFPS(shader);
+			ConfigureFeaturePSX(shader);
 
 			ConfigureFeatureOutline(shader);
 			ConfigureFeatureInfinityWarDecimation(shader);
@@ -681,6 +684,16 @@ namespace Kawashirov.FLT {
 				shader.properties.Add(new PropertyColor() { name = "_FPS_THi", defualt = new Color(0.5f, 1, 0.5f, 1) });
 			} else {
 				shader.Define("FPS_OFF 1");
+			}
+		}
+
+		private void ConfigureFeaturePSX(ShaderSetup shader) {
+			shader.TagBool(KFLTC.F_PSX, PSX);
+			if (PSX) {
+				shader.Define("PSX_ON 1");
+				shader.properties.Add(new PropertyFloat() { name = "_PSX_SnapScale", defualt = 1.0f, range = new Vector2(0.1f, 100.0f), power = 2.0f });
+			} else {
+				shader.Define("PSX_OFF 1");
 			}
 		}
 

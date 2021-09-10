@@ -316,6 +316,20 @@ internal class KawaFLTMaterialEditor : Kawashirov.ShaderBaking.MaterialEditor<Ge
 		}
 	}
 
+	protected void OnGUI_PSX() {
+		// Commons.MaterialTagBoolCheck(this.target, Commons.KawaFLT_Feature_FPS);
+		var _PSX_SnapScale = FindProperty("_PSX_SnapScale");
+		var f_PSX = SC.AnyNotNull(_PSX_SnapScale);
+		using (new DisabledScope(!f_PSX)) {
+			EGUIL.LabelField("PSX Effect Feature", f_PSX ? "Enabled" : "Disabled");
+			using (new IndentLevelScope()) {
+				if (f_PSX) {
+					ShaderPropertyDisabled(_PSX_SnapScale, "Pixel Snap Scale");
+				}
+			}
+		}
+	}
+
 	private void OnGUI_Outline() {
 		var _outline_width = FindProperty("_outline_width");
 		var _outline_color = FindProperty("_outline_color");
@@ -542,6 +556,9 @@ internal class KawaFLTMaterialEditor : Kawashirov.ShaderBaking.MaterialEditor<Ge
 
 		EGUIL.Space();
 		OnGUI_FPS();
+
+		EGUIL.Space();
+		OnGUI_PSX();
 
 		EGUIL.Space();
 		OnGUI_InfinityWarDecimation();

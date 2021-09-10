@@ -11,6 +11,7 @@
 #include ".\kawa_feature_distance_fade.cginc"
 #include ".\kawa_feature_fps.cginc"
 #include ".\kawa_feature_matcap.cginc"
+#include ".\kawa_feature_psx.cginc"
 
 #include ".\kawa_shading_kawaflt_fragment_in.cginc"
 
@@ -35,6 +36,9 @@ VERTEX_OUT vert(appdata_full v_in) {
 	v_out.pos_world = mul(unity_ObjectToWorld, v_in.vertex);
 	v_out.normal_world = normalize(UnityObjectToWorldNormal(normal_obj));
 
+	// (v_out.pos) -> (v_out.pos)
+	psx_prefrag(v_out);
+	// (v_out.pos) -> (v_out.pos_screen)
 	screencoords_fragment_in(v_out);
 	
 	#if defined(KAWAFLT_PASS_FORWARD)
