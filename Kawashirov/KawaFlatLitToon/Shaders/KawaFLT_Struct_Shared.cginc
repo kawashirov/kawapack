@@ -119,8 +119,6 @@ uniform float4 _Color;
 	// TODO UVS
 #endif
 
-// v2g & g2f entries
-
 /* Helper functions */
 
 inline float3 KawaWorldSpaceCamPos() {

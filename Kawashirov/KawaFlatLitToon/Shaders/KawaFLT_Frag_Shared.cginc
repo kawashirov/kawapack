@@ -36,24 +36,6 @@ inline uint frag_rnd_init(FRAGMENT_IN i) {
 	return rnd;
 }
 
-
-/* Infinity War features */
-
-inline half4 iwd_mix_albedo(half4 color, FRAGMENT_IN i) {
-	#if defined(IWD_ON)
-		color.rgb = lerp(color.rgb, _IWD_TintColor.rgb, _IWD_TintColor.a * i.iwd_tint);
-	#endif
-	return color;
-}
-
-inline half3 iwd_mix_emission(half3 color, FRAGMENT_IN i) {
-	#if defined(IWD_ON)
-		// Затенение эмишона.
-		color = color * saturate(1.0 - _IWD_TintColor.a * i.iwd_tint);
-	#endif
-	return color;
-}
-
 inline float2 frag_applyst(float2 uv) {
 	//#if defined(AVAILABLE_ST)
 		//uv = TRANSFORM_TEX(uv, _MainTex /* _ST */);
