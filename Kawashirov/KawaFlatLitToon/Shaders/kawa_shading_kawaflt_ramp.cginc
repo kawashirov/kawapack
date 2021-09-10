@@ -1,4 +1,4 @@
-#ifndef KAWAFLT_SHADING_KAWAFLT_RAMP_INCLUDED
+#if defined(SHADE_KAWAFLT_RAMP) && !defined(KAWAFLT_SHADING_KAWAFLT_RAMP_INCLUDED)
 #define KAWAFLT_SHADING_KAWAFLT_RAMP_INCLUDED
 
 #include "UnityLightingCommon.cginc"
@@ -10,24 +10,19 @@
 	Kawashirov's Flat Lit Toon Ramp
 */
 
-#if defined(SHADE_KAWAFLT_RAMP)
-	#define SHADE_KAWAFLT 1
+uniform float _Sh_Kwshrv_ShdBlnd;
 
-	uniform float _Sh_Kwshrv_ShdBlnd;
+UNITY_DECLARE_TEX2D(_Sh_KwshrvRmp_Tex);
+uniform float _Sh_KwshrvRmp_Pwr;
+uniform float4 _Sh_KwshrvRmp_NdrctClr;
 
-	UNITY_DECLARE_TEX2D(_Sh_KwshrvRmp_Tex);
-	uniform float _Sh_KwshrvRmp_Pwr;
-	uniform float4 _Sh_KwshrvRmp_NdrctClr;
-#endif
+inline half3 frag_shade_kawaflt_ramp_apply(half uv) {
+	uv = pow(uv, _Sh_KwshrvRmp_Pwr);
+	uv = uv * uv * (3.0 - 2.0 * uv); // Cubic Hermite H01 interoplation
+	return UNITY_SAMPLE_TEX2D(_Sh_KwshrvRmp_Tex, half2(uv, uv)).rgb;
+}
 
-#if defined(FRAGMENT_IN) && defined(SHADE_KAWAFLT_RAMP)
-
-	inline half3 frag_shade_kawaflt_ramp_apply(half uv) {
-		uv = pow(uv, _Sh_KwshrvRmp_Pwr);
-		uv = uv * uv * (3.0 - 2.0 * uv); // Cubic Hermite H01 interoplation
-		return UNITY_SAMPLE_TEX2D(_Sh_KwshrvRmp_Tex, half2(uv, uv)).rgb;
-	}
-
+#if defined(FRAGMENT_IN)
 	inline half3 frag_shade_kawaflt_ramp_forward_main(FRAGMENT_IN i, half3 normal) {
 		half light_atten = frag_shade_kawaflt_attenuation_no_shadow(i.pos_world.xyz);
 
@@ -62,6 +57,6 @@
 		}
 	#endif
 
-#endif // defined(FRAGMENT_IN) && defined(SHADE_KAWAFLT_RAMP)
+#endif // defined(FRAGMENT_IN)
 
 #endif // KAWAFLT_SHADING_KAWAFLT_RAMP_INCLUDED

@@ -1,4 +1,4 @@
-#ifndef KAWAFLT_SHADING_KAWAFLT_SINGLE_INCLUDED
+#if defined(SHADE_KAWAFLT_SINGLE) && !defined(KAWAFLT_SHADING_KAWAFLT_SINGLE_INCLUDED)
 #define KAWAFLT_SHADING_KAWAFLT_SINGLE_INCLUDED
 
 #include "UnityLightingCommon.cginc"
@@ -10,29 +10,27 @@
 	Kawashirov's Flat Lit Toon Single Diffuse-based
 */
 
-#if defined(SHADE_KAWAFLT_SINGLE)
-	uniform float _Sh_Kwshrv_ShdBlnd;
-	uniform float _Sh_Kwshrv_Smth;
-	uniform float _Sh_KwshrvSngl_TngntLo;
-	uniform float _Sh_KwshrvSngl_TngntHi;
-	uniform float _Sh_KwshrvSngl_ShdLo;
-	uniform float _Sh_KwshrvSngl_ShdHi;
+uniform float _Sh_Kwshrv_ShdBlnd;
+uniform float _Sh_Kwshrv_Smth;
+uniform float _Sh_KwshrvSngl_TngntLo;
+uniform float _Sh_KwshrvSngl_TngntHi;
+uniform float _Sh_KwshrvSngl_ShdLo;
+uniform float _Sh_KwshrvSngl_ShdHi;
 
-	inline float shade_kawaflt_single(float tangency, float shadow_atten) {
-		// Определено здесь, т.к. может использоваться на любом стейдже.
-		half2 t;
-		t.x = min(_Sh_KwshrvSngl_TngntLo, _Sh_KwshrvSngl_TngntHi);
-		t.y = max(_Sh_KwshrvSngl_TngntLo, _Sh_KwshrvSngl_TngntHi);
-		t = 2.0 * t - 1.0;
-		half ref_light = saturate( (tangency - t.x) / (t.y - t.x) );
-		ref_light = ref_light * ref_light * (3.0 - 2.0 * ref_light); // Cubic Hermite H01 interpolation
-		half sh_blended = lerp(1.0, shadow_atten, _Sh_Kwshrv_ShdBlnd);
-		half sh_separated = lerp(shadow_atten, 1.0, _Sh_Kwshrv_ShdBlnd);
-		return lerp(_Sh_KwshrvSngl_ShdLo, _Sh_KwshrvSngl_ShdHi, ref_light * sh_blended) * sh_separated;
-	}
-#endif
+inline float shade_kawaflt_single(float tangency, float shadow_atten) {
+	half2 t;
+	t.x = min(_Sh_KwshrvSngl_TngntLo, _Sh_KwshrvSngl_TngntHi);
+	t.y = max(_Sh_KwshrvSngl_TngntLo, _Sh_KwshrvSngl_TngntHi);
+	t = 2.0 * t - 1.0;
+	half ref_light = saturate( (tangency - t.x) / (t.y - t.x) );
+	ref_light = ref_light * ref_light * (3.0 - 2.0 * ref_light); // Cubic Hermite H01 interpolation
+	half sh_blended = lerp(1.0, shadow_atten, _Sh_Kwshrv_ShdBlnd);
+	half sh_separated = lerp(shadow_atten, 1.0, _Sh_Kwshrv_ShdBlnd);
+	return lerp(_Sh_KwshrvSngl_ShdLo, _Sh_KwshrvSngl_ShdHi, ref_light * sh_blended) * sh_separated;
+}
 
-#if defined(FRAGMENT_IN) && defined(SHADE_KAWAFLT_SINGLE)
+
+#if defined(FRAGMENT_IN)
 	inline half3 frag_shade_kawaflt_single_forward_main(FRAGMENT_IN i, half3 normal) {
 		half light_atten = frag_shade_kawaflt_attenuation_no_shadow(i.pos_world.xyz);
 
@@ -65,6 +63,6 @@
 			return max(half3(0,0,0), albedo * main);
 		}
 	#endif
-#endif // defined(FRAGMENT_IN) && defined(SHADE_KAWAFLT_SINGLE)
+#endif // defined(FRAGMENT_IN)
 
 #endif // KAWAFLT_SHADING_KAWAFLT_SINGLE_INCLUDED
