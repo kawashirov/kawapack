@@ -16,6 +16,8 @@
 #include ".\kawa_feature_poly_color_wave.cginc"
 #include ".\kawa_feature_outline.cginc"
 
+#include ".\kawa_shading_kawaflt_fragment_in.cginc"
+
 /* General */
 
 VERTEX_OUT vert(appdata_full v_in) {

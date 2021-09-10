@@ -9,6 +9,10 @@
 
 #include ".\kawa_feature_matcap.cginc"
 
+#include ".\kawa_shading_kawaflt_log.cginc"
+#include ".\kawa_shading_kawaflt_ramp.cginc"
+#include ".\kawa_shading_kawaflt_single.cginc"
+
 #if defined(SHADE_CUBEDPARADOXFLT)
 	inline half3 frag_shade_cbdprdx_forward_add(FRAGMENT_IN i, half3 baseColor, half3 normal) {
 		// float4 objPos = mul(unity_ObjectToWorld, float4(0,0,0,1));
@@ -20,37 +24,6 @@
 		half lerp_v = saturate(directContribution + ((1.0h - _Sh_Cbdprdx_Shadow) * attenuation));
 		return baseColor * lerp(0.0h, _LightColor0.rgb, lerp_v);
 	}
-#endif
-
-#if defined(SHADE_KAWAFLT_LOG)
-
-	inline half3 frag_shade_kawaflt_log_forward_add(FRAGMENT_IN i, half3 albedo, half3 normal) {
-		float3 view_dir = normalize(KawaWorldSpaceViewDir(i.pos_world));
-		float view_tangency = dot(normal, view_dir);
-		half rim_factor = frag_shade_kawaflt_log_rim_factor(view_tangency);
-
-		half3 main = frag_shade_kawaflt_log_forward_main(i, normal, rim_factor);
-		return max(half3(0,0,0), albedo * main);
-	}
-
-#endif
-
-#if defined(SHADE_KAWAFLT_RAMP)
-
-	inline half3 frag_shade_kawaflt_ramp_forward_add(FRAGMENT_IN i, half3 albedo, half3 normal) {
-		half3 main = frag_shade_kawaflt_ramp_forward_main(i, normal);
-		return max(half3(0,0,0), albedo * main);
-	}
-
-#endif
-
-#if defined(SHADE_KAWAFLT_SINGLE)
-
-	inline half3 frag_shade_kawaflt_single_forward_add(FRAGMENT_IN i, half3 albedo, half3 normal) {
-		half3 main = frag_shade_kawaflt_single_forward_main(i, normal);
-		return max(half3(0,0,0), albedo * main);
-	}
-
 #endif
 
 

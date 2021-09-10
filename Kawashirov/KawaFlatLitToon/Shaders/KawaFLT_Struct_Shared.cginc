@@ -100,57 +100,13 @@ uniform float4 _Color;
 	#if defined(SHADE_CUBEDPARADOXFLT)
 
 		uniform float _Sh_Cbdprdx_Shadow;
-
+		
 	#elif defined(SHADE_KAWAFLT_LOG)
 		#define SHADE_KAWAFLT 1
-
-		uniform float _Sh_Kwshrv_ShdBlnd;
-
-		uniform float _Sh_Kwshrv_RimScl;
-		uniform float4 _Sh_Kwshrv_RimClr;
-		uniform float _Sh_Kwshrv_RimPwr;
-		uniform float _Sh_Kwshrv_RimBs;
-
-		uniform float _Sh_KwshrvLog_Fltnss;
-		uniform float _Sh_Kwshrv_BndSmth;
-		uniform float _Sh_Kwshrv_FltLogSclA;
-
-		uniform float _Sh_Kwshrv_Smth;
-		uniform float _Sh_Kwshrv_Smth_Tngnt;
-
 	#elif defined(SHADE_KAWAFLT_RAMP)
 		#define SHADE_KAWAFLT 1
-
-		uniform float _Sh_Kwshrv_ShdBlnd;
-
-		UNITY_DECLARE_TEX2D(_Sh_KwshrvRmp_Tex);
-		uniform float _Sh_KwshrvRmp_Pwr;
-		uniform float4 _Sh_KwshrvRmp_NdrctClr;
-
 	#elif defined(SHADE_KAWAFLT_SINGLE)
 		#define SHADE_KAWAFLT 1
-
-		uniform float _Sh_Kwshrv_ShdBlnd;
-
-		uniform float _Sh_Kwshrv_Smth;
-		uniform float _Sh_KwshrvSngl_TngntLo;
-		uniform float _Sh_KwshrvSngl_TngntHi;
-		uniform float _Sh_KwshrvSngl_ShdLo;
-		uniform float _Sh_KwshrvSngl_ShdHi;
-
-		inline float shade_kawaflt_single(float tangency, float shadow_atten) {
-			// Определено здесь, т.к. может использоваться на любом стейдже.
-			half2 t;
-			t.x = min(_Sh_KwshrvSngl_TngntLo, _Sh_KwshrvSngl_TngntHi);
-			t.y = max(_Sh_KwshrvSngl_TngntLo, _Sh_KwshrvSngl_TngntHi);
-			t = 2.0 * t - 1.0;
-			half ref_light = saturate( (tangency - t.x) / (t.y - t.x) );
-			ref_light = ref_light * ref_light * (3.0 - 2.0 * ref_light); // Cubic Hermite H01 interpolation
-			half sh_blended = lerp(1.0, shadow_atten, _Sh_Kwshrv_ShdBlnd);
-			half sh_separated = lerp(shadow_atten, 1.0, _Sh_Kwshrv_ShdBlnd);
-			return lerp(_Sh_KwshrvSngl_ShdLo, _Sh_KwshrvSngl_ShdHi, ref_light * sh_blended) * sh_separated;
-		}
-
 	#else
 		#error SHADE_???
 	#endif

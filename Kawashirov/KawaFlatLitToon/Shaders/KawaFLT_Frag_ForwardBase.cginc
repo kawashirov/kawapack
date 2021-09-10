@@ -13,6 +13,11 @@
 #include ".\kawa_feature_matcap.cginc"
 #include ".\kawa_feature_white_noise.cginc"
 
+#include ".\kawa_shading_kawaflt_log.cginc"
+#include ".\kawa_shading_kawaflt_ramp.cginc"
+#include ".\kawa_shading_kawaflt_single.cginc"
+
+
 /* ForwardBase only utils */
 
 inline half3 frag_forward_get_emission_color(inout FRAGMENT_IN i, half3 baseColor, float2 texST, inout uint rnd) {
@@ -58,69 +63,6 @@ inline half3 frag_forward_get_emission_color(inout FRAGMENT_IN i, half3 baseColo
 
 		half3 finalColor = (baseColor * lerp(indirectLighting, directLighting, directContribution)) + emissive;
 		return finalColor;
-	}
-
-#endif
-
-
-/* Kawashirov's Flat Lit Toon Log Diffuse-based */
-#if defined(SHADE_KAWAFLT_LOG)
-
-	inline half3 frag_shade_kawaflt_log_forward_base(FRAGMENT_IN i, half3 albedo, half3 normal3, half3 emission) {
-		float3 view_dir = normalize(KawaWorldSpaceViewDir(i.pos_world));
-		float view_tangency = dot(normal3, view_dir);
-		half rim_factor = frag_shade_kawaflt_log_rim_factor(view_tangency);
-
-		half3 vertexlight = half3(0,0,0);
-		vertexlight = i.vertexlight * rim_factor;
-		vertexlight = max(frag_shade_kawaflt_log_steps_color(vertexlight), half3(0,0,0));
-
-		half3 ambient = half3(0,0,0);
-		#if defined(UNITY_SHOULD_SAMPLE_SH)
-			ambient = i.ambient + SHEvalLinearL2(half4(normal3, 1));
-			ambient = lerp(ambient, half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w), /* _Sh_Kwshrv_Smth */ 1.0) * rim_factor;
-			// ambient = max(frag_shade_kawaflt_log_steps_color(ambient), half3(0,0,0));
-		#endif
-
-		half3 main = frag_shade_kawaflt_log_forward_main(i, normal3, rim_factor);
-
-		return albedo * (main + vertexlight + ambient) + emission;
-	}
-
-#endif
-
-
-/* Kawashirov's Flat Lit Toon Ramp */
-#if defined(SHADE_KAWAFLT_RAMP)
-
-	inline half3 frag_shade_kawaflt_ramp_forward_base(FRAGMENT_IN i, half3 albedo, half3 normal3, half3 emission) {
-		half3 ambient = half3(0,0,0);
-		#if defined(UNITY_SHOULD_SAMPLE_SH)
-			ambient = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w) * _Sh_KwshrvRmp_NdrctClr.rgb * _Sh_KwshrvRmp_NdrctClr.a;
-			ambient = max(half3(0,0,0), ambient);
-		#endif
-
-		half3 main = frag_shade_kawaflt_ramp_forward_main(i, normal3);
-
-		return albedo * (main + i.vertexlight + ambient) + emission;
-	}
-
-#endif
-
-/* Kawashirov's Flat Lit Toon Single Diffuse-based */
-#if defined(SHADE_KAWAFLT_SINGLE)
-
-	inline half3 frag_shade_kawaflt_single_forward_base(FRAGMENT_IN i, half3 albedo, half3 normal3, half3 emission) {
-		half3 ambient = half3(0,0,0);
-		#if defined(UNITY_SHOULD_SAMPLE_SH)
-			ambient = i.ambient + SHEvalLinearL2(half4(normal3, 1));
-			ambient = lerp(ambient, half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w), /*_Sh_Kwshrv_Smth*/ 1.0);
-			ambient = max(half3(0,0,0), ambient);
-		#endif
-
-		half3 main = frag_shade_kawaflt_single_forward_main(i, normal3);
-
-		return albedo * (main + i.vertexlight + ambient) + emission;
 	}
 
 #endif

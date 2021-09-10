@@ -11,6 +11,7 @@
 #include ".\kawa_feature_fps.cginc"
 #include ".\kawa_feature_matcap.cginc"
 
+#include ".\kawa_shading_kawaflt_fragment_in.cginc"
 
 VERTEX_OUT vert(appdata_full v_in) {
 	UNITY_SETUP_INSTANCE_ID(v_in);
