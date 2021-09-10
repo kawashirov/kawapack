@@ -253,6 +253,7 @@ internal class KawaFLTMaterialEditor : Kawashirov.ShaderBaking.MaterialEditor<Ge
 			using (new IndentLevelScope()) {
 				if (f_matCap) {
 					LabelEnumDisabledFromTagMixed<DistanceFadeMode>("Mode", KFLTC.F_MatcapMode);
+					// TODO KeepUp bool label
 					ShaderPropertyDisabled(_MatCap, "MatCap Texture");
 					ShaderPropertyDisabled(_MatCap_Scale, "MatCap Power");
 				}

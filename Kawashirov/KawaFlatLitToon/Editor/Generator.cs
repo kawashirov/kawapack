@@ -55,6 +55,7 @@ namespace Kawashirov.FLT {
 
 		public bool matcap = false;
 		public MatcapMode matcapMode = MatcapMode.Multiple;
+		public bool matcapKeepUp = true;
 
 		public bool distanceFade = false;
 		public DistanceFadeMode distanceFadeMode = DistanceFadeMode.Range;
@@ -601,7 +602,7 @@ namespace Kawashirov.FLT {
 			shader.TagBool(KFLTC.F_Matcap, matcap);
 			if (matcap) {
 				shader.Define("MATCAP_ON 1");
-				needRandomFrag = true;
+				// needRandomFrag = true;
 				shader.TagEnum(KFLTC.F_MatcapMode, matcapMode);
 				switch (matcapMode) {
 					case MatcapMode.Replace:
@@ -613,6 +614,10 @@ namespace Kawashirov.FLT {
 					case MatcapMode.Add:
 						shader.Define("MATCAP_ADD 1");
 						break;
+				}
+				shader.TagBool(KFLTC.F_MatcapKeepUp, matcapKeepUp);
+				if (matcapKeepUp) {
+					shader.Define("MATCAP_KEEPUP 1");
 				}
 				shader.properties.Add(new Property2D() { name = "_MatCap", defualt = "white" });
 				shader.properties.Add(new PropertyFloat() { name = "_MatCap_Scale", defualt = 1f, range = new Vector2(0, 1) });

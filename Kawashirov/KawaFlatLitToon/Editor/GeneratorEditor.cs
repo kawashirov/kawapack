@@ -173,6 +173,7 @@ namespace Kawashirov.FLT
 			using (new DisabledScope(matcap.hasMultipleDifferentValues || !matcap.boolValue)) {
 				using (new IndentLevelScope()) {
 					DefaultPrpertyField("matcapMode", "Mode");
+					DefaultPrpertyField("matcapKeepUp", "Keep Upward Direction");
 				}
 			}
 
