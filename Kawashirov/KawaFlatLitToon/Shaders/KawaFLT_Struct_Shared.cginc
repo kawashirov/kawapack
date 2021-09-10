@@ -156,12 +156,6 @@ uniform float4 _Color;
 	#endif
 #endif
 
-/* Matcap features */
-#if defined(MATCAP_ON)
-	UNITY_DECLARE_TEX2D(_MatCap);
-	uniform float _MatCap_Scale;
-#endif
-
 /* FPS features */
 #if defined(FPS_ON)
 	#if defined(FPS_MESH)

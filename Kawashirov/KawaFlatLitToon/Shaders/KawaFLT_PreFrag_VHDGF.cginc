@@ -10,6 +10,7 @@
 
 #include ".\kawa_feature_distance_fade.cginc"
 #include ".\kawa_feature_fps.cginc"
+#include ".\kawa_feature_matcap.cginc"
 
 #include ".\kawa_feature_infinity_war.cginc"
 #include ".\kawa_feature_poly_color_wave.cginc"

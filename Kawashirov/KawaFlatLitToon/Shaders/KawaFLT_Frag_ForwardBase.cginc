@@ -10,6 +10,8 @@
 
 #include ".\KawaFLT_Frag_Shared.cginc"
 
+#include ".\kawa_feature_matcap.cginc"
+
 /* ForwardBase only utils */
 
 inline half3 frag_forward_get_emission_color(inout FRAGMENT_IN i, half3 baseColor, float2 texST, inout uint rnd) {

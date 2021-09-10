@@ -7,6 +7,8 @@
 
 #include ".\KawaFLT_Frag_Shared.cginc"
 
+#include ".\kawa_feature_matcap.cginc"
+
 #if defined(SHADE_CUBEDPARADOXFLT)
 	inline half3 frag_shade_cbdprdx_forward_add(FRAGMENT_IN i, half3 baseColor, half3 normal) {
 		// float4 objPos = mul(unity_ObjectToWorld, float4(0,0,0,1));

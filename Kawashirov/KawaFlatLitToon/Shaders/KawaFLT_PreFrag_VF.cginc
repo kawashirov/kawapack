@@ -9,6 +9,7 @@
 
 #include ".\kawa_feature_distance_fade.cginc"
 #include ".\kawa_feature_fps.cginc"
+#include ".\kawa_feature_matcap.cginc"
 
 
 VERTEX_OUT vert(appdata_full v_in) {
