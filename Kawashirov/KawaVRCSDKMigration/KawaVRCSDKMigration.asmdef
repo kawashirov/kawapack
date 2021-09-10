@@ -1,9 +1,8 @@
 {
     "name": "KawaVRCSDKMigration",
     "references": [
-        "KawaCommons"
+        "GUID:89c1c24a7ce724b4fa333247d8146605"
     ],
-    "optionalUnityReferences": [],
     "includePlatforms": [
         "Editor"
     ],
@@ -18,5 +17,7 @@
     "autoReferenced": false,
     "defineConstraints": [
         "VRC_SDK_VRCSDK3"
-    ]
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

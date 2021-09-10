@@ -1,9 +1,8 @@
 {
     "name": "KawaFLTEditor",
     "references": [
-        "KawaCommons"
+        "GUID:89c1c24a7ce724b4fa333247d8146605"
     ],
-    "optionalUnityReferences": [],
     "includePlatforms": [
         "Editor"
     ],
@@ -12,5 +11,7 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": false,
-    "defineConstraints": []
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

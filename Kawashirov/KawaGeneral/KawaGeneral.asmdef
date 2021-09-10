@@ -1,9 +1,8 @@
 {
     "name": "KawaGeneral",
     "references": [
-        "KawaCommons"
+        "GUID:89c1c24a7ce724b4fa333247d8146605"
     ],
-    "optionalUnityReferences": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
@@ -12,5 +11,7 @@
         ""
     ],
     "autoReferenced": false,
-    "defineConstraints": []
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }
