@@ -5,6 +5,7 @@
 #include "UnityStandardUtils.cginc"
 
 #include ".\kawa_feature_fps.cginc"
+#include ".\kawa_feature_white_noise.cginc"
 
 #include ".\kawa_feature_poly_color_wave.cginc"
 #include ".\kawa_feature_outline.cginc"
@@ -49,22 +50,6 @@ inline half3 iwd_mix_emission(half3 color, FRAGMENT_IN i) {
 	#if defined(IWD_ON)
 		// Затенение эмишона.
 		color = color * saturate(1.0 - _IWD_TintColor.a * i.iwd_tint);
-	#endif
-	return color;
-}
-
-
-/* White Noise features */
-
-inline half3 wnoise_mix(half3 color, FRAGMENT_IN i, bool is_emission, inout uint rnd) {
-	#if defined(WNOISE_ON)
-		float wnoise = rnd_next_float_01(rnd);
-		float factor_em = 0;
-		#if defined(EMISSION_ON)
-			factor_em = _WNoise_Em;
-		#endif
-		float factor = is_emission ? factor_em : _WNoise_Albedo;
-		color.rgb = lerp(color.rgb, wnoise.rrr, factor);
 	#endif
 	return color;
 }

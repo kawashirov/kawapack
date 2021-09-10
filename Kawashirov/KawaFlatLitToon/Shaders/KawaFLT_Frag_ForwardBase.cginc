@@ -11,6 +11,7 @@
 #include ".\KawaFLT_Frag_Shared.cginc"
 
 #include ".\kawa_feature_matcap.cginc"
+#include ".\kawa_feature_white_noise.cginc"
 
 /* ForwardBase only utils */
 

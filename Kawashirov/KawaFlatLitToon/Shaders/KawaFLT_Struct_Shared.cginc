@@ -164,15 +164,6 @@ uniform float4 _Color;
 	#endif
 #endif
 
-#define WNOISE_RND_SEED 43178
-#if defined(WNOISE_ON)
-	uniform float _WNoise_Albedo;
-	#if defined(EMISSION_ON)
-		uniform float _WNoise_Em;
-	#endif
-	// uniform float _WNoise_Scale;
-#endif
-
 #if defined(PCW_ON)
 	#define NEED_UV1
 	// TODO UVS
