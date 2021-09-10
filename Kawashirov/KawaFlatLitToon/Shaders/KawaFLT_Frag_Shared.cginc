@@ -4,6 +4,8 @@
 #include "UnityLightingCommon.cginc"
 #include "UnityStandardUtils.cginc"
 
+#include ".\kawa_feature_poly_color_wave.cginc"
+
 inline float2 frag_pixelcoords(FRAGMENT_IN i) {
 	float2 pxc = float2(1, 1);
 	#if defined(RANDOM_MIX_COORD) || defined(RANDOM_SEED_TEX)
@@ -101,17 +103,6 @@ inline half3 wnoise_mix(half3 color, FRAGMENT_IN i, bool is_emission, inout uint
 	#endif
 	return color;
 }
-
-/* PolyColorWave features */
-
-inline half3 pcw_mix(half3 color, FRAGMENT_IN i, bool is_emission) {
-	// Mix-in Poly Color Wave but only in BASE pass
-	#if defined(PCW_ON) && defined(KAWAFLT_PASS_FORWARDBASE)
-		color = lerp(color, i.pcw_color.rgb, i.pcw_color.a * (is_emission ? _PCW_Em : (1.0 - _PCW_Em)));
-	#endif
-	return color;
-}
-
 
 inline float2 frag_applyst(float2 uv) {
 	//#if defined(AVAILABLE_ST)

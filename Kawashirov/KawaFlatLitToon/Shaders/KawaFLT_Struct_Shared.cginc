@@ -206,29 +206,10 @@ uniform float4 _Color;
 	// uniform float _WNoise_Scale;
 #endif
 
-/* PolyColorWave features */
-
-// Feature strings:
-// #pragma shader_feature _ PCW_ON
-#define PCW_RND_SEED 22443
 #if defined(PCW_ON)
 	#define NEED_UV1
-	uniform float _PCW_WvTmLo;
-	uniform float _PCW_WvTmAs;
-	uniform float _PCW_WvTmHi;
-	uniform float _PCW_WvTmDe;
-	uniform float4 _PCW_WvTmUV;
-	uniform float4 _PCW_WvTmVtx;
-	uniform float _PCW_WvTmRnd;
-	uniform float _PCW_Em;
-	uniform float4 _PCW_Color;
-	uniform float _PCW_RnbwTm;
-	uniform float _PCW_RnbwTmRnd;
-	uniform float _PCW_RnbwStrtn;
-	uniform float _PCW_RnbwBrghtnss;
-	uniform float _PCW_Mix;
+	// TODO UVS
 #endif
-
 
 // v2g & g2f entries
 

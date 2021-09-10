@@ -10,6 +10,7 @@
 #include ".\KawaFLT_PreFrag_Shared.cginc"
 
 #include ".\kawa_feature_infinity_war.cginc"
+#include ".\kawa_feature_poly_color_wave.cginc"
 
 
 /* General */
