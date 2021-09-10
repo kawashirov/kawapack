@@ -5,6 +5,7 @@
 #include "UnityStandardUtils.cginc"
 
 #include ".\kawa_feature_poly_color_wave.cginc"
+#include ".\kawa_feature_outline.cginc"
 
 inline float2 frag_pixelcoords(FRAGMENT_IN i) {
 	float2 pxc = float2(1, 1);
@@ -140,34 +141,28 @@ inline void frag_cull(FRAGMENT_IN i) {
 }
 
 inline half4 frag_forward_get_albedo(FRAGMENT_IN i, float2 texST, inout uint rnd) {
+
 	half4 color;
-	#if defined(AVAILABLE_MAINTEX)
-		color = UNITY_SAMPLE_TEX2D(_MainTex, texST);
-		#if defined(AVAILABLE_COLORMASK)
-			half mask = UNITY_SAMPLE_TEX2D(_ColorMask, texST).r;
-			color = lerp(color, color * _Color, mask);
-		#else
-		 	color *= _Color;
-		#endif
-	#else
-		color = _Color;
-	#endif
-
-	color.rgb = wnoise_mix(color.rgb, i, false, rnd);
-	color.rgb = fps_mix(color.rgb);
-	color.rgb = pcw_mix(color.rgb, i, false); // Mix-in Poly Color Wave
-	color = iwd_mix_albedo(color, i);
-
-	#if defined(KAWAFLT_PASS_FORWARD) && defined(OUTLINE_ON)
-		UNITY_FLATTEN if(i.is_outline) {
-			#if defined(OUTLINE_COLORED)
-				color.rgb = _outline_color.rgb;
+	if (!is_outline_colored(i)) {
+		// Пропуск, если всёравно будет перекрашено.
+		#if defined(AVAILABLE_MAINTEX)
+			color = UNITY_SAMPLE_TEX2D(_MainTex, texST);
+			#if defined(AVAILABLE_COLORMASK)
+				half mask = UNITY_SAMPLE_TEX2D(_ColorMask, texST).r;
+				color = lerp(color, color * _Color, mask);
 			#else
-				color.rgb *= _outline_color.rgb;
+				color *= _Color;
 			#endif
-		}
-	#endif
+		#else
+			color = _Color;
+		#endif
 
+		color.rgb = wnoise_mix(color.rgb, i, false, rnd);
+		color.rgb = fps_mix(color.rgb);
+		color.rgb = pcw_mix(color.rgb, i, false);
+		color = iwd_mix_albedo(color, i);
+	}
+	color.rgb = outline_mix(color.rgb, i);
 	return color;
 }
 

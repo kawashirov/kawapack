@@ -65,14 +65,6 @@ uniform float4 _Color;
 	uniform float _CutoffMax;
 #endif
 
-#if defined(KAWAFLT_PASS_FORWARD)
-	#if !defined(OUTLINE_OFF)
-		uniform float _outline_width;
-		uniform float4 _outline_color;
-		uniform float _outline_bias;
-	#endif
-#endif
-
 #if defined(EMISSION_ON)
 	uniform float4 _EmissionColor;
 	#if defined(EMISSION_ALBEDO_MASK)
