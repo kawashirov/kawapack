@@ -5,8 +5,9 @@
 	#error KAWAFLT_PASS_FORWARDADD not defined, but KAWAFLT_STAGE_FRAGMENT_FORWARD_ADD included. 
 #endif
 
-#include ".\KawaFLT_Frag_Shared.cginc"
+#include ".\kawa_frag_shared.cginc"
 
+#include ".\kawa_feature_distance_fade.cginc"
 #include ".\kawa_feature_matcap.cginc"
 
 #include ".\kawa_shading_cubedparadox.cginc"

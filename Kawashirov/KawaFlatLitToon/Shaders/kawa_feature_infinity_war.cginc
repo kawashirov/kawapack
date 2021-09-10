@@ -1,6 +1,9 @@
 #ifndef KAWA_FEATURE_IWD_INCLUDED
 #define KAWA_FEATURE_IWD_INCLUDED
 
+// Для UnityDistanceFromPlane
+#include "Tessellation.cginc"
+
 /*
 	Infinity War features
 	Geometry+

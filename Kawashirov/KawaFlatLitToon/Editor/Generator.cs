@@ -19,7 +19,7 @@ using KFLTC = Kawashirov.FLT.Commons;
 namespace Kawashirov.FLT {
 	[Serializable]
 	public class Generator : ShaderBaking.BaseGenerator {
-		// GUID of KawaFLT_Struct_Shared.cginc
+		// GUID of kawa_struct_shared.cginc
 		public static readonly string MAIN_CGINC_GUID = "19e348e622400bd4d86b4eff1408f1b9";
 		// GUID of noise_256x256_R16.asset
 		public static readonly string RND_NOISE_GUID = "de64211a543015d4cb7cbee9b684386b";
@@ -100,8 +100,8 @@ namespace Kawashirov.FLT {
 		public static string GetMainCGIncPath() {
 			var cginc_path = AssetDatabase.GUIDToAssetPath(MAIN_CGINC_GUID);
 			if (string.IsNullOrWhiteSpace(cginc_path)) {
-				Debug.LogErrorFormat("[KawaFLT] Can not get path to KawaFLT_Struct_Shared.cginc. Does it exist? Does it's GUID = <b>{0}</b>?", MAIN_CGINC_GUID);
-				throw new InvalidOperationException("Can not get path to KawaFLT_Struct_Shared.cginc");
+				Debug.LogErrorFormat("[KawaFLT] Can not get path to kawa_struct_shared.cginc. Does it exist? Does it's GUID = <b>{0}</b>?", MAIN_CGINC_GUID);
+				throw new InvalidOperationException("Can not get path to kawa_struct_shared.cginc");
 			}
 			return cginc_path;
 		}
@@ -128,8 +128,8 @@ namespace Kawashirov.FLT {
 
 			var cginc_object = AssetDatabase.LoadAssetAtPath<TextAsset>(cginc_path);
 			if (cginc_object == null) {
-				Debug.LogErrorFormat(this, "[KawaFLT] Can not load KawaFLT_Struct_Shared.cginc. GUID = <b>{0}</b>. Path = <i>{1}</i>", MAIN_CGINC_GUID, cginc_path);
-				throw new InvalidOperationException("Can not load KawaFLT_Struct_Shared.cginc");
+				Debug.LogErrorFormat(this, "[KawaFLT] Can not load kawa_struct_shared.cginc. GUID = <b>{0}</b>. Path = <i>{1}</i>", MAIN_CGINC_GUID, cginc_path);
+				throw new InvalidOperationException("Can not load kawa_struct_shared.cginc");
 			}
 
 			var this_path = AssetDatabase.GetAssetPath(this);
@@ -272,8 +272,8 @@ namespace Kawashirov.FLT {
 				case ShaderComplexity.VHDGF:
 					shader.TagBool(KFLTC.F_Geometry, true);
 					shader.TagBool(KFLTC.F_Tessellation, true);
-					shader.Include("KawaFLT_Struct_VHDGF.cginc");
-					shader.Include("KawaFLT_PreFrag_VHDGF.cginc");
+					shader.Include("kawa_struct_vhdgf.cginc");
+					shader.Include("kawa_prefrag_vhdgf.cginc");
 					shader.Define("KAWAFLT_PIPELINE_VHDGF 1");
 					shader.Define("KAWAFLT_F_GEOMETRY 1");
 					shader.Define("KAWAFLT_F_TESSELLATION 1");
@@ -281,16 +281,16 @@ namespace Kawashirov.FLT {
 				case ShaderComplexity.VGF:
 					shader.TagBool(KFLTC.F_Geometry, true);
 					shader.TagBool(KFLTC.F_Tessellation, false);
-					shader.Include("KawaFLT_Struct_VGF.cginc");
-					shader.Include("KawaFLT_PreFrag_VGF.cginc");
+					shader.Include("kawa_struct_vgf.cginc");
+					shader.Include("kawa_prefrag_vgf.cginc");
 					shader.Define("KAWAFLT_PIPELINE_VGF 1");
 					shader.Define("KAWAFLT_F_GEOMETRY 1");
 					break;
 				default:
 					shader.TagBool(KFLTC.F_Geometry, false);
 					shader.TagBool(KFLTC.F_Tessellation, false);
-					shader.Include("KawaFLT_Struct_VF.cginc");
-					shader.Include("KawaFLT_PreFrag_VF.cginc");
+					shader.Include("kawa_struct_vf.cginc");
+					shader.Include("kawa_prefrag_vf.cginc");
 					shader.Define("KAWAFLT_PIPELINE_VF 1");
 					break;
 			}
@@ -299,7 +299,7 @@ namespace Kawashirov.FLT {
 			shader.forward.cullMode = cull;
 			shader.forward.multi_compile_instancing = f_instancing;
 			shader.forward.defines.Add("KAWAFLT_PASS_FORWARDBASE 1");
-			shader.forward.includes.Add("KawaFLT_Frag_ForwardBase.cginc");
+			shader.forward.includes.Add("kawa_frag_forward_base.cginc");
 			shader.forward.vertex = "vert";
 			shader.forward.hull = complexity == ShaderComplexity.VHDGF ? "hull" : null;
 			shader.forward.domain = complexity == ShaderComplexity.VHDGF ? "domain" : null;
@@ -310,7 +310,7 @@ namespace Kawashirov.FLT {
 			shader.forward_add.cullMode = cull;
 			shader.forward_add.multi_compile_instancing = f_instancing;
 			shader.forward_add.defines.Add("KAWAFLT_PASS_FORWARDADD 1");
-			shader.forward_add.includes.Add("KawaFLT_Frag_ForwardAdd.cginc");
+			shader.forward_add.includes.Add("kawa_frag_forward_add.cginc");
 			shader.forward_add.vertex = "vert";
 			shader.forward_add.hull = complexity == ShaderComplexity.VHDGF ? "hull" : null;
 			shader.forward_add.domain = complexity == ShaderComplexity.VHDGF ? "domain" : null;
@@ -321,7 +321,7 @@ namespace Kawashirov.FLT {
 			shader.shadowcaster.cullMode = cull;
 			shader.shadowcaster.multi_compile_instancing = f_instancing;
 			shader.shadowcaster.defines.Add("KAWAFLT_PASS_SHADOWCASTER 1");
-			shader.shadowcaster.includes.Add("KawaFLT_Frag_ShadowCaster.cginc");
+			shader.shadowcaster.includes.Add("kawa_frag_shadow_caster.cginc");
 			shader.shadowcaster.vertex = "vert";
 			shader.shadowcaster.hull = complexity == ShaderComplexity.VHDGF ? "hull" : null;
 			shader.shadowcaster.domain = complexity == ShaderComplexity.VHDGF ? "domain" : null;

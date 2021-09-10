@@ -1,7 +1,7 @@
-#ifndef KAWAFLT_STRUCT_VF_INCLUDED
-#define KAWAFLT_STRUCT_VF_INCLUDED
+#ifndef KAWA_STRUCT_VF_INCLUDED
+#define KAWA_STRUCT_VF_INCLUDED
 
-#include ".\KawaFLT_Struct_Shared.cginc"
+#include ".\kawa_struct_shared.cginc"
 
 #include "UnityInstancing.cginc"
 #include "UnityCG.cginc"
@@ -53,4 +53,4 @@ struct v2f {
 #define VERTEX_OUT v2f
 #define FRAGMENT_IN v2f
 
-#endif // KAWAFLT_STRUCT_VF_INCLUDED
+#endif // KAWA_STRUCT_VF_INCLUDED

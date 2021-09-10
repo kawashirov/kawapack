@@ -1,13 +1,13 @@
 #ifndef KAWAFLT_VERT_GEOMETRY_INCLUDED
 #define KAWAFLT_VERT_GEOMETRY_INCLUDED
 
-#include ".\KawaFLT_Struct_VGF.cginc"
+#include ".\kawa_struct_vgf.cginc"
 
 #include "Tessellation.cginc"
 #include "UnityInstancing.cginc"
-#include "KawaRND.cginc"
+#include ".\kawa_rnd.cginc"
 
-#include ".\KawaFLT_PreFrag_Shared.cginc"
+#include ".\kawa_prefrag_shared.cginc"
 
 #include ".\kawa_feature_distance_fade.cginc"
 #include ".\kawa_feature_fps.cginc"

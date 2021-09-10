@@ -1,5 +1,5 @@
-#ifndef KAWAFLT_STRUCT_SHARED_INCLUDED
-#define KAWAFLT_STRUCT_SHARED_INCLUDED
+#ifndef KAWA_STRUCT_SHARED_INCLUDED
+#define KAWA_STRUCT_SHARED_INCLUDED
 
 // LPPV принудительно отключен, т.к. не используется в VRC и вообще пиздец лагает.
 #undef UNITY_LIGHT_PROBE_PROXY_VOLUME
@@ -194,4 +194,4 @@ inline half4x4 kawa_rotation_inv(half3 angles) {
 	return mul(mul(rz, rx), ry);
 }
 
-#endif // KAWAFLT_STRUCT_SHARED_INCLUDED
+#endif // KAWA_STRUCT_SHARED_INCLUDED

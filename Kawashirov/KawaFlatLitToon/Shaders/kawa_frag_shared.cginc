@@ -10,6 +10,8 @@
 #include ".\kawa_feature_poly_color_wave.cginc"
 #include ".\kawa_feature_outline.cginc"
 
+#include ".\kawa_feature_infinity_war.cginc"
+
 inline float2 frag_pixelcoords(FRAGMENT_IN i) {
 	float2 pxc = float2(1, 1);
 	#if defined(RANDOM_MIX_COORD) || defined(RANDOM_SEED_TEX)

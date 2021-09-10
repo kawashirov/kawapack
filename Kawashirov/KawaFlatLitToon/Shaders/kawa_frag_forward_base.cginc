@@ -8,8 +8,9 @@
 // #include "UnityInstancing.cginc"
 // #include "UnityStandardUtils.cginc"
 
-#include ".\KawaFLT_Frag_Shared.cginc"
+#include ".\kawa_frag_shared.cginc"
 
+#include ".\kawa_feature_distance_fade.cginc"
 #include ".\kawa_feature_matcap.cginc"
 #include ".\kawa_feature_white_noise.cginc"
 

@@ -1,5 +1,5 @@
-#ifndef KAWAFLT_PREFRAG_SHARED_INCLUDED
-#define KAWAFLT_PREFRAG_SHARED_INCLUDED
+#ifndef KAWA_PREFRAG_SHARED_INCLUDED
+#define KAWA_PREFRAG_SHARED_INCLUDED
 
 // Перед включением этого файла должен быть включен файл соотв. pipeline
 
@@ -46,4 +46,4 @@ inline void screencoords_fragment_in(inout FRAGMENT_IN o) {
 }
 
 
-#endif // KAWAFLT_PREFRAG_SHARED_INCLUDED
+#endif // KAWA_PREFRAG_SHARED_INCLUDED

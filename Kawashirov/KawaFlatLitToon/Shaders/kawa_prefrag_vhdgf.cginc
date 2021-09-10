@@ -1,13 +1,13 @@
-#ifndef KAWAFLT_PREFRAG_VHDGF_INCLUDED
-#define KAWAFLT_PREFRAG_VHDGF_INCLUDED
+#ifndef KAWA_PREFRAG_VHDGF_INCLUDED
+#define KAWA_PREFRAG_VHDGF_INCLUDED
 
-#include ".\KawaFLT_Struct_VHDGF.cginc"
+#include ".\kawa_struct_vhdgf.cginc"
 
 #include "Tessellation.cginc"
 #include "UnityInstancing.cginc"
-#include "KawaRND.cginc"
+#include ".\kawa_rnd.cginc"
 
-#include ".\KawaFLT_PreFrag_Shared.cginc"
+#include ".\kawa_prefrag_shared.cginc"
 
 #include ".\kawa_feature_distance_fade.cginc"
 #include ".\kawa_feature_fps.cginc"
@@ -278,4 +278,4 @@ void geom(triangle GEOMETRY_IN v_in[3], uint p_id : SV_PrimitiveID, uint g_id : 
 }
 
 
-#endif // KAWAFLT_PREFRAG_VHDGF_INCLUDED
+#endif // KAWA_PREFRAG_VHDGF_INCLUDED

@@ -5,7 +5,7 @@
 	#error KAWAFLT_PASS_SHADOWCASTER not defined, but KAWAFLT_SHADOW_CASTER included. 
 #endif
 
-#include ".\KawaFLT_Frag_Shared.cginc"
+#include ".\kawa_frag_shared.cginc"
 
 half4 frag_shadowcaster(FRAGMENT_IN i) : SV_Target {
 	UNITY_SETUP_INSTANCE_ID(i);

@@ -1,7 +1,7 @@
-#ifndef KAWAFLT_STRUCT_VGF_INCLUDED
-#define KAWAFLT_STRUCT_VGF_INCLUDED
+#ifndef KAWA_STRUCT_VGF_INCLUDED
+#define KAWA_STRUCT_VGF_INCLUDED
 
-#include ".\KawaFLT_Struct_Shared.cginc"
+#include ".\kawa_struct_shared.cginc"
 
 #include "AutoLight.cginc"
 #include "UnityInstancing.cginc"
@@ -83,4 +83,4 @@ struct g2f {
 #define GEOMETRY_OUT g2f
 #define FRAGMENT_IN g2f
 
-#endif // KAWAFLT_STRUCT_VGF_INCLUDED
+#endif // KAWA_STRUCT_VGF_INCLUDED
