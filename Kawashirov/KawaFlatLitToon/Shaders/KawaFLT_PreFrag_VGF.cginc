@@ -9,6 +9,8 @@
 #include ".\KawaFLT_Features_Geometry.cginc"
 #include ".\KawaFLT_PreFrag_Shared.cginc"
 
+#include ".\kawa_feature_infinity_war.cginc"
+
 /* General */
 
 VERTEX_OUT vert(appdata_full v_in) {

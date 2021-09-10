@@ -229,36 +229,6 @@ uniform float4 _Color;
 	uniform float _PCW_Mix;
 #endif
 
-/*
-	Infinity War features
-*/
-
-// Feature strings:
-#define IWD_RND_SEED 26842
-#if defined(IWD_ON)
-	uniform float4 _IWD_Plane;
-	uniform float _IWD_PlaneDistRandomness;
-
-	uniform float _IWD_DirRandomWeight;
-	uniform float _IWD_DirPlaneWeight;
-	uniform float _IWD_DirNormalWeight;
-	uniform float _IWD_DirObjectWeight;
-	uniform float4 _IWD_DirObjectVector;
-	uniform float _IWD_DirWorldWeight;
-	uniform float4 _IWD_DirWorldVector;
-
-	uniform float _IWD_MoveSpeed;
-	uniform float _IWD_MoveAccel;
-
-	uniform float4 _IWD_TintColor;
-	uniform float _IWD_TintFar;
-
-	uniform float _IWD_CmprssFar;
-
-	#if defined(KAWAFLT_F_TESSELLATION)
-		uniform float _IWD_Tsltn;
-	#endif
-#endif
 
 // v2g & g2f entries
 

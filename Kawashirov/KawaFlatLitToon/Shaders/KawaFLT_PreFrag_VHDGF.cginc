@@ -7,8 +7,9 @@
 #include "KawaRND.cginc"
 #include ".\KawaFLT_Features_Lightweight.cginc"
 #include ".\KawaFLT_Features_Geometry.cginc"
-#include ".\KawaFLT_Features_Tessellation.cginc"
 #include ".\KawaFLT_PreFrag_Shared.cginc"
+
+#include ".\kawa_feature_infinity_war.cginc"
 
 
 /* General */
