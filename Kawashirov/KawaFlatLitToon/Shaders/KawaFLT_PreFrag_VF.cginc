@@ -8,6 +8,7 @@
 #include ".\KawaFLT_PreFrag_Shared.cginc"
 
 #include ".\kawa_feature_distance_fade.cginc"
+#include ".\kawa_feature_fps.cginc"
 
 
 VERTEX_OUT vert(appdata_full v_in) {

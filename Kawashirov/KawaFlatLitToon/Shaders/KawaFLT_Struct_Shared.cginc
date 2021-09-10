@@ -164,10 +164,9 @@ uniform float4 _Color;
 
 /* FPS features */
 #if defined(FPS_ON)
-	uniform float4 _FPS_TLo;
-	uniform float4 _FPS_THi;
 	#if defined(FPS_MESH)
 		#define NEED_CULL
+		// TODO
 	#endif
 #endif
 

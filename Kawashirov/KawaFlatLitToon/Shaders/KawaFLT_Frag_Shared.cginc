@@ -4,6 +4,8 @@
 #include "UnityLightingCommon.cginc"
 #include "UnityStandardUtils.cginc"
 
+#include ".\kawa_feature_fps.cginc"
+
 #include ".\kawa_feature_poly_color_wave.cginc"
 #include ".\kawa_feature_outline.cginc"
 
@@ -51,23 +53,6 @@ inline half3 iwd_mix_emission(half3 color, FRAGMENT_IN i) {
 	return color;
 }
 
-
-/* FPS features */
-// (i.uv0) -> (i.uv0)
-inline void fps_frag(inout FRAGMENT_IN i) {
-	#if defined(FPS_TEX)
-		uint fps = clamp( (uint) round(unity_DeltaTime.w), 0, 99);
-		uint digit = (i.uv0.x > 0.5 ? fps : (fps / 10)) % 10;
-		i.uv0.x = frac(i.uv0.x * 2) / 10 + half(digit) / 10;
-	#endif
-}
-
-inline half3 fps_mix(half3 color) {
-	#if defined(FPS_ON)
-		color *= lerp(_FPS_TLo, _FPS_THi, unity_DeltaTime.w / 91.0h);
-	#endif
-	return color;
-}
 
 /* White Noise features */
 
