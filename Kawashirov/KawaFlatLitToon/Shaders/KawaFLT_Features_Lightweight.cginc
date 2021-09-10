@@ -32,16 +32,6 @@ inline half3 matcap_apply(FRAGMENT_IN i, half3 color) {
 }
 
 
-
-/* Distance Fade features */
-
-// (o.pos_world) -> (o.dstfd_distance)
-inline void dstfade_frament_in(inout FRAGMENT_IN o) {
-	#if defined(DSTFD_ON)
-		o.dstfd_distance = length(KawaWorldSpaceViewDir(o.pos_world.xyz) * _DstFd_Axis.xyz);
-	#endif
-}
-
 /* FPS features */
 
 // (v_out.uv0) -> (v_in.vertex, v_out.fps_cull)

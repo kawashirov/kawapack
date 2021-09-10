@@ -51,27 +51,6 @@ inline half3 iwd_mix_emission(half3 color, FRAGMENT_IN i) {
 	return color;
 }
 
-/* Distance Fade features */
-
-inline void dstfd_frag_clip(inout FRAGMENT_IN i, inout uint rnd) {
-	#if defined(DSTFD_ON)
-		// Равномерный рандом от 0 до 1
-		half rnd_01 = rnd_next_float_01(rnd); 
-
-		half clip_v;
-		#if defined(DSTFD_RANGE)
-			half rnd_nonlin = pow(rnd_01, _DstFd_AdjustPower);
-			half dist = lerp(_DstFd_Near, _DstFd_Far, rnd_nonlin);
-			clip_v = dist - i.dstfd_distance;
-		#elif defined(DSTFD_INFINITY)
-			half rnd_nonlin = pow((1.0h - rnd_01) / rnd_01, 1.0h / _DstFd_AdjustPower) * _DstFd_AdjustScale;
-			half dist = rnd_nonlin + _DstFd_Near;
-			clip_v = dist - i.dstfd_distance;
-		#endif
-
-		clip(clip_v * _DstFd_Axis.w);
-	#endif
-}
 
 /* FPS features */
 // (i.uv0) -> (i.uv0)

@@ -8,6 +8,8 @@
 #include ".\KawaFLT_Features_Lightweight.cginc"
 #include ".\KawaFLT_PreFrag_Shared.cginc"
 
+#include ".\kawa_feature_distance_fade.cginc"
+
 #include ".\kawa_feature_infinity_war.cginc"
 #include ".\kawa_feature_poly_color_wave.cginc"
 #include ".\kawa_feature_outline.cginc"

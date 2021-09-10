@@ -7,6 +7,8 @@
 #include ".\KawaFLT_Features_Lightweight.cginc"
 #include ".\KawaFLT_PreFrag_Shared.cginc"
 
+#include ".\kawa_feature_distance_fade.cginc"
+
 
 VERTEX_OUT vert(appdata_full v_in) {
 	UNITY_SETUP_INSTANCE_ID(v_in);

@@ -162,24 +162,6 @@ uniform float4 _Color;
 	uniform float _MatCap_Scale;
 #endif
 
-/* Distance fade features */
-#define DSTFD_RND_SEED 36179
-#if defined(DSTFD_ON)
-	uniform float _DstFd_Near;
-	uniform float _DstFd_AdjustPower;
-	uniform float4 _DstFd_Axis;
-
-	#if defined(DSTFD_RANGE)
-		uniform float _DstFd_Far;
-	#endif
-
-	#if defined(DSTFD_INFINITY)
-		// uniform float _DstFd_Far;
-		uniform float _DstFd_AdjustScale;
-	#endif
-#endif
-
-
 /* FPS features */
 #if defined(FPS_ON)
 	uniform float4 _FPS_TLo;
