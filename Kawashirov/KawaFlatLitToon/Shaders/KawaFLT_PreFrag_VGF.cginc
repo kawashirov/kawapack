@@ -2,10 +2,11 @@
 #define KAWAFLT_VERT_GEOMETRY_INCLUDED
 
 #include ".\KawaFLT_Struct_VGF.cginc"
+
 #include "Tessellation.cginc"
 #include "UnityInstancing.cginc"
 #include "KawaRND.cginc"
-#include ".\KawaFLT_Features_Lightweight.cginc"
+
 #include ".\KawaFLT_PreFrag_Shared.cginc"
 
 #include ".\kawa_feature_distance_fade.cginc"

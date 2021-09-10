@@ -2,9 +2,10 @@
 #define KAWAFLT_PREFRAG_VF_INCLUDED
 
 #include ".\KawaFLT_Struct_VF.cginc"
+
 #include "KawaRND.cginc"
 #include "UnityInstancing.cginc"
-#include ".\KawaFLT_Features_Lightweight.cginc"
+
 #include ".\KawaFLT_PreFrag_Shared.cginc"
 
 #include ".\kawa_feature_distance_fade.cginc"

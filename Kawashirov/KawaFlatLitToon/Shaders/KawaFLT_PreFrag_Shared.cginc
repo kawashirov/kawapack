@@ -38,4 +38,12 @@ inline void prefrag_transfer_shadow(float4 vertex_obj, inout FRAGMENT_IN v_out) 
 }
 
 
+// (o.pos) -> (o.pos_screen)
+inline void screencoords_fragment_in(inout FRAGMENT_IN o) {
+	#if defined(RANDOM_MIX_COORD) || defined(RANDOM_SEED_TEX)
+		o.pos_screen = ComputeScreenPos(o.pos);
+	#endif
+}
+
+
 #endif // KAWAFLT_PREFRAG_SHARED_INCLUDED
