@@ -49,13 +49,12 @@
 			float3 offset = 0;
 			if (plane_distance_mid > 0.001) {
 				float wn = 0; // weights normalizer
-				// Довольно встрато, т.к. коэфициентов 5, а не 4. Но компилятор должен заоптимизить.
-				wn += _IWD_DirRandomWeight * _IWD_DirRandomWeight;
-				wn += _IWD_DirPlaneWeight * _IWD_DirPlaneWeight;
-				wn += _IWD_DirNormalWeight * _IWD_DirNormalWeight;
-				wn += _IWD_DirObjectWeight * _IWD_DirObjectWeight;
-				wn += _IWD_DirWorldWeight * _IWD_DirWorldWeight;
-				wn = rsqrt(wn);
+				wn += _IWD_DirRandomWeight;
+				wn += _IWD_DirPlaneWeight;
+				wn += _IWD_DirNormalWeight;
+				wn += _IWD_DirObjectWeight;
+				wn += _IWD_DirWorldWeight;
+				wn = 1.0 / wn;
 
 				float3 random_normal = rnd_next_direction3(rnd);
 				float3 plane_normal = _IWD_Plane.xyz;
@@ -70,7 +69,6 @@
 				offset_dir += face_normal * (_IWD_DirNormalWeight * wn);
 				offset_dir += object_normal * (_IWD_DirObjectWeight * wn);
 				offset_dir += world_normal * (_IWD_DirWorldWeight * wn);
-				// Кстати, offset_dir не нормальный вектор, и это ОК.
 
 				// polynomial y = x^2 * a + x * b + c = x * (x * a + b) + c;  
 				float offset_ammount = plane_distance_mid * (plane_distance_mid * _IWD_MoveAccel + _IWD_MoveSpeed);
