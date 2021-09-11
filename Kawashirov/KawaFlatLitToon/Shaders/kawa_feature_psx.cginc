@@ -15,9 +15,13 @@
 		#if defined(PSX_ON)
 			float4 sv_pos = v.pos;
 			sv_pos.xy /= sv_pos.w;
-			float2 scaler = _ScreenParams.xy / _PSX_SnapScale;
-			sv_pos.xy = floor(scaler * sv_pos.xy) / scaler;
+			float3 scaler;
+			scaler.xy = _ScreenParams.xy;
+			scaler.z = dot(_ScreenParams.xy, float2(0.5f, 0.5f)); // Среднее
+			scaler = scaler / (_PSX_SnapScale * 2);
+			sv_pos.xy = floor(scaler.xy * sv_pos.xy) / scaler;
 			sv_pos.xy *= sv_pos.w;
+			// Решил пока z не трогать, там пиздец.
 			v.pos = sv_pos;
 			// Следует ли восстанавливать world и object из экрна?
 			// Изменения не должны быть сильные, так что пока не буду.
