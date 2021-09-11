@@ -3,13 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using System.Reflection;
 
 #if UNITY_EDITOR
 using UnityEditor;
 using static UnityEditor.EditorGUI;
 
+using EGUIL = UnityEditor.EditorGUILayout;
+
 namespace Kawashirov.ShaderBaking {
-	public class MaterialEditor<G> : Kawashirov.MaterialEditor where G : BaseGenerator {
+	public class ShaderGUI<G> : ShaderGUI where G : BaseGenerator {
 
 		protected readonly GUIContent gui_sh_gen = new GUIContent(
 			"Shader Generator", "Shader Generator asset used to generate shader of this material."
@@ -35,9 +38,7 @@ namespace Kawashirov.ShaderBaking {
 			return null;
 		}
 
-		public override void OnEnable() {
-			base.OnEnable();
-
+		protected void UpdateGeneratorsFields() {
 			material_generators.Clear();
 			material_generators.AddRange(
 				targetMaterials.Select(m => new Tuple<Material, G>(m, GeneratorFromMaterial(m)))
@@ -54,11 +55,26 @@ namespace Kawashirov.ShaderBaking {
 			);
 		}
 
+		protected void DebugPrint() {
+			EditorGUILayout.Space();
+			GUILayout.Label("shaderTags:");
+			foreach (var name in shaderTags.Keys) {
+				var tag = shaderTags[name];
+				GUILayout.Label(string.Format("Tag: {0} = {1}", name, tag.GetValue()));
+			}
+
+			EditorGUILayout.Space();
+			GUILayout.Label("generators:");
+			foreach (var g in generators) {
+				EditorGUILayout.ObjectField(g, typeof(UnityEngine.Object), true);
+			}
+		}
+
 		protected bool GenaratorGUIDFields() {
 			try {
 				if (materials_with_no_generators.Count == 1 && targetMaterials.Length == 1) {
 					EditorGUILayout.HelpBox(
-						"This material has shader with no bound generator object!\n" + 
+						"This material has shader with no bound generator object!\n" +
 						"It's recommended to delete this shader and generate new one with new generator object.",
 						MessageType.Error, true
 					);
@@ -94,11 +110,25 @@ namespace Kawashirov.ShaderBaking {
 				return materials_with_no_generators.Count < 1 && generators.Count > 0;
 			} catch (Exception exc) { // TODO
 				EditorGUILayout.LabelField("Shader Generator error : " + exc.Message);
-				Debug.LogErrorFormat(this, "GenaratorGUIDFields error: {0}\n{1}", exc.Message, exc.StackTrace);
-				Debug.LogException(exc, this);
+				Debug.LogErrorFormat(materialEditor, "GenaratorGUIDFields error: {0}\n{1}", exc.Message, exc.StackTrace);
+				Debug.LogException(exc, materialEditor);
 			}
 			return true;
 		}
+
+		public override void CustomGUI() {
+			base.CustomGUI();
+
+			if (materialEditor.targets.Length > 1) {
+				EGUIL.HelpBox("Multi-select is not yet properly tested, it can break your materals! Not yet recomended to use.", MessageType.Warning, true);
+			}
+			UpdateGeneratorsFields();
+
+			if (GenaratorGUIDFields())
+				CustomBakedGUI();
+		}
+
+		public virtual void CustomBakedGUI() { }
 
 	}
 }

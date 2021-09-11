@@ -9,34 +9,38 @@ using Kawashirov.ShaderBaking;
 #if UNITY_EDITOR
 using UnityEditor;
 using static UnityEditor.EditorGUI;
+using static Kawashirov.MaterialsCommons;
 
 // Имя файла длжно совпадать с именем типа.
 // https://forum.unity.com/threads/solved-blank-scriptableobject-on-import.511527/
 
 namespace Kawashirov {
-	public class MaterialEditor : UnityEditor.MaterialEditor {
+	public class ShaderGUI : UnityEditor.ShaderGUI {
+		protected readonly static MaterialProperty[] EmptyMaterialProperty = new MaterialProperty[0];
+		protected readonly static Material[] EmptyMaterials = new Material[0];
+		protected readonly static string[] EmptyStrings = new string[0];
 
-
-		// Использовать только для чтения!
-		// Для записи использовать serializedObject
+		protected MaterialEditor materialEditor;
+		protected MaterialProperty[] materialPropertiesArray;
 		protected Material targetMaterial;
 		protected Material[] targetMaterials;
+		protected Shader[] targetShaders;
+		// Использовать только для чтения!
+		// Для записи использовать serializedObject
 		protected IDictionary<string, MaterialProperty> materialProperties;
 		protected IDictionary<string, ShaderTag> shaderTags;
 
-		// По-нормальному юнити не должен допускать несколько шейдеров, но мало ли чё.
-		protected Shader[] targetShaders;
+		public virtual IEnumerable<string> GetShaderTagsOfIntrest() => EmptyStrings;
 
-		public virtual IEnumerable<string> GetShaderTagsOfIntrest() => new string[0];
-
-		public override void OnEnable() {
-			base.OnEnable();
-			targetMaterial = target as Material;
-			targetMaterials = targets.OfType<Material>().ToArray();
+		private void UpdateMaterialEditorFields() {
+			targetMaterial = materialEditor?.target as Material;
+			var targets = materialEditor?.targets;
+			targetMaterials = targets == null || targets.Length == 0 ? EmptyMaterials : targets.OfType<Material>().ToArray();
 			targetShaders = targetMaterials.Select(m => m.shader).Distinct().ToArray();
 
-			materialProperties = GetMaterialProperties(targetMaterials).ToDictionary(p => p.name, p => p);
+			materialProperties = materialPropertiesArray.ToDictionary(p => p.name, p => p);
 			shaderTags = GetShaderTagsOfIntrest().ToDictionary(s => s, s => new ShaderTag(targetMaterials, s));
+
 		}
 
 		protected MaterialProperty FindProperty(string name) {
@@ -57,7 +61,7 @@ namespace Kawashirov {
 		protected void TexturePropertySmolDisabled(GUIContent label, MaterialProperty prop, bool compatibility = true) {
 			using (new DisabledScope(prop == null)) {
 				if (prop != null) {
-					this.TexturePropertySmol(label, prop, compatibility);
+					materialEditor.TexturePropertySmol(label, prop, compatibility);
 				} else {
 					EditorGUILayout.LabelField(label, new GUIContent("Disabled"));
 				}
@@ -71,7 +75,7 @@ namespace Kawashirov {
 
 		protected void ShaderPropertyDisabled(MaterialProperty property, GUIContent label = null) {
 			if (property != null) {
-				ShaderProperty(property, label);
+				materialEditor.ShaderProperty(property, label);
 			} else {
 				using (new DisabledScope(true)) {
 					EditorGUILayout.LabelField(label, new GUIContent("Disabled"));
@@ -91,9 +95,7 @@ namespace Kawashirov {
 		}
 
 
-		protected void LabelEnumDisabledFromTagMixed<E>(
-			string label, string tag, Dictionary<E, string> display = null
-		) where E : Enum {
+		protected void LabelEnumDisabledFromTagMixed<E>(string label, string tag, Dictionary<E, string> display = null) where E : Enum {
 			var values = shaderTags[tag].GetMultipleValues().ToList();
 			if (values.Count < 1) {
 				using (new DisabledScope(true)) {
@@ -116,6 +118,21 @@ namespace Kawashirov {
 			}
 		}
 
+		public override void OnGUI(MaterialEditor editor, MaterialProperty[] properties) {
+			materialEditor = editor;
+			materialPropertiesArray = properties;
+			UpdateMaterialEditorFields();
+			try {
+				// GUILayout.Label("AMOGUS");
+				CustomGUI();
+			} finally {
+				materialEditor = editor;
+				materialPropertiesArray = EmptyMaterialProperty;
+				UpdateMaterialEditorFields();
+			}
+		}
+
+		public virtual void CustomGUI() { }
 
 	}
 }

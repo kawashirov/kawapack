@@ -13,6 +13,7 @@ namespace Kawashirov.ShaderBaking {
 		public PassSetup forward = new PassSetup();
 		public PassSetup forward_add = new PassSetup();
 		public PassSetup shadowcaster = new PassSetup();
+		public string custom_editor = null;
 
 		public ShaderSetup() {
 			forward.name = "FORWARD";
@@ -68,9 +69,7 @@ namespace Kawashirov.ShaderBaking {
 		}
 
 		public void Bake(StringBuilder sb) {
-			sb.Append("Shader \"Kawashirov/Flat Lit Toon/");
-			sb.Append(name);
-			sb.Append("\" {\n");
+			sb.AppendFormat("Shader \"{0}\" {{\n", name);
 
 			sb.BakeProperties(properties);
 
@@ -83,7 +82,8 @@ namespace Kawashirov.ShaderBaking {
 
 			sb.Append("}\n");
 			sb.Append("FallBack \"Mobile/Diffuse\"\n");
-			sb.Append("CustomEditor \"KawaFLTMaterialEditor\"\n");
+			if (!string.IsNullOrWhiteSpace(custom_editor))
+				sb.AppendFormat("CustomEditor \"{0}\"\n", custom_editor);
 			sb.Append("}\n");
 		}
 

@@ -12,12 +12,13 @@ using EGUIL = UnityEditor.EditorGUILayout;
 using SC = Kawashirov.StaticCommons;
 using KFLTC = Kawashirov.FLT.Commons;
 using static UnityEditor.EditorGUI;
+using static Kawashirov.MaterialsCommons;
 
 // Имя файла длжно совпадать с именем типа.
 // https://forum.unity.com/threads/solved-blank-scriptableobject-on-import.511527/
 // Тип не включен в неймспейс Kawashirov.FLT, т.к. эдитор указывается в файле .shader без указания неймспейса.
 
-internal class KawaFLTMaterialEditor : Kawashirov.ShaderBaking.MaterialEditor<Generator> {
+internal class KawaFLTShaderGUI : Kawashirov.ShaderBaking.ShaderGUI<Generator> {
 
 	public override IEnumerable<string> GetShaderTagsOfIntrest() => KFLTC.tags;
 
@@ -30,13 +31,12 @@ internal class KawaFLTMaterialEditor : Kawashirov.ShaderBaking.MaterialEditor<Ge
 		var instancing = shaderTags[KFLTC.F_Instancing].IsTrue();
 
 		if (instancing && debug) {
-			EnableInstancingField();
+			materialEditor.EnableInstancingField();
 		} else {
 			using (new DisabledScope(!instancing)) {
 				EGUIL.LabelField("Instancing", instancing ? "Enabled" : "Disabled");
 			}
-			foreach (var target in targets) {
-				var m = target as Material;
+			foreach (var m in targetMaterials) {
 				if (m && m.enableInstancing != instancing) {
 					m.enableInstancing = instancing;
 				}
@@ -55,9 +55,9 @@ internal class KawaFLTMaterialEditor : Kawashirov.ShaderBaking.MaterialEditor<Ge
 				using (new IndentLevelScope()) {
 					LabelShaderTagEnumValue<TessPartitioning>(KFLTC.F_Partitioning, "Partitioning", "Unknown");
 					LabelShaderTagEnumValue<TessDomain>(KFLTC.F_Domain, "Domain", "Unknown");
-					ShaderProperty(_Tsltn_Uni, "Uniform factor");
-					ShaderProperty(_Tsltn_Nrm, "Factor from curvness");
-					ShaderProperty(_Tsltn_Inside, "Inside multiplier");
+					materialEditor.ShaderProperty(_Tsltn_Uni, "Uniform factor");
+					materialEditor.ShaderProperty(_Tsltn_Nrm, "Factor from curvness");
+					materialEditor.ShaderProperty(_Tsltn_Inside, "Inside multiplier");
 				}
 			} else {
 				EGUIL.LabelField("Tessellation", "Disabled");
@@ -72,7 +72,7 @@ internal class KawaFLTMaterialEditor : Kawashirov.ShaderBaking.MaterialEditor<Ge
 			var label_tex = new GUIContent("Seed Noise", "R16 texture filled with random values to help generating random numbers.");
 			if (_Rnd_Seed != null) {
 				using (new GUILayout.HorizontalScope()) {
-					this.TexturePropertySmol(label_tex, _Rnd_Seed, false);
+					materialEditor.TexturePropertySmol(label_tex, _Rnd_Seed, false);
 					if (GUILayout.Button("Default")) {
 						_Rnd_Seed.textureValue = Generator.GetRndDefaultTexture();
 					}
@@ -227,8 +227,8 @@ internal class KawaFLTMaterialEditor : Kawashirov.ShaderBaking.MaterialEditor<Ge
 				} else if (shading == ShadingMode.KawashirovFLTRamp) {
 					var rampTex = FindProperty("_Sh_KwshrvRmp_Tex");
 					ShaderPropertyDisabled(FindProperty("_Sh_Kwshrv_ShdBlnd"), "RT Shadows blending");
-					this.TexturePropertySmol(new GUIContent("Ramp Texture", "Ramp Texture (RGB)"), rampTex);
-					TextureCompatibilityWarning(rampTex);
+					materialEditor.TexturePropertySmol(new GUIContent("Ramp Texture", "Ramp Texture (RGB)"), rampTex);
+					materialEditor.TextureCompatibilityWarning(rampTex);
 					if (rampTex.textureValue == null) {
 						EGUIL.HelpBox(
 							"Ramp texture is not set! This shading model will not work well unless proper ramp texture is set!",
@@ -516,16 +516,7 @@ internal class KawaFLTMaterialEditor : Kawashirov.ShaderBaking.MaterialEditor<Ge
 		}
 	}
 
-	public override void OnInspectorGUI() {
-		if (!isVisible)
-			return;
-
-		if (targets.Length > 1) {
-			EGUIL.HelpBox("Multi-select is not yet properly tested, it can break your materals! Not yet recomended to use.", MessageType.Warning, true);
-		}
-
-		if (!GenaratorGUIDFields())
-			return;
+	public override void CustomBakedGUI() {
 
 		EGUIL.Space();
 		OnGUI_BlendMode();
