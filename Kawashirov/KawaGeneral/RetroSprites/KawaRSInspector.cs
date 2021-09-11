@@ -9,7 +9,7 @@ using System;
 using UnityEditor;
 
 namespace Kawashirov {
-	public class KawaRSInspector : ShaderGUI {
+	public class KawaRSInspector : KawaShaderGUI {
 
 		protected enum TexMode { NoRotaton, Single, Two, Four, Eight }
 		protected static string[] TexModeNames = Enum.GetNames(typeof(TexMode));

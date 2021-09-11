@@ -15,7 +15,7 @@ using static Kawashirov.MaterialsCommons;
 // https://forum.unity.com/threads/solved-blank-scriptableobject-on-import.511527/
 
 namespace Kawashirov {
-	public class ShaderGUI : UnityEditor.ShaderGUI {
+	public class KawaShaderGUI : UnityEditor.ShaderGUI {
 		protected readonly static MaterialProperty[] EmptyMaterialProperty = new MaterialProperty[0];
 		protected readonly static Material[] EmptyMaterials = new Material[0];
 		protected readonly static string[] EmptyStrings = new string[0];
@@ -59,9 +59,23 @@ namespace Kawashirov {
 		}
 
 		protected void TexturePropertySmolDisabled(GUIContent label, MaterialProperty prop, bool compatibility = true) {
+			// TODO FIXME
 			using (new DisabledScope(prop == null)) {
 				if (prop != null) {
 					materialEditor.TexturePropertySmol(label, prop, compatibility);
+				} else {
+					EditorGUILayout.LabelField(label, new GUIContent("Disabled"));
+				}
+			}
+		}
+
+		protected void TexturePropertySingleLineDisabled(GUIContent label, MaterialProperty prop, bool compatibility = true) {
+			using (new DisabledScope(prop == null)) {
+				if (prop != null) {
+					materialEditor.TexturePropertySingleLine(label, prop);
+					if (compatibility) {
+						materialEditor.TextureCompatibilityWarning(prop);
+					}
 				} else {
 					EditorGUILayout.LabelField(label, new GUIContent("Disabled"));
 				}

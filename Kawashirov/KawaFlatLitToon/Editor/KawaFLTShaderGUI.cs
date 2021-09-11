@@ -18,7 +18,7 @@ using static Kawashirov.MaterialsCommons;
 // https://forum.unity.com/threads/solved-blank-scriptableobject-on-import.511527/
 // Тип не включен в неймспейс Kawashirov.FLT, т.к. эдитор указывается в файле .shader без указания неймспейса.
 
-internal class KawaFLTShaderGUI : Kawashirov.ShaderBaking.ShaderGUI<Generator> {
+internal class KawaFLTShaderGUI : Kawashirov.ShaderBaking.BakedShaderGUI<Generator> {
 
 	public override IEnumerable<string> GetShaderTagsOfIntrest() => KFLTC.tags;
 
@@ -72,7 +72,7 @@ internal class KawaFLTShaderGUI : Kawashirov.ShaderBaking.ShaderGUI<Generator> {
 			var label_tex = new GUIContent("Seed Noise", "R16 texture filled with random values to help generating random numbers.");
 			if (_Rnd_Seed != null) {
 				using (new GUILayout.HorizontalScope()) {
-					materialEditor.TexturePropertySmol(label_tex, _Rnd_Seed, false);
+					materialEditor.TexturePropertySingleLine(label_tex, _Rnd_Seed);
 					if (GUILayout.Button("Default")) {
 						_Rnd_Seed.textureValue = Generator.GetRndDefaultTexture();
 					}
@@ -107,8 +107,13 @@ internal class KawaFLTShaderGUI : Kawashirov.ShaderBaking.ShaderGUI<Generator> {
 		using (new IndentLevelScope()) {
 
 			var _MainTex = FindProperty("_MainTex");
+			var _Color = FindProperty("_Color");
+			var _ColorMask = FindProperty("_ColorMask");
+
 			var _MainTex_label = new GUIContent("Albedo (Main Texture)", "Albedo Main Color Texture (RGBA)");
-			TexturePropertySmolDisabled(_MainTex_label, _MainTex);
+			var _ColorMask_label = new GUIContent("Color Mask", "Masks Color Tint (R)");
+
+			TexturePropertySingleLineDisabled(_MainTex_label, _MainTex);
 			if (_MainTex != null && _MainTex.textureValue == null) {
 				EGUIL.HelpBox(
 					"No albedo texture is set! Disable main tex feature in shader generator, if you don't need this.",
@@ -124,11 +129,9 @@ internal class KawaFLTShaderGUI : Kawashirov.ShaderBaking.ShaderGUI<Generator> {
 				ShaderPropertyDisabled(FindProperty("_CutoffMin"), "Cutout Min");
 				ShaderPropertyDisabled(FindProperty("_CutoffMax"), "Cutout Max");
 
-				ShaderPropertyDisabled(FindProperty("_Color"), "Color");
+				ShaderPropertyDisabled(_Color, "Color");
 
-				var _ColorMask = FindProperty("_ColorMask");
-				var _ColorMask_label = new GUIContent("Color Mask", "Masks Color Tint (R)");
-				TexturePropertySmolDisabled(_ColorMask_label, _ColorMask);
+				TexturePropertySingleLineDisabled(_ColorMask_label, _ColorMask);
 				if (_ColorMask != null && _ColorMask.textureValue == null) {
 					EGUIL.HelpBox(
 						"No color mask texture set! Disable main texture color mask feature in shader generator, if you don't need this.",
@@ -149,7 +152,7 @@ internal class KawaFLTShaderGUI : Kawashirov.ShaderBaking.ShaderGUI<Generator> {
 						LabelEnumDisabledFromTagMixed("Emission Mode", KFLTC.F_EmissionMode, KFLTC.emissionMode);
 
 						var _EmissionMask_label = new GUIContent("Emission Mask", "Mask for Emission by Albedo Main Texture (R)");
-						TexturePropertySmolDisabled(_EmissionMask_label, _EmissionMask);
+						TexturePropertySingleLineDisabled(_EmissionMask_label, _EmissionMask);
 						if (_EmissionMask != null && _EmissionMask.textureValue == null) {
 							EGUIL.HelpBox(
 								"No emission mask texture set! Disable emission mask feature in shader generator, if you don't need this.",
@@ -158,7 +161,7 @@ internal class KawaFLTShaderGUI : Kawashirov.ShaderBaking.ShaderGUI<Generator> {
 						}
 
 						var _EmissionMap_label = new GUIContent("Emission Texture", "Custom Emission Texture (RGB)");
-						TexturePropertySmolDisabled(_EmissionMap_label, _EmissionMap);
+						TexturePropertySingleLineDisabled(_EmissionMap_label, _EmissionMap);
 						if (_EmissionMap != null && _EmissionMap.textureValue == null) {
 							EGUIL.HelpBox(
 								"No emission map texture set! Disable emission map feature in shader generator, if you don't need this.",
@@ -182,7 +185,7 @@ internal class KawaFLTShaderGUI : Kawashirov.ShaderBaking.ShaderGUI<Generator> {
 
 			var _BumpMap = FindProperty("_BumpMap");
 			var label = new GUIContent("Normal Map", "Normal (Bump) Map Texture (RGB)");
-			TexturePropertySmolDisabled(label, _BumpMap);
+			TexturePropertySingleLineDisabled(label, _BumpMap);
 			if (_BumpMap != null && _BumpMap.textureValue == null) {
 				EGUIL.HelpBox(
 					"Normal map texture is not set! Disable normal feature in shader generator, if you don't need this.",
@@ -227,7 +230,7 @@ internal class KawaFLTShaderGUI : Kawashirov.ShaderBaking.ShaderGUI<Generator> {
 				} else if (shading == ShadingMode.KawashirovFLTRamp) {
 					var rampTex = FindProperty("_Sh_KwshrvRmp_Tex");
 					ShaderPropertyDisabled(FindProperty("_Sh_Kwshrv_ShdBlnd"), "RT Shadows blending");
-					materialEditor.TexturePropertySmol(new GUIContent("Ramp Texture", "Ramp Texture (RGB)"), rampTex);
+					materialEditor.TexturePropertySingleLine(new GUIContent("Ramp Texture", "Ramp Texture (RGB)"), rampTex);
 					materialEditor.TextureCompatibilityWarning(rampTex);
 					if (rampTex.textureValue == null) {
 						EGUIL.HelpBox(
