@@ -4,8 +4,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using UnityEditor;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
 
 namespace Kawashirov {
 	class UnlockedMaterialEditor : MaterialEditor {
@@ -125,3 +126,4 @@ namespace Kawashirov {
 
 	}
 }
+#endif // UNITY_EDITOR
