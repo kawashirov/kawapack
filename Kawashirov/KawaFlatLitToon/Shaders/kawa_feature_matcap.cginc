@@ -45,7 +45,7 @@
 			#if defined(MATCAP_REPLACE)
 				color = lerp(color, matcap.rgb, _MatCap_Scale * matcap.a);
 			#endif
-			#if defined(MATCAP_MULTIPLE)
+			#if defined(MATCAP_MULTIPLY)
 				color *= lerp(1, matcap.rgb, _MatCap_Scale * matcap.a);
 			#endif
 			#if defined(MATCAP_ADD)
