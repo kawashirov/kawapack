@@ -122,6 +122,10 @@ internal class KawaFLTShaderGUI : Kawashirov.ShaderBaking.BakedShaderGUI<Generat
 			}
 
 			using (new IndentLevelScope()) {
+				var _MainTexAlpha = FindProperty("_MainTexAlpha");
+				var _MainTexAlpha_label = new GUIContent("Alpha (of Main Texture)", "Separate Alpha-channel for Main Color Texture (R)");
+				TexturePropertySingleLineDisabled(_MainTexAlpha_label, _MainTexAlpha);
+
 				LabelEnumDisabledFromTagMixed<CutoutMode>("Forward Pass Cutout Mode", KFLTC.F_Cutout_Forward);
 				LabelEnumDisabledFromTagMixed<CutoutMode>("Shadow Caster Cutout Mode", KFLTC.F_Cutout_ShadowCaster);
 

@@ -74,14 +74,18 @@ inline void frag_cull(FRAGMENT_IN i) {
 }
 
 inline half4 frag_forward_get_albedo(FRAGMENT_IN i, float2 texST, inout uint rnd) {
-
 	half4 color;
 	if (!is_outline_colored(i)) {
 		// Пропуск, если всёравно будет перекрашено.
 		#if defined(AVAILABLE_MAINTEX)
-			color = UNITY_SAMPLE_TEX2D(_MainTex, texST);
+			#if defined(MAINTEX_SEPARATE_ALPHA)
+				color.rgb = UNITY_SAMPLE_TEX2D(_MainTex, texST).rgb;
+				color.a = UNITY_SAMPLE_TEX2D_SAMPLER(_MainTexAlpha, _MainTex, texST).r;
+			#else
+				color = UNITY_SAMPLE_TEX2D(_MainTex, texST);
+			#endif
 			#if defined(AVAILABLE_COLORMASK)
-				half mask = UNITY_SAMPLE_TEX2D(_ColorMask, texST).r;
+				half mask = UNITY_SAMPLE_TEX2D_SAMPLER(_ColorMask, _MainTex, texST).r;
 				color = lerp(color, color * _Color, mask);
 			#else
 				color *= _Color;

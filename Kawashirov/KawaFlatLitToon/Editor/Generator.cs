@@ -39,6 +39,7 @@ namespace Kawashirov.FLT {
 		//public bool zWrite = true;
 
 		public MainTexKeywords mainTex = MainTexKeywords.ColorMask;
+		public bool mainTexSeparateAlpha = false;
 		public CutoutMode cutout = CutoutMode.Classic;
 		public bool emission = true;
 		public EmissionMode emissionMode = EmissionMode.Custom;
@@ -436,6 +437,10 @@ namespace Kawashirov.FLT {
 				shader.properties.Add(new Property2D() { name = "_MainTex" });
 				if (this.mainTex == MainTexKeywords.ColorMask) {
 					shader.properties.Add(new Property2D() { name = "_ColorMask", defualt = "black" });
+				}
+				if (mainTexSeparateAlpha) {
+					shader.Define("MAINTEX_SEPARATE_ALPHA 1");
+					shader.properties.Add(new Property2D() { name = "_MainTexAlpha", defualt = "white" });
 				}
 			}
 

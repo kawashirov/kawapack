@@ -129,6 +129,7 @@ namespace Kawashirov.FLT
 			using (new IndentLevelScope()) {
 				var mainTex = serializedObject.FindProperty("mainTex");
 				PropertyEnumPopupCustomLabels(mainTex, "Main (Albedo) Texture", KFLTC.mainTexKeywordsNames);
+				DefaultPrpertyField("mainTexSeparateAlpha", "Alpha in separate texture");
 
 				var cutout = serializedObject.FindProperty("cutout");
 				PropertyEnumPopupCustomLabels(cutout, "Cutout Mode", KFLTC.cutoutModeNames);
