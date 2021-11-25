@@ -1,10 +1,23 @@
-
+using System;
 using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
 using VRC.Udon;
+using Kawashirov;
+using Kawashirov.Udon;
+using System.Linq;
+using Kawashirov.Refreshables;
 
-public class LazyPlayerPresenceTrigger : UdonSharpBehaviour {
+#if !COMPILER_UDONSHARP && UNITY_EDITOR
+using UnityEditor;
+using UdonSharpEditor;
+#endif
+
+public class LazyPlayerPresenceTrigger : UdonSharpBehaviour
+#if !COMPILER_UDONSHARP
+	, IRefreshable
+#endif
+{
 	/* Global Config */
 
 	[Tooltip("These triggers will be used for testing player's POV presence.\nMake sure these colliders are triggers and has Ignore Raycast layer.")]
@@ -27,8 +40,11 @@ public class LazyPlayerPresenceTrigger : UdonSharpBehaviour {
 	public bool IsPlayerPresentInEditor = true;
 
 	/* Public Runtime */
-	[Space, Tooltip("This is set by script at run-time.\nRead this from other Udon scripts.")]
-	public bool IsPlayerPresent = false;
+	[NonSerialized] public bool IsPlayerPresent = false;
+
+	/* Debug Runtime */
+	[NonSerialized] public string Debug_PlayerPositionSource = "";
+	[NonSerialized] public int Debug_TriggerSource = -1;
 
 	/*  Internal Runtime */
 	private string _path = "";
@@ -36,18 +52,22 @@ public class LazyPlayerPresenceTrigger : UdonSharpBehaviour {
 	public void Start() {
 		_path = GetPath(transform);
 
-		if (Triggers == null || Triggers.Length < 1) {
+		if (!Utilities.IsValid(Triggers) || Triggers.Length < 1) {
 			Debug.LogWarningFormat(gameObject, "[Kawa|LazyPlayerPresenceTrigger] There is no player tracking colliders! @ {0}", _path);
 		} else {
 			var layer = LayerMask.NameToLayer("Ignore Raycast");
 			for (var i = 0; i < Triggers.Length; ++i) {
 				var trigger = Triggers[i];
-				if (trigger == null) {
+				if (!Utilities.IsValid(trigger)) {
 					Debug.LogWarningFormat(gameObject, "[Kawa|LazyPlayerPresenceTrigger] Missing trigger at #{1}. @ {0}", _path, i);
 				} else {
 					if (!trigger.isTrigger) {
 						Debug.LogWarningFormat(gameObject, "[Kawa|LazyPlayerPresenceTrigger] Collider at #{1} is not trigger. Trying to set isTrigger... @ {0}", _path, i);
 						trigger.isTrigger = true;
+					}
+					if (!trigger.enabled) {
+						Debug.LogWarningFormat(gameObject, "[Kawa|LazyPlayerPresenceTrigger] Collider at #{1} is not enabled. Trying to enable... @ {0}", _path, i);
+						trigger.enabled = true;
 					}
 					var g = trigger.gameObject; // getter
 					var g_layer = g.layer;
@@ -74,50 +94,82 @@ public class LazyPlayerPresenceTrigger : UdonSharpBehaviour {
 			foreach (var go in ActiveWhenAbsent)
 				go.SetActive(!IsPlayerPresent);
 
-			foreach (var receiver in EventReceivers) {
-				if (receiver == null || !receiver.gameObject.activeInHierarchy)
-					continue;
-				var udon = (UdonBehaviour)receiver;
-				// TODO: can not check UdonBehaviour.enabled yet.
-				udon.SendCustomEvent(OnChangedEventName);
+			foreach (var component in EventReceivers) {
+				var receiver = (UdonBehaviour)component;
+				if (Utilities.IsValid(receiver) && receiver.gameObject.activeInHierarchy && receiver.enabled)
+					receiver.SendCustomEvent(OnChangedEventName);
 			}
 
 			foreach (var animator in AnimatorsSetBool) {
-				if (animator == null || !animator.gameObject.activeInHierarchy)
-					continue;
-				animator.SetBool(AnimatorsSetBoolName, IsPlayerPresent);
+				if (Utilities.IsValid(animator))
+					animator.SetBool(AnimatorsSetBoolName, IsPlayerPresent);
 			}
 		}
 	}
 
-	public void SlowUpdate() {
+	private Vector3 _GetPosition(VRCPlayerApi player) {
+		Vector3 position;
+
+		// Try head tracking
+		position = player.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).position;
+		if (position.magnitude > 0.01f) {
+			Debug_PlayerPositionSource = "TrackingHead";
+			return position;
+		}
+
+		// Try eyes 
+		var eye_left = player.GetBonePosition(HumanBodyBones.LeftEye);
+		var eye_right = player.GetBonePosition(HumanBodyBones.RightEye);
+		position = eye_left * 0.5f + eye_right * 0.5f;
+		if (position.magnitude > 0.01f) {
+			Debug_PlayerPositionSource = "HumanBodyEyes";
+			return position;
+		}
+
+		// Try head bone
+		position = player.GetBonePosition(HumanBodyBones.Head);
+		if (position.magnitude > 0.01f) {
+			Debug_PlayerPositionSource = "HumanBodyHead";
+			return position;
+		}
+
+		// Try base position
+		Debug_PlayerPositionSource = "PlayerPosition";
+		return player.GetPosition();
+	}
+
+	public void _ThrottledUpdate() {
 		if (Triggers == null || Triggers.Length < 1) {
 			SetState(false);
 			return;
 		}
 
 		var player_local = Networking.LocalPlayer;
-		if (player_local == null) {
+		if (!Utilities.IsValid(player_local)) {
+			Debug_TriggerSource = -1;
+			Debug_PlayerPositionSource = "Editor";
 			SetState(IsPlayerPresentInEditor);
 			return;
 		}
 
-		var t = player_local.GetTrackingData(VRCPlayerApi.TrackingDataType.Head);
-		var position = t.position;
+		var position = _GetPosition(player_local);
 
 		for (var i = 0; i < Triggers.Length; ++i) {
 			var trigger = Triggers[i];
-			if (trigger != null) {
+			if (Utilities.IsValid(trigger)) {
 				var closest = trigger.ClosestPoint(position);
-				if (Vector3.SqrMagnitude(closest - position) < 0.01f * 0.01f) // 1cm
-				{
+				if ((closest - position).magnitude < 0.01f) {
+					Debug_TriggerSource = i;
 					SetState(true);
 					return;
 				}
 			}
 		}
+		Debug_TriggerSource = -1;
 		SetState(false);
 	}
+
+	public override void Interact() => _ThrottledUpdate();
 
 	/* Utils */
 
@@ -130,4 +182,68 @@ public class LazyPlayerPresenceTrigger : UdonSharpBehaviour {
 		return path;
 	}
 
+#if !COMPILER_UDONSHARP && UNITY_EDITOR
+
+	[CustomEditor(typeof(LazyPlayerPresenceTrigger))]
+	public class Editor : UnityEditor.Editor {
+		public override void OnInspectorGUI() {
+			if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target))
+				return;
+			DrawDefaultInspector();
+			if (target is LazyPlayerPresenceTrigger ush) {
+				EditorGUILayout.LabelField("IsPlayerPresent", ush.IsPlayerPresent.ToString());
+				EditorGUILayout.LabelField("Debug: PlayerPositionSource", ush.Debug_PlayerPositionSource.ToString());
+				EditorGUILayout.LabelField("Debug: TriggerSource", ush.Debug_TriggerSource.ToString());
+			}
+			KawaGizmos.DrawEditorGizmosGUI();
+			this.EditorRefreshableGUI();
+		}
+	}
+
+	private bool Validate_Triggers() => KawaUdonUtilities.DistinctArray(ref Triggers);
+	private bool Validate_ActiveWhenPresent() => KawaUdonUtilities.DistinctArray(ref ActiveWhenPresent);
+	private bool Validate_ActiveWhenAbsent() => KawaUdonUtilities.DistinctArray(ref ActiveWhenAbsent);
+	private bool Validate_AnimatorsSetBool() => KawaUdonUtilities.DistinctArray(ref AnimatorsSetBool);
+	private bool Validate_EventReceivers() => KawaUdonUtilities.ValidateComponentsArrayOfUdonSharpBehaviours(ref EventReceivers);
+
+	public void Refresh() {
+		KawaUdonUtilities.ValidateSafe(Validate_Triggers, this, nameof(Triggers));
+		KawaUdonUtilities.ValidateSafe(Validate_ActiveWhenPresent, this, nameof(ActiveWhenPresent));
+		KawaUdonUtilities.ValidateSafe(Validate_ActiveWhenAbsent, this, nameof(ActiveWhenAbsent));
+		KawaUdonUtilities.ValidateSafe(Validate_AnimatorsSetBool, this, nameof(AnimatorsSetBool));
+		KawaUdonUtilities.ValidateSafe(Validate_EventReceivers, this, nameof(EventReceivers));
+	}
+
+	public UnityEngine.Object AsUnityObject() => this;
+
+	public string RefreshablePath() => gameObject.KawaGetFullPath();
+
+	public void OnDrawGizmosSelected() {
+		var self_pos = transform.position;
+
+		Gizmos.color = Color.white.Alpha(KawaGizmos.GizmosAplha);
+		Gizmos.DrawWireSphere(self_pos, 0.1f);
+
+		Gizmos.color = Color.blue.Alpha(KawaGizmos.GizmosAplha);
+		foreach (var gobj in ActiveWhenPresent)
+			if (Utilities.IsValid(gobj))
+				Gizmos.DrawLine(self_pos, gobj.transform.position);
+
+		Gizmos.color = Color.red.Alpha(KawaGizmos.GizmosAplha);
+		foreach (var gobj in ActiveWhenAbsent)
+			if (Utilities.IsValid(gobj))
+				Gizmos.DrawLine(self_pos, gobj.transform.position);
+
+		Gizmos.color = Color.yellow.Alpha(KawaGizmos.GizmosAplha);
+		foreach (var animator in AnimatorsSetBool)
+			if (Utilities.IsValid(animator))
+				Gizmos.DrawLine(self_pos, animator.transform.position);
+
+		Gizmos.color = Color.green.Alpha(KawaGizmos.GizmosAplha);
+		foreach (var component in EventReceivers)
+			if (Utilities.IsValid(component))
+				Gizmos.DrawLine(self_pos, component.transform.position);
+	}
+
+#endif
 }
