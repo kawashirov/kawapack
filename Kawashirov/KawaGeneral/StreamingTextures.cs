@@ -15,7 +15,7 @@ namespace Kawashirov {
 
 		[MenuItem("Kawashirov/Mark textures as streaming/In all loaded scenes")]
 		public static void MarkScenesTex() {
-			var gos = StaticCommons.GetScenesRoots();
+			var gos = KawaUtilities.IterScenesRoots();
 			MarkTextures(FindTexturesInHierarchy(gos).ToArray(), false);
 		}
 
@@ -33,7 +33,7 @@ namespace Kawashirov {
 			Debug.LogFormat("[Kawa|StreamingTextures] Objects selected: {0}", objects.Length);
 
 			var texset = new HashSet<Texture>();
-			texset.UnionWith(FindTexturesDirect(objects));
+			texset.UnionWith(objects.OfType<Texture>());
 			texset.UnionWith(FindTexturesInHierarchy(objects));
 
 			MarkTextures(texset.ToArray(), false);
@@ -41,7 +41,7 @@ namespace Kawashirov {
 
 		[MenuItem("Kawashirov/Mark lightmaps as streaming/Selected files")]
 		public static void MarkSelectedLightmaps() {
-			var objects = FindTexturesDirect(Selection.objects).ToArray();
+			var objects = Selection.objects.OfType<Texture>().ToArray();
 			Debug.LogFormat("[Kawa|StreamingTextures] Lightmaps selected: {0}", objects.Length);
 			MarkTextures(objects, true);
 		}
@@ -61,25 +61,21 @@ namespace Kawashirov {
 			MarkTextures(texset.ToArray(), true);
 		}
 
-		private static IEnumerable<Texture> FindTexturesDirect(IEnumerable<UnityEngine.Object> objects) {
-			return Selection.objects.Select(x => x as Texture).UnityNotNull();
-		}
-
 		private static IEnumerable<Texture> FindTexturesInHierarchy(IEnumerable<UnityEngine.Object> objects) {
 			var texset = new HashSet<Texture>();
 
 			// Выбраные GameObject в папках (префабы) и на сцене
-			var gos = objects.Select(x => x as GameObject).UnityNotNull().ToArray();
-			Debug.LogFormat("[Kawa|StreamingTextures] GameObjects selected: {0}", gos.Length);
+			var gos = objects.OfType<GameObject>().ToList();
+			Debug.LogFormat("[Kawa|StreamingTextures] GameObjects selected: {0}", gos.Count);
 
 			// Renderers
-			var renderers = gos.SelectMany(x => x.GetComponentsInChildren<Renderer>(true)).ToArray();
-			Debug.LogFormat("[Kawa|StreamingTextures] Renderers found: {0}", renderers.Length);
-			var materials = new HashSet<Material>(renderers.SelectMany(x => x.sharedMaterials).UnityNotNull());
+			var renderers = gos.SelectMany(x => x.GetComponentsInChildren<Renderer>(true)).ToList();
+			Debug.LogFormat("[Kawa|StreamingTextures] Renderers found: {0}", renderers.Count);
+			var materials = renderers.SelectMany(x => x.sharedMaterials).OfType<Material>().Distinct().ToList();
 			Debug.LogFormat("[Kawa|StreamingTextures] Materials found: {0}", materials.Count);
 			foreach (var m in materials) {
 				var texnames = m.GetTexturePropertyNames();
-				texset.UnionWith(texnames.Select(x => m.GetTexture(x) as Texture).UnityNotNull());
+				texset.UnionWith(texnames.Select(x => m.GetTexture(x)).OfType<Texture>());
 			}
 
 			/*

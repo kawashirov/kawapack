@@ -12,7 +12,8 @@ using UnityEditor;
 
 
 namespace Kawashirov {
-	public class BaseLightProbeGenerator : EditorRefreshableBehaviour, KawaGizmos.IKawaGizmos {
+	public class BaseLightProbeGenerator : KawaEditorBehaviour {
+		protected static bool _debug_fold_renderers = false;
 
 		// Кастомные типы данных и поля не спрятаны под UNITY_EDITOR
 		// что бы настройки могли сереализоваться/сохраняться.
@@ -90,16 +91,16 @@ namespace Kawashirov {
 
 		[SerializeField, HideInInspector] protected KawaRaycastHit[] _debug_hits_ = new KawaRaycastHit[0];
 		[SerializeField, HideInInspector] protected KawaRaycastSegment[] _debug_segments_ = new KawaRaycastSegment[0];
-		[SerializeField, HideInInspector] protected int _debug_renderrers_ = 0;
+		[SerializeField, HideInInspector] protected MeshRenderer[] _debug_renderrers_ = new MeshRenderer[0];
 		[SerializeField, HideInInspector] protected int _debug_initial_segments_ = 0;
 
 #if UNITY_EDITOR
 
 		[CanEditMultipleObjects, CustomEditor(typeof(BaseLightProbeGenerator), true)]
-		public new class Editor : EditorRefreshableBehaviour.Editor {
+		public class Editor : UnityEditor.Editor {
 			[MenuItem("Kawashirov/Lightprobe volumes/Refresh in loaded scenes")]
 			public static void RefreshLP() {
-				StaticCommons.IterScenesRoots()
+				KawaUtilities.IterScenesRoots()
 					.SelectMany(g => g.GetComponentsInChildren<BaseLightProbeGenerator>())
 					.ToList().RefreshMultiple();
 			}
@@ -127,7 +128,7 @@ namespace Kawashirov {
 						target.ResetDebug();
 				}
 
-				OnInspectorRefreshGUI();
+				this.BehaviourRefreshGUI();
 
 				EditorGUILayout.LabelField("Globals:");
 				KawaGizmos.DrawEditorGizmosGUI();
@@ -136,7 +137,7 @@ namespace Kawashirov {
 			public virtual void OnInspectorDebugInfoGUI() {
 				var targets = this.targets.Select(t => t as BaseLightProbeGenerator).Where(t => t != null).ToArray();
 
-				var renderers = targets.Select(t => t._debug_renderrers_).Sum();
+				var renderers = targets.SelectMany(t => t._debug_renderrers_).Distinct().ToList();
 				var segments_initial = targets.Select(t => t._debug_initial_segments_).Sum();
 				var segments_raycasted = targets.Select(t => t._debug_segments_.Length).Sum();
 				var raycast_hits = targets.Select(t => t._debug_hits_.Length).Sum();
@@ -149,7 +150,14 @@ namespace Kawashirov {
 				EditorGUILayout.LabelField("Debug info:");
 				EditorGUILayout.LabelField("Selected generators:", targets.Length.ToString());
 				EditorGUILayout.LabelField("Initial segments:", segments_initial.ToString());
-				EditorGUILayout.LabelField("MeshRenderers used:", renderers.ToString());
+				using (new EditorGUI.IndentLevelScope()) {
+					_debug_fold_renderers = EditorGUILayout.Foldout(
+						_debug_fold_renderers, string.Format("MeshRenderers ({0}) used: ", renderers.Count.ToString())
+					);
+					if (_debug_fold_renderers && renderers.Count > 0)
+						for (var i = 0; i < renderers.Count; ++i)
+							EditorGUILayout.ObjectField(renderers[i], typeof(MeshRenderer), true);
+				}
 				EditorGUILayout.LabelField("Total raycast hits:", raycast_hits.ToString());
 				EditorGUILayout.LabelField("Forward raycast hits:", raycast_hits_f.ToString());
 				EditorGUILayout.LabelField("Backward raycast hits:", raycast_hits_b.ToString());
@@ -162,6 +170,8 @@ namespace Kawashirov {
 		public virtual void ResetDebug() {
 			_debug_hits_ = new KawaRaycastHit[0];
 			_debug_segments_ = new KawaRaycastSegment[0];
+			_debug_renderrers_ = new MeshRenderer[0];
+			_debug_initial_segments_ = 0;
 		}
 
 		public override void Refresh() { /* */ }
@@ -176,16 +186,18 @@ namespace Kawashirov {
 			// Эти MeshRenderer используются для Raycast
 
 			var self_bounds = GetBounds();
+			// TODO FIXME Почему-то Intersects не всегда срабатывает
 			var near_renderers = gameObject.scene.GetRootGameObjects()
 					.SelectMany(x => x.GetComponentsInChildren<MeshRenderer>())
-					.Where(mr => mr.gameObject.isStatic && mr.shadowCastingMode != ShadowCastingMode.Off)
+					.Where(mr => GameObjectUtility.AreStaticEditorFlagsSet(mr.gameObject, StaticEditorFlags.BatchingStatic) && mr.shadowCastingMode != ShadowCastingMode.Off)
 					.Select(mr => new { mr, b = mr.bounds, f = mr.GetComponent<MeshFilter>() })
-					.Where(x => x.f != null && x.f.sharedMesh != null && x.b.Intersects(self_bounds))
+					.Where(x => x.f != null && x.f.sharedMesh != null) //  && x.b.Intersects(self_bounds)
 					.Select(x => x.mr)
 					.ToList();
-			Debug.LogFormat("near_renderers {0}", near_renderers.Count);
-			if (debug)
-				_debug_renderrers_ = near_renderers.Count;
+			if (debug) {
+				Debug.LogFormat("near_renderers: {0}", near_renderers.Count);
+				_debug_renderrers_ = near_renderers.ToArray();
+			}
 			return near_renderers;
 		}
 
