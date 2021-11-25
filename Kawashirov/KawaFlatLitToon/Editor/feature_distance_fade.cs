@@ -15,7 +15,7 @@ using EU = UnityEditor.EditorUtility;
 using KST = Kawashirov.ShaderTag;
 using KSBC = Kawashirov.ShaderBaking.Commons;
 using KFLTC = Kawashirov.FLT.Commons;
-using SC = Kawashirov.StaticCommons;
+using SC = Kawashirov.KawaUtilities;
 
 using static UnityEditor.EditorGUI;
 
@@ -62,10 +62,10 @@ namespace Kawashirov.FLT {
 
 		private void DistanceFadeGUI() {
 			var distanceFade = serializedObject.FindProperty("distanceFade");
-			ToggleLeft(distanceFade, gui_feature_dstfd);
+			KawaGUIUtilities.ToggleLeft(distanceFade, gui_feature_dstfd);
 			using (new DisabledScope(distanceFade.hasMultipleDifferentValues || !distanceFade.boolValue)) {
 				using (new IndentLevelScope()) {
-					DefaultPrpertyField("distanceFadeMode", "Mode");
+					KawaGUIUtilities.DefaultPrpertyField(this, "distanceFadeMode", "Mode");
 				}
 			}
 		}

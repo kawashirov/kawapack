@@ -15,7 +15,7 @@ using EU = UnityEditor.EditorUtility;
 using KST = Kawashirov.ShaderTag;
 using KSBC = Kawashirov.ShaderBaking.Commons;
 using KFLTC = Kawashirov.FLT.Commons;
-using SC = Kawashirov.StaticCommons;
+using SC = Kawashirov.KawaUtilities;
 
 using static UnityEditor.EditorGUI;
 
@@ -78,7 +78,7 @@ namespace Kawashirov.FLT {
 	public partial class GeneratorEditor {
 		private void BlendingGUI() {
 			var mode = serializedObject.FindProperty("mode");
-			DefaultPrpertyField(mode, "Blending Mode");
+			KawaGUIUtilities.DefaultPrpertyField(mode, "Blending Mode");
 			var mode_int = !mode.hasMultipleDifferentValues ? mode.intValue : (int?)null;
 			var mode_Opaque = mode_int.HasValue && mode_int.Value == (int)BlendTemplate.Opaque;
 			var mode_Cutout = mode_int.HasValue && mode_int.Value == (int)BlendTemplate.Cutout;
@@ -90,7 +90,7 @@ namespace Kawashirov.FLT {
 			}
 
 			var queueOffset = serializedObject.FindProperty("queueOffset");
-			DefaultPrpertyField(queueOffset);
+			KawaGUIUtilities.DefaultPrpertyField(queueOffset);
 			var queueOffset_int = !queueOffset.hasMultipleDifferentValues ? queueOffset.intValue : (int?)null;
 			using (new DisabledScope(true)) {
 				using (new IndentLevelScope()) {
@@ -111,7 +111,7 @@ namespace Kawashirov.FLT {
 			}
 
 			var forceNoShadowCasting = serializedObject.FindProperty("forceNoShadowCasting");
-			DefaultPrpertyField(forceNoShadowCasting);
+			KawaGUIUtilities.DefaultPrpertyField(forceNoShadowCasting);
 			var forceNoShadowCasting_bool = !forceNoShadowCasting.hasMultipleDifferentValues ? forceNoShadowCasting.boolValue : (bool?)null;
 			if (forceNoShadowCasting_bool.HasValue && mode_int.HasValue && !forceNoShadowCasting_bool.Value && mode_int.Value == (int)BlendTemplate.Fade) {
 				EGUIL.HelpBox(
@@ -122,15 +122,15 @@ namespace Kawashirov.FLT {
 				);
 			}
 
-			DefaultPrpertyField("cull");
+			KawaGUIUtilities.DefaultPrpertyField(this, "cull");
 
-			DefaultPrpertyField("instancing");
+			KawaGUIUtilities.DefaultPrpertyField(this, "instancing");
 
 			using (new DisabledScope(true)) {
-				DefaultPrpertyField("disableBatching");
+				KawaGUIUtilities.DefaultPrpertyField(this, "disableBatching");
 			}
 
-			DefaultPrpertyField("ignoreProjector");
+			KawaGUIUtilities.DefaultPrpertyField(this, "ignoreProjector");
 		}
 	}
 }

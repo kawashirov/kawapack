@@ -15,7 +15,7 @@ using EU = UnityEditor.EditorUtility;
 using KST = Kawashirov.ShaderTag;
 using KSBC = Kawashirov.ShaderBaking.Commons;
 using KFLTC = Kawashirov.FLT.Commons;
-using SC = Kawashirov.StaticCommons;
+using SC = Kawashirov.KawaUtilities;
 
 using static UnityEditor.EditorGUI;
 
@@ -59,10 +59,10 @@ namespace Kawashirov.FLT {
 
 		private void FPSGUI() {
 			var FPS = serializedObject.FindProperty("FPS");
-			ToggleLeft(FPS, gui_feature_fps);
+			KawaGUIUtilities.ToggleLeft(FPS, gui_feature_fps);
 			using (new DisabledScope(FPS.hasMultipleDifferentValues || !FPS.boolValue)) {
 				using (new IndentLevelScope()) {
-					DefaultPrpertyField("FPSMode", "Mode");
+					KawaGUIUtilities.DefaultPrpertyField(this, "FPSMode", "Mode");
 				}
 			}
 		}

@@ -15,7 +15,7 @@ using EU = UnityEditor.EditorUtility;
 using KST = Kawashirov.ShaderTag;
 using KSBC = Kawashirov.ShaderBaking.Commons;
 using KFLTC = Kawashirov.FLT.Commons;
-using SC = Kawashirov.StaticCommons;
+using SC = Kawashirov.KawaUtilities;
 
 using static UnityEditor.EditorGUI;
 
@@ -67,11 +67,11 @@ namespace Kawashirov.FLT {
 
 		private void MatcapGUI() {
 			var matcap = serializedObject.FindProperty("matcap");
-			ToggleLeft(matcap, gui_feature_matcap);
+			KawaGUIUtilities.ToggleLeft(matcap, gui_feature_matcap);
 			using (new DisabledScope(matcap.hasMultipleDifferentValues || !matcap.boolValue)) {
 				using (new IndentLevelScope()) {
-					DefaultPrpertyField("matcapMode", "Mode");
-					DefaultPrpertyField("matcapKeepUp", "Keep Upward Direction");
+					KawaGUIUtilities.DefaultPrpertyField(this, "matcapMode", "Mode");
+					KawaGUIUtilities.DefaultPrpertyField(this, "matcapKeepUp", "Keep Upward Direction");
 				}
 			}
 		}

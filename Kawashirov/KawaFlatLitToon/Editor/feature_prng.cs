@@ -15,7 +15,7 @@ using EU = UnityEditor.EditorUtility;
 using KST = Kawashirov.ShaderTag;
 using KSBC = Kawashirov.ShaderBaking.Commons;
 using KFLTC = Kawashirov.FLT.Commons;
-using SC = Kawashirov.StaticCommons;
+using SC = Kawashirov.KawaUtilities;
 
 using static UnityEditor.EditorGUI;
 
@@ -73,12 +73,12 @@ namespace Kawashirov.FLT {
 					"These options affects it's behaivor.",
 					MessageType.None
 				);
-				DefaultPrpertyField("rndMixTime", "Use Time where possible");
-				DefaultPrpertyField("rndMixCords", "Use Screen-Space coords where possible");
-				DefaultPrpertyField("rndScreenScale", "Screen-Space scaling");
+				KawaGUIUtilities.DefaultPrpertyField(this, "rndMixTime", "Use Time where possible");
+				KawaGUIUtilities.DefaultPrpertyField(this, "rndMixCords", "Use Screen-Space coords where possible");
+				KawaGUIUtilities.DefaultPrpertyField(this, "rndScreenScale", "Screen-Space scaling");
 				using (new GUIL.HorizontalScope()) {
 					var rndDefaultTexture = serializedObject.FindProperty("rndDefaultTexture");
-					DefaultPrpertyField(rndDefaultTexture, "Default noise texture.");
+					KawaGUIUtilities.DefaultPrpertyField(rndDefaultTexture, "Default noise texture.");
 					if (GUIL.Button("Default")) {
 						rndDefaultTexture.objectReferenceValue = Generator.GetRndDefaultTexture();
 					}

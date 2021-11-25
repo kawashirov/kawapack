@@ -16,7 +16,7 @@ using EU = UnityEditor.EditorUtility;
 using KST = Kawashirov.ShaderTag;
 using KSBC = Kawashirov.ShaderBaking.Commons;
 using KFLTC = Kawashirov.FLT.Commons;
-using SC = Kawashirov.StaticCommons;
+using SC = Kawashirov.KawaUtilities;
 
 using static UnityEditor.EditorGUI;
 
@@ -223,21 +223,21 @@ namespace Kawashirov.FLT {
 			EGUIL.LabelField("General Rendering Features");
 			using (new IndentLevelScope()) {
 				var mainTex = serializedObject.FindProperty("mainTex");
-				PropertyEnumPopupCustomLabels(mainTex, "Main (Albedo) Texture", KFLTC.mainTexKeywordsNames);
-				DefaultPrpertyField("mainTexSeparateAlpha", "Alpha in separate texture");
+				KawaGUIUtilities.PropertyEnumPopupCustomLabels(mainTex, "Main (Albedo) Texture", KFLTC.mainTexKeywordsNames);
+				KawaGUIUtilities.DefaultPrpertyField(this, "mainTexSeparateAlpha", "Alpha in separate texture");
 
 				var cutout = serializedObject.FindProperty("cutout");
-				PropertyEnumPopupCustomLabels(cutout, "Cutout Mode", KFLTC.cutoutModeNames);
+				KawaGUIUtilities.PropertyEnumPopupCustomLabels(cutout, "Cutout Mode", KFLTC.cutoutModeNames);
 
 				var emission = serializedObject.FindProperty("emission");
-				DefaultPrpertyField(emission);
+				KawaGUIUtilities.DefaultPrpertyField(emission);
 				using (new DisabledScope(!emission.boolValue)) {
 					using (new IndentLevelScope()) {
 						var emissionMode = serializedObject.FindProperty("emissionMode");
-						PropertyEnumPopupCustomLabels(emissionMode, "Mode", KFLTC.emissionMode);
+						KawaGUIUtilities.PropertyEnumPopupCustomLabels(emissionMode, "Mode", KFLTC.emissionMode);
 					}
 				}
-				DefaultPrpertyField("bumpMap");
+				KawaGUIUtilities.DefaultPrpertyField(this, "bumpMap");
 			}
 		}
 	}

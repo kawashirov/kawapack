@@ -15,7 +15,7 @@ using EU = UnityEditor.EditorUtility;
 using KST = Kawashirov.ShaderTag;
 using KSBC = Kawashirov.ShaderBaking.Commons;
 using KFLTC = Kawashirov.FLT.Commons;
-using SC = Kawashirov.StaticCommons;
+using SC = Kawashirov.KawaUtilities;
 
 using static UnityEditor.EditorGUI;
 
@@ -71,12 +71,12 @@ namespace Kawashirov.FLT {
 		private void IWDGUI() {
 			using (new DisabledScope(!complexity_VGF && !complexity_VHDGF)) {
 				var iwd = serializedObject.FindProperty("iwd");
-				ToggleLeft(iwd, gui_feature_iwd);
+				KawaGUIUtilities.ToggleLeft(iwd, gui_feature_iwd);
 				using (new DisabledScope(
 					iwd.hasMultipleDifferentValues || !iwd.boolValue || (!complexity_VGF && !complexity_VHDGF)
 				)) {
 					using (new IndentLevelScope()) {
-						DefaultPrpertyField("iwdDirections", "Directions");
+						KawaGUIUtilities.DefaultPrpertyField(this, "iwdDirections", "Directions");
 					}
 				}
 			}

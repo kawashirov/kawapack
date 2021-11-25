@@ -9,7 +9,7 @@ using Kawashirov.FLT;
 
 using MP = UnityEditor.MaterialProperty;
 using EGUIL = UnityEditor.EditorGUILayout;
-using SC = Kawashirov.StaticCommons;
+using SC = Kawashirov.KawaUtilities;
 using KFLTC = Kawashirov.FLT.Commons;
 using static UnityEditor.EditorGUI;
 using static Kawashirov.MaterialsCommons;

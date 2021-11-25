@@ -15,7 +15,7 @@ using EU = UnityEditor.EditorUtility;
 using KST = Kawashirov.ShaderTag;
 using KSBC = Kawashirov.ShaderBaking.Commons;
 using KFLTC = Kawashirov.FLT.Commons;
-using SC = Kawashirov.StaticCommons;
+using SC = Kawashirov.KawaUtilities;
 
 using static UnityEditor.EditorGUI;
 
@@ -56,12 +56,12 @@ namespace Kawashirov.FLT {
 		private void OutlineGUI() {
 			using (new DisabledScope(!complexity_VGF && !complexity_VHDGF)) {
 				var outline = serializedObject.FindProperty("outline");
-				ToggleLeft(outline, gui_feature_outline);
+				KawaGUIUtilities.ToggleLeft(outline, gui_feature_outline);
 				using (new DisabledScope(
 					outline.hasMultipleDifferentValues || !outline.boolValue || (!complexity_VGF && !complexity_VHDGF)
 				)) {
 					using (new IndentLevelScope()) {
-						DefaultPrpertyField("outlineMode", "Mode");
+						KawaGUIUtilities.DefaultPrpertyField(this, "outlineMode", "Mode");
 					}
 				}
 			}

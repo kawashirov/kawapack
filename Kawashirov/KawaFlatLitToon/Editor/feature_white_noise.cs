@@ -15,7 +15,7 @@ using EU = UnityEditor.EditorUtility;
 using KST = Kawashirov.ShaderTag;
 using KSBC = Kawashirov.ShaderBaking.Commons;
 using KFLTC = Kawashirov.FLT.Commons;
-using SC = Kawashirov.StaticCommons;
+using SC = Kawashirov.KawaUtilities;
 
 using static UnityEditor.EditorGUI;
 
@@ -44,7 +44,7 @@ namespace Kawashirov.FLT {
 		private static readonly GUIContent gui_feature_wnoise = new GUIContent("White Noise Feature");
 		private void WhiteNoise() {
 			var wnoise = serializedObject.FindProperty("wnoise");
-			ToggleLeft(wnoise, gui_feature_wnoise);
+			KawaGUIUtilities.ToggleLeft(wnoise, gui_feature_wnoise);
 		}
 	}
 }

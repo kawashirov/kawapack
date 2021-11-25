@@ -15,7 +15,7 @@ using EU = UnityEditor.EditorUtility;
 using KST = Kawashirov.ShaderTag;
 using KSBC = Kawashirov.ShaderBaking.Commons;
 using KFLTC = Kawashirov.FLT.Commons;
-using SC = Kawashirov.StaticCommons;
+using SC = Kawashirov.KawaUtilities;
 
 using static UnityEditor.EditorGUI;
 
@@ -42,7 +42,7 @@ namespace Kawashirov.FLT {
 		private static readonly GUIContent gui_feature_psx = new GUIContent("PSX Feature");
 		private void PSXGUI() {
 			var PSX = serializedObject.FindProperty("PSX");
-			ToggleLeft(PSX, gui_feature_psx);
+			KawaGUIUtilities.ToggleLeft(PSX, gui_feature_psx);
 		}
 	}
 }

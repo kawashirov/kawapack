@@ -16,7 +16,7 @@ using EU = UnityEditor.EditorUtility;
 using KST = Kawashirov.ShaderTag;
 using KSBC = Kawashirov.ShaderBaking.Commons;
 using KFLTC = Kawashirov.FLT.Commons;
-using SC = Kawashirov.StaticCommons;
+using SC = Kawashirov.KawaUtilities;
 
 using static UnityEditor.EditorGUI;
 
@@ -87,7 +87,7 @@ namespace Kawashirov.FLT {
 	public partial class GeneratorEditor {
 		private void ShadingGUI() {
 			var shading = serializedObject.FindProperty("shading");
-			PropertyEnumPopupCustomLabels(shading, "Shading Method", KFLTC.shadingModeNames);
+			KawaGUIUtilities.PropertyEnumPopupCustomLabels(shading, "Shading Method", KFLTC.shadingModeNames);
 		}
 	}
 }
