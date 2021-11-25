@@ -10,12 +10,12 @@ using UnityEditor;
 #endif
 
 namespace Kawashirov.Refreshables {
-	public static class RefreshableExtensions {
+	public static class RefreshableUtilities {
 #if UNITY_EDITOR
 
 		[MenuItem("Kawashirov/Refreshables/Refresh every IRefreshable in loaded scenes")]
 		public static void RefreshEverytingInLoadedScenes() {
-			StaticCommons.IterScenesRoots()
+			KawaUtilities.IterScenesRoots()
 				.SelectMany(g => g.GetComponentsInChildren<IRefreshable>(true))
 				.ToList().RefreshMultiple();
 		}

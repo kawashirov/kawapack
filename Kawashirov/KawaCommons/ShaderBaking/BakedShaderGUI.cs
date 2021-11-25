@@ -47,7 +47,7 @@ namespace Kawashirov.ShaderBaking {
 
 			generators.Clear();
 			generators.AddRange(
-				material_generators.Select(x => x.Item2).UnityNotNull().Distinct()
+				material_generators.Select(x => x.Item2).Distinct().OfType<G>()
 			);
 
 			materials_with_no_generators.Clear();

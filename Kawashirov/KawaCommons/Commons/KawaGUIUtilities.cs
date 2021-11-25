@@ -1,26 +1,19 @@
-﻿using System;
+﻿using Kawashirov.Refreshables;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using System.Linq;
 using System.Reflection;
-
-
-#if UNITY_EDITOR
 using UnityEditor;
+using UnityEngine;
 
 namespace Kawashirov {
+	public static class KawaGUIUtilities {
 
-	[CanEditMultipleObjects]
-	public class CommonEditor : Editor {
-		// Полезные штуки для Editorов
-		// по возможности static this, что бы можно было использовать там,
-		// где нет возможности наследовать CommonEditor
 
 		private static readonly MethodInfo EditorGUIUtility_GetHelpIcon;
 
-		private static GUIStyle richHelpBox = null;
-
-		static CommonEditor() {
+		static KawaGUIUtilities() {
 			EditorGUIUtility_GetHelpIcon = typeof(EditorGUIUtility).GetMethod("GetHelpIcon", BindingFlags.NonPublic | BindingFlags.Static);
 		}
 
@@ -28,6 +21,7 @@ namespace Kawashirov {
 			return (Texture2D)EditorGUIUtility_GetHelpIcon.Invoke(null, new object[] { type });
 		}
 
+		private static GUIStyle richHelpBox = null;
 
 		public static GUIStyle GetRichHelpBox() {
 			if (richHelpBox == null) {
@@ -74,13 +68,8 @@ namespace Kawashirov {
 			return false;
 		}
 
-		public static int PropertyMaskPopupCustomLabels(
-			string label, SerializedProperty property, Type enum_t, Dictionary<int, string> labels = null,
-			GUILayoutOption[] options = null
-		) {
-			// TODO
-
-			return 0;
+		public static void DefaultPrpertyField(Editor editor, string name, string label = null) {
+			DefaultPrpertyField(editor.serializedObject.FindProperty(name), label);
 		}
 
 		public static void DefaultPrpertyField(SerializedProperty property, string label = null) {
@@ -94,7 +83,7 @@ namespace Kawashirov {
 		public static void ToggleLeft(SerializedProperty property, GUIContent label) {
 			var position = EditorGUILayout.GetControlRect(true);
 			using (var prop_scope = new EditorGUI.PropertyScope(position, label, property)) {
-				using(var change_scope = new EditorGUI.ChangeCheckScope()) {
+				using (var change_scope = new EditorGUI.ChangeCheckScope()) {
 					var value = EditorGUI.ToggleLeft(position, label, property.boolValue);
 					if (change_scope.changed) {
 						property.boolValue = value;
@@ -103,18 +92,50 @@ namespace Kawashirov {
 			}
 		}
 
-		//
-		// Инстансное
+		public static void BehaviourRefreshGUI(this Editor editor) {
+			var refreshables = editor.targets.OfType<IRefreshable>().ToList();
 
-		protected virtual void OnEnable() {
+			if (refreshables.Count < 1)
+				return;
 
+			if (GUILayout.Button("Only refresh this")) {
+				refreshables.RefreshMultiple();
+			}
+
+			var scenes = editor.targets.OfType<Component>().Select(r => r.gameObject.scene).Distinct().ToList();
+			var scene_str = string.Join(", ", scenes.Select(s => s.name));
+
+			var types = editor.targets.Select(t => t.GetType()).Distinct().ToList();
+			var types_str = string.Join(", ", types.Select(t => t.Name));
+
+			var types_btn = string.Format("Refresh every {0} on scene: {1}", types_str, scene_str);
+			if (GUILayout.Button(types_btn)) {
+				var all_targets = scenes.SelectMany(s => s.GetRootGameObjects())
+						.SelectMany(g => types.SelectMany(t => g.GetComponentsInChildren(t, true)))
+						.Distinct().OfType<IRefreshable>().ToList();
+				all_targets.RefreshMultiple();
+			}
+
+			var scene_btn = string.Format("Refresh every Behaviour on scene: {0}", scene_str);
+			if (GUILayout.Button(scene_btn)) {
+				var all_targets = scenes.SelectMany(s => s.GetRootGameObjects())
+						.SelectMany(g => g.GetComponentsInChildren<IRefreshable>(true)).ToList();
+				all_targets.RefreshMultiple();
+			}
 		}
 
-		public void DefaultPrpertyField(string name, string label = null) {
-			DefaultPrpertyField(serializedObject.FindProperty(name), label);
-		}
+		public static void ShaderEditorFooter() {
+			var style = new GUIStyle { richText = true };
 
+			EditorGUILayout.Space();
+			EditorGUILayout.LabelField("This thing made by <b>kawashirov</b>; My Contacts:", style);
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField("Discord server:");
+			if (GUILayout.Button("pEugvST")) {
+				Application.OpenURL("https://discord.gg/pEugvST");
+			}
+			EditorGUILayout.EndHorizontal();
+			EditorGUILayout.LabelField("Discord tag: kawashirov#8363");
+		}
 	}
-
 }
-#endif

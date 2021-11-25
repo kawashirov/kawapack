@@ -28,18 +28,18 @@ namespace Kawashirov.ShaderBaking {
 
 		[CanEditMultipleObjects]
 		[CustomEditor(typeof(BaseGenerator))]
-		public class Editor<G> : CommonEditor where G : BaseGenerator {
+		public class Editor<G> : Editor where G : BaseGenerator {
 
 			protected readonly List<Shader> results_shaders = new List<Shader>();
 
 			protected SerializedProperty result = null;
 
-			protected override void OnEnable() {
+			protected void OnEnable() {
 				result = serializedObject.FindProperty("result");
 				if (result.hasMultipleDifferentValues) {
 					results_shaders.Clear();
 					results_shaders.AddRange(
-						 serializedObject.targetObjects.OfType<G>().UnityNotNull().Select(g => g.result).UnityNotNull()
+						 serializedObject.targetObjects.OfType<G>().Select(g => g.result)
 					);
 				}
 			}
@@ -48,7 +48,7 @@ namespace Kawashirov.ShaderBaking {
 
 				EGUIL.LabelField("Shader");
 				using (new IndentLevelScope()) {
-					DefaultPrpertyField("shaderName", "Name");
+					KawaGUIUtilities.DefaultPrpertyField(this, "shaderName", "Name");
 
 					if (!result.hasMultipleDifferentValues) {
 						var value = result.objectReferenceValue;
@@ -86,7 +86,7 @@ namespace Kawashirov.ShaderBaking {
 
 		[MenuItem("Kawashirov/Shader Baking/Refresh every shader in project")]
 		public static void RefreshEverytingInLoadedScenes() {
-			Refreshables.RefreshableExtensions.RefreshEverytingInProject<BaseGenerator>(true);
+			Refreshables.RefreshableUtilities.RefreshEverytingInProject<BaseGenerator>(true);
 		}
 
 		public static void DeleteGeneratedAtPath(string path) {

@@ -18,7 +18,7 @@ namespace Kawashirov {
 		public class TagMulitipleValuesException : ArgumentException {
 
 			private static string _Message(IEnumerable<Material> materials, string tag, IEnumerable<string> values) {
-				var mats_array = materials.Distinct().UnityNotNull().Select(m => m.ToString()).ToArray();
+				var mats_array = materials.OfType<Material>().Distinct().Select(m => m.ToString()).ToArray();
 				var values_array = values.Distinct().ToArray();
 				return string.Format(
 					"Materials ({0}: {1}) have multiple values for tag \"{2}\": ({3}: {4}). Can not operate with this tag. Try oprate on a single material.",
@@ -43,7 +43,7 @@ namespace Kawashirov {
 
 			if (materials == null)
 				throw new ArgumentNullException(string.Format("tag {0}: No materials provided!", tag));
-			this.materials = materials.Distinct().UnityNotNull().ToArray();
+			this.materials = materials.OfType<Material>().Distinct().ToArray();
 			if (this.materials.Length < 1)
 				throw new ArgumentException(string.Format("tag {0}: No materials provided!", tag));
 		}

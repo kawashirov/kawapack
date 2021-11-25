@@ -9,7 +9,7 @@ using UnityEditor.SceneManagement;
 #endif
 
 namespace Kawashirov {
-	public static class StaticCommons {
+	public static class KawaUtilities {
 
 		public static Vector2 XY(this Vector3 v) => new Vector2(v.x, v.y);
 		public static Vector2 XZ(this Vector3 v) => new Vector2(v.x, v.z);
@@ -17,15 +17,60 @@ namespace Kawashirov {
 
 		public static Color Alpha(this Color c, float a) => new Color(c.r, c.g, c.b, a);
 
-		public static IEnumerable<T> UnityNotNull<T>(this IEnumerable<T> iter) where T : class 
-			=> iter.Where(obj => (obj as UnityEngine.Object) != null);
-
 		public static T GetOrAddComponent<T>(this GameObject gobj) where T : Component {
 			var c = gobj.GetComponent<T>();
 			if (c == null) {
 				c = gobj.AddComponent<T>();
 			}
 			return c;
+		}
+
+		public static IEnumerable<GameObject> WithTag(this IEnumerable<GameObject> enumerable, string tag) => enumerable.Where(g => g.CompareTag(tag));
+		public static IEnumerable<GameObject> WithoutTag(this IEnumerable<GameObject> enumerable, string tag) => enumerable.Where(g => !g.CompareTag(tag));
+
+		private static bool IsRuntimeHideFlags(UnityEngine.Object obj) => (obj.hideFlags & (HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild)) == HideFlags.None;
+
+		public static bool IsRuntime(this UnityEngine.Object obj) {
+			// Имеет ли объект шанс попасть в рантайм после сборки? Если точно известно, что нет, то возвращается false
+			if (!IsRuntimeHideFlags(obj))
+				return false;
+			var gameObject = obj as GameObject;
+			if (!gameObject && obj is Component c) {
+				gameObject = c.gameObject;
+				// Если ранее мы проверили hideFlags компонента, то теперь нужно проверить hideFlags объекта.
+				if (gameObject && !IsRuntimeHideFlags(gameObject))
+					return false;
+			}
+			if (gameObject) {
+				if (gameObject.CompareTag("EditorOnly"))
+					return false;
+				if (gameObject.TraverseParents().All(IsRuntime))
+					return false; // Имеет не-рантайм родителя 
+			}
+			return true;
+		}
+
+		public static bool IsEditorOnly(this UnityEngine.Object obj) => !IsRuntime(obj);
+
+		public static IEnumerable<T> RuntimeOnly<T>(this IEnumerable<T> enumerable) where T : UnityEngine.Object => enumerable.Where(IsRuntime);
+		public static IEnumerable<T> EditorOnly<T>(this IEnumerable<T> enumerable) where T : UnityEngine.Object => enumerable.Where(IsEditorOnly);
+
+		public static HashSet<GameObject> FindWithTagInactive(IEnumerable<GameObject> where, string tag) {
+			var queue = new Queue<GameObject>(where);
+			var tagged = new HashSet<GameObject>();
+			while (queue.Count > 0) {
+				var current = queue.Dequeue();
+				if (current.CompareTag(tag)) {
+					tagged.Add(current);
+				}
+				if (!current.CompareTag("EditorOnly")) {
+					var t = current.transform;
+					for (var i = 0; i < t.childCount; ++i) {
+						queue.Enqueue(t.GetChild(i).gameObject);
+					}
+				}
+			}
+			return tagged;
 		}
 
 		public static string KawaGetHierarchyPath(this Transform transform) {
@@ -85,27 +130,35 @@ namespace Kawashirov {
 			}
 		}
 
-		public static List<GameObject> GetScenesRoots(List<GameObject> collection = null, bool onlyLoaded = true, bool onlyValid = true) {
-			if (collection == null)
-				collection = new List<GameObject>();
-			var less_allocs = new List<GameObject>();
-			foreach (var scene in IterScenes(onlyLoaded, onlyValid)) {
-				less_allocs.Clear();
-				scene.GetRootGameObjects(less_allocs);
-				collection.AddRange(less_allocs);
-			}
-			return collection;
-		}
+		public static IEnumerable<GameObject> TraverseParents(this GameObject root, bool excludeSelf = true) 
+			=> root.transform.TraverseParents(excludeSelf).Select(t => t.gameObject);
 
-		public static bool IsEditorOnly(this Transform transform) {
-			// Tags only exist in editor?
-			// Any of parents have "EditorOnly" tag.
-			while (transform != null) {
-				if (transform.CompareTag("EditorOnly"))
-					return true;
+		public static IEnumerable<Transform> TraverseParents(this Transform transform, bool excludeSelf = true) {
+			if (excludeSelf)
+				transform = transform?.parent;
+			while (transform) {
+				yield return transform;
 				transform = transform.parent;
 			}
-			return false;
+			yield break;
+		}
+
+		public static IEnumerable<GameObject> Traverse(this GameObject root) => root.transform.Traverse().Select(t => t.gameObject);
+
+		public static IEnumerable<Transform> Traverse(this Transform root) {
+			var queue = new Queue<Transform>();
+			queue.Enqueue(root);
+			while (queue.Count > 0) {
+				var t = queue.Dequeue();
+				yield return t;
+				for (var i = 0; i < t.childCount; ++i)
+					queue.Enqueue(t.GetChild(i));
+			}
+			yield break;
+		}
+
+		public static IEnumerable<T> ToEnumerable<T>(this T item) {
+			yield return item;
 		}
 
 		public static bool AnyNotNull<T>(params T[] objs) {
@@ -130,10 +183,10 @@ namespace Kawashirov {
 		public static void ReportInfos() {
 			var items = Selection.objects.OfType<GameObject>()
 				.SelectMany(g => g.GetComponentsInChildren<Component>(true));
-			foreach(var item in items) {
+			foreach (var item in items) {
 				Debug.LogFormat(
 					item, "item={0}\nname={1}\ntransform={2}\nscene={3}\nIsPersistent={4}\nKawaGetFullPath={5}",
-					item, item.name, item.transform.KawaGetHierarchyPath(), item.gameObject.scene.path, 
+					item, item.name, item.transform.KawaGetHierarchyPath(), item.gameObject.scene.path,
 					EditorUtility.IsPersistent(item), item.gameObject.KawaGetFullPath()
 				);
 			}
@@ -152,20 +205,6 @@ namespace Kawashirov {
 					EditorGUI.PropertyField(position, property, label, true);
 				}
 			}
-		}
-
-		public static void ShaderEditorFooter() {
-			var style = new GUIStyle { richText = true };
-
-			EditorGUILayout.Space();
-			EditorGUILayout.LabelField("This thing made by <b>kawashirov</b>; My Contacts:", style);
-			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.LabelField("Discord server:");
-			if (GUILayout.Button("pEugvST")) {
-				Application.OpenURL("https://discord.gg/pEugvST");
-			}
-			EditorGUILayout.EndHorizontal();
-			EditorGUILayout.LabelField("Discord tag: kawashirov#8363");
 		}
 
 #endif // UNITY_EDITOR
