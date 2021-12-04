@@ -34,6 +34,7 @@ public class LazyPlayerPresenceTrigger : UdonSharpBehaviour
 
 	[Space, Tooltip("This event will be sent to receivers if IsPlayerPresent will be changed.\nAll components should be UdonBehaviours, otherwise script will crash.")]
 	public string OnChangedEventName = "OnPlayerPresenceChanged";
+	public int OnChangedEventDelay = 1;
 	public Component[] EventReceivers;
 
 	[Space, Tooltip("If there is no local player (that's OK in editor play mode) script will use this value as IsPlayerPresent.")]
@@ -96,8 +97,13 @@ public class LazyPlayerPresenceTrigger : UdonSharpBehaviour
 
 			foreach (var component in EventReceivers) {
 				var receiver = (UdonBehaviour)component;
-				if (Utilities.IsValid(receiver) && receiver.gameObject.activeInHierarchy && receiver.enabled)
+				if (!(Utilities.IsValid(receiver) && receiver.gameObject.activeInHierarchy && receiver.enabled))
+					continue;
+				if (OnChangedEventDelay < 1) {
 					receiver.SendCustomEvent(OnChangedEventName);
+				} else {
+					receiver.SendCustomEventDelayedFrames(OnChangedEventName, OnChangedEventDelay);
+				}
 			}
 
 			foreach (var animator in AnimatorsSetBool) {
@@ -206,12 +212,21 @@ public class LazyPlayerPresenceTrigger : UdonSharpBehaviour
 	private bool Validate_AnimatorsSetBool() => KawaUdonUtilities.DistinctArray(ref AnimatorsSetBool);
 	private bool Validate_EventReceivers() => KawaUdonUtilities.ValidateComponentsArrayOfUdonSharpBehaviours(ref EventReceivers);
 
+	private void Validate_Trigger(Collider collider) {
+		if (!collider.enabled)
+			collider.enabled = true;
+		var layer = LayerMask.NameToLayer("Ignore Raycast");
+		if (collider.gameObject.layer != layer)
+			collider.gameObject.layer = layer;
+	}
+
 	public void Refresh() {
 		KawaUdonUtilities.ValidateSafe(Validate_Triggers, this, nameof(Triggers));
 		KawaUdonUtilities.ValidateSafe(Validate_ActiveWhenPresent, this, nameof(ActiveWhenPresent));
 		KawaUdonUtilities.ValidateSafe(Validate_ActiveWhenAbsent, this, nameof(ActiveWhenAbsent));
 		KawaUdonUtilities.ValidateSafe(Validate_AnimatorsSetBool, this, nameof(AnimatorsSetBool));
 		KawaUdonUtilities.ValidateSafe(Validate_EventReceivers, this, nameof(EventReceivers));
+		KawaUdonUtilities.ValidateSafeForEach(Triggers, Validate_Trigger, this, nameof(Triggers));
 	}
 
 	public UnityEngine.Object AsUnityObject() => this;
@@ -220,9 +235,6 @@ public class LazyPlayerPresenceTrigger : UdonSharpBehaviour
 
 	public void OnDrawGizmosSelected() {
 		var self_pos = transform.position;
-
-		Gizmos.color = Color.white.Alpha(KawaGizmos.GizmosAplha);
-		Gizmos.DrawWireSphere(self_pos, 0.1f);
 
 		Gizmos.color = Color.blue.Alpha(KawaGizmos.GizmosAplha);
 		foreach (var gobj in ActiveWhenPresent)

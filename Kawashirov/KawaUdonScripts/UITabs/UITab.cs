@@ -9,6 +9,7 @@ using Kawashirov.Refreshables;
 using System.Linq;
 using Kawashirov.Udon;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 #if !COMPILER_UDONSHARP && UNITY_EDITOR
 using UnityEditor;
@@ -61,7 +62,7 @@ public class UITab : UdonSharpBehaviour
 
 	private void Validate_tabObject() => KawaUdonUtilities.EnsureIsValid(tabObject, nameof(tabObject));
 
-	private void Validate_tabs() => KawaUdonUtilities.EnsureAppended(tabs, ref tabs.tabs, this.ToEnumerable());
+	private void Validate_tabs() => KawaUdonUtilities.EnsureAppended(tabs, ref tabs.tabs, this);
 	
 	public void Refresh() {
 		KawaUdonUtilities.ValidateSafe(Validate_tabObject, this, nameof(tabObject));

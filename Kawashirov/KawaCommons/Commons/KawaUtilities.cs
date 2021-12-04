@@ -44,7 +44,7 @@ namespace Kawashirov {
 			if (gameObject) {
 				if (gameObject.CompareTag("EditorOnly"))
 					return false;
-				if (gameObject.TraverseParents().All(IsRuntime))
+				if (gameObject.TraverseParents().Any(IsEditorOnly))
 					return false; // Имеет не-рантайм родителя 
 			}
 			return true;

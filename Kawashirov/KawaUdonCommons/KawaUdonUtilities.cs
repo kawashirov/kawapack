@@ -86,6 +86,14 @@ namespace Kawashirov.Udon {
 				throw new ArgumentException(string.Format("U# behaviour {0} ({1}) is not a proxy!", proxy, proxy.gameObject.KawaGetFullPath()), paramName);
 		}
 
+		public static bool EnsureAppendedAsUdonBehaviour(UdonSharpBehaviour proxy, ref Component[] array, UdonSharpBehaviour item, string paramName = null) {
+			return EnsureAppended(proxy, ref array, UdonSharpEditorUtility.GetBackingUdonBehaviour(item).ToEnumerable(), paramName);
+		}
+
+		public static bool EnsureAppended<T>(UdonSharpBehaviour proxy, ref T[] array, T item, string paramName = null) where T : UnityEngine.Object {
+			return EnsureAppended(proxy, ref array, item.ToEnumerable(), paramName);
+		}
+
 		public static bool EnsureAppended<T>(UdonSharpBehaviour proxy, ref T[] array, IEnumerable<T> items, string paramName = null) where T : UnityEngine.Object {
 			EnsureValidUdonSharpProxy(proxy, nameof(proxy));
 			if (!Utilities.IsValid(array)) {

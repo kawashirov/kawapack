@@ -22,6 +22,7 @@ public class StateSwitch : UdonSharpBehaviour
 {
 	public Component[] eventReceivers;
 	public string eventName = "Derp";
+	public int eventDelay = 1;
 
 	public GameObject[] states;
 	public int currentState = 0;
@@ -45,7 +46,11 @@ public class StateSwitch : UdonSharpBehaviour
 			if (!Utilities.IsValid(receiver_c))
 				continue;
 			var receiver = (UdonBehaviour)receiver_c;
-			receiver.SendCustomEvent(eventName);
+			if (eventDelay < 1) {
+				receiver.SendCustomEvent(eventName);
+			} else {
+				receiver.SendCustomEventDelayedFrames(eventName, eventDelay);
+			}
 		}
 	}
 
