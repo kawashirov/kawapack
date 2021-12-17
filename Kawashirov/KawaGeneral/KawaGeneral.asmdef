@@ -1,15 +1,13 @@
 {
-    "name": "KawaGeneral",
+    "name": "KawaCommons",
     "references": [
-        "GUID:89c1c24a7ce724b4fa333247d8146605"
+        "GUID:478a2357cc57436488a56e564b08d223"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
-    "precompiledReferences": [
-        ""
-    ],
+    "precompiledReferences": [],
     "autoReferenced": false,
     "defineConstraints": [],
     "versionDefines": [],

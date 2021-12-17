@@ -152,7 +152,7 @@ public class ThrottledUpdate : UdonSharpBehaviour
 			.Where(u => AutoBindPrograms.Contains(u.programSource) && u.IsRuntime());
 		var fixed_event_recievers = EventReceivers
 			.SelectMany(KawaUdonUtilities.ConvertToUdonBehaviour);
-		var new_receivers = fixed_event_recievers.Concat(auto_event_recievers).Cast<Component>().ToArray();
+		var new_receivers = fixed_event_recievers.Concat(auto_event_recievers).Distinct().Cast<Component>().ToArray();
 		return KawaUdonUtilities.ModifyArray(ref EventReceivers, new_receivers, KawaUdonUtilities.UnityInequality);
 	}
 

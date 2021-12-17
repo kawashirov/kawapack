@@ -20,6 +20,14 @@ namespace Kawashirov {
 
 #if UNITY_EDITOR
 
+		[CustomEditor(typeof(StaticConstraint))]
+		public class Editor : UnityEditor.Editor {
+			public override void OnInspectorGUI() {
+				DrawDefaultInspector();
+				this.BehaviourRefreshGUI();
+			}
+		}
+
 		public override void Refresh() {
 
 			if (string.IsNullOrWhiteSpace(sourceObjectName)) {

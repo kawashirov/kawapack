@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce12c90333a42654b834c2ab4f03e6c5, type: 3}
+  m_Name: LightProbesToolPanelSearchNegative
+  m_EditorClassIdentifier: 
+  analysisDirectionSamples: 1000
+  analysisDarkThreshold: 0.05
+  analysisGizmoSpheresSize: 0.05
+  analysisGizmoDirectionsSize: 0.2
+  analysisTopProbes: 10
+  analysisTopProbesFold: 0
+  analysisFixTooDarkReRunAnalysis: 1
+  analysisFixTooDarkDirectionalVsAmbient: 0.5
+  analysisProbeColorMinMax: {x: 0, y: 0}
+  analysisDisplayRange: {x: 0, y: 0}
