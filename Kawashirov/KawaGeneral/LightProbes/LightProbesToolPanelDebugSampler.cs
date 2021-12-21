@@ -136,6 +136,28 @@ namespace Kawashirov.LightProbesTools {
 		{ "4", "L2-2", "xy" }, {"5", "L2-1", "yz" }, {"6", "L2+0", "zz" }, {"7", "L2+1", "xz" }, {"8", "L2+2", "xx-yy" },
 		};
 
+		public void ToolsGUI_Vector3Fix(string label, Vector3 vector) {
+			var rect = EditorGUILayout.GetControlRect();
+			rect = EditorGUI.PrefixLabel(rect, new GUIContent(label));
+			using (new KawaGUIUtility.ZeroIndentScope()) {
+				EditorGUI.Vector3Field(rect, GUIContent.none, vector);
+			}
+		}
+
+		public void ToolsGUI_Vector2Fix(string label, Vector2 vector) {
+			var rect = EditorGUILayout.GetControlRect();
+			rect = EditorGUI.PrefixLabel(rect, new GUIContent(label));
+			using (new KawaGUIUtility.ZeroIndentScope()) {
+				EditorGUI.Vector2Field(rect, GUIContent.none, vector);
+			}
+		}
+
+		public void ToolsGUI_HSVLine(Color sampleColor) {
+			var HSV = Vector2.zero;
+			Color.RGBToHSV(sampleColor, out HSV.x, out HSV.y, out _);
+			ToolsGUI_Vector2Fix("Hue Sat", HSV);
+		}
+
 		public override void ToolsGUI() {
 			EditorGUILayout.LabelField("Gizmo sizes:");
 			using (new EditorGUI.IndentLevelScope(1)) {
@@ -143,51 +165,53 @@ namespace Kawashirov.LightProbesTools {
 				gizmoDirectionsSize = EditorGUILayout.FloatField(analysisLabelLines, gizmoDirectionsSize);
 			}
 
+			EditorGUILayout.Space();
+
+			EditorGUILayout.LabelField("Minimal (Darkest) side:", EditorStyles.boldLabel);
+			using (new EditorGUI.IndentLevelScope(1)) {
+				EditorGUILayout.ColorField(label_color, sample.colorMin, false, false, true);
+				{
+					var guiColor = GUI.color;
+					if (sample.componentMin < 0)
+						GUI.color = Color.red;
+					EditorGUILayout.FloatField("Min Component", sample.componentMin);
+					//	ToolsGUI_HSVLine(sample.colorMin);
+					GUI.color = guiColor;
+				}
+				ToolsGUI_Vector3Fix("Direction", sample.directionMin);
+				EditorGUILayout.FloatField("Of Maximum", sample.componentMin / sample.componentMax);
+			}
+			EditorGUILayout.LabelField("Maximum (Brightest) side:", EditorStyles.boldLabel);
+			using (new EditorGUI.IndentLevelScope(1)) {
+				EditorGUILayout.ColorField(label_color, sample.colorMax, false, false, true);
+				{
+					var guiColor = GUI.color;
+					if (sample.colorMax.r < 0 || sample.colorMax.g < 0 || sample.colorMax.b < 0)
+						GUI.color = Color.red;
+					EditorGUILayout.FloatField("Max Component", sample.componentMax);
+					//	ToolsGUI_HSVLine(sample.colorMax);
+					GUI.color = guiColor;
+				}
+				ToolsGUI_Vector3Fix("Direction", sample.directionMax);
+				EditorGUILayout.FloatField("Of Minimum", sample.componentMax / sample.componentMin);
+			}
 
 			EditorGUILayout.Space();
 
-			EditorGUILayout.LabelField("Minimal (Darkest):");
-			using (new EditorGUI.IndentLevelScope(1)) {
-				EditorGUILayout.ColorField(label_color, sample.colorMin, false, false, true);
-				EditorGUILayout.FloatField("Component", sample.componentMin);
-				var guiColor = GUI.color;
-				if (sample.componentMin < 0) {
-					GUI.color = Color.red;
-				}
-				var HSV = Vector3.zero;
-				Color.RGBToHSV(sample.colorMin, out HSV.x, out HSV.y, out HSV.z);
-				EditorGUILayout.Vector3Field("HSV", HSV);
-				GUI.color = guiColor;
-				EditorGUILayout.Vector3Field("Direction", sample.directionMin);
-				EditorGUILayout.FloatField("Of Maximum", sample.componentMin / sample.componentMax);
-			}
-			EditorGUILayout.LabelField("Maximum (Brightest):");
-			using (new EditorGUI.IndentLevelScope(1)) {
-				EditorGUILayout.ColorField(label_color, sample.colorMax, false, false, true);
-				EditorGUILayout.FloatField("Component", sample.componentMax);
-				var guiColor = GUI.color;
-				if (sample.colorMax.r < 0 || sample.colorMax.g < 0 || sample.colorMax.b < 0) {
-					GUI.color = Color.red;
-				}
-				var HSV = Vector3.zero;
-				Color.RGBToHSV(sample.colorMax, out HSV.x, out HSV.y, out HSV.z);
-				EditorGUILayout.Vector3Field("HSV", HSV);
-				GUI.color = guiColor;
-				EditorGUILayout.Vector3Field("Direction", sample.directionMax);
-				EditorGUILayout.FloatField("Of Maximum", sample.componentMax / sample.componentMin);
-			}
 			EditorGUILayout.ColorField(label_avg_color, sample.colorAvg, false, false, true);
-			EditorGUILayout.LabelField("Direction probes:");
+
+			EditorGUILayout.Space();
+
+			EditorGUILayout.LabelField("Direction probes:", EditorStyles.boldLabel);
 			using (new EditorGUI.IndentLevelScope(1)) {
-				EditorGUILayout.Vector3Field("Last", sample.directionMin);
+				ToolsGUI_Vector3Fix("Last", sample.rndDirection);
 				EditorGUILayout.FloatField("Total", sample.samples);
 			}
-			EditorGUILayout.LabelField("Current Spherical Harmonic:");
+
+			EditorGUILayout.Space();
+
+			EditorGUILayout.LabelField("Current Sampled SphericalHarmonicsL2:", EditorStyles.boldLabel);
 			using (new EditorGUI.IndentLevelScope(1)) {
-				using (new EditorGUILayout.HorizontalScope()) {
-					EditorGUILayout.LabelField("Index");
-					EditorGUILayout.LabelField("R G B");
-				}
 				var probe = sample.probe;
 				var as_color = Color.white;
 				for (var i = 0; i < 9; ++i) {
@@ -195,23 +219,27 @@ namespace Kawashirov.LightProbesTools {
 					as_color.r = values.x = probe[0, i];
 					as_color.g = values.y = probe[1, i];
 					as_color.b = values.z = probe[2, i];
-
-					var rect = EditorGUILayout.GetControlRect();
+					var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect());
 					var rects = rect.RectSplitHorisontal(2, 3, 3, 16, 4).ToArray();
-					EditorGUI.LabelField(rects[0], probe_data_names[i, 0]);
-					EditorGUI.LabelField(rects[1], probe_data_names[i, 1]);
-					EditorGUI.LabelField(rects[2], probe_data_names[i, 2]);
-					EditorGUI.Vector3Field(rects[3], GUIContent.none, values);
-					EditorGUI.ColorField(rects[4], GUIContent.none, as_color, false, false, true);
+					using (new KawaGUIUtility.ZeroIndentScope()) {
+						EditorGUI.LabelField(rects[0], probe_data_names[i, 0]);
+						EditorGUI.LabelField(rects[1], probe_data_names[i, 1]);
+						EditorGUI.LabelField(rects[2], probe_data_names[i, 2]);
+						EditorGUI.Vector3Field(rects[3], GUIContent.none, values);
+						EditorGUI.ColorField(rects[4], GUIContent.none, as_color, false, false, true);
+					}
 				}
 			}
+			{
+				var rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight * 2);
+				var rects = rect.RectSplitHorisontal(1, 1).ToArray();
 
-			if (GUILayout.Button("Focus on Gizmo"))
-				ToolsWindow.ValidateProxy().Focus();
+				if (GUI.Button(rects[0], "Focus on Gizmo"))
+					ToolsWindow.ValidateProxy().Focus();
 
-			if (GUILayout.Button("Reset"))
-				sample.Reset();
-
+				if (GUI.Button(rects[1], "Reset"))
+					sample.Reset();
+			}
 		}
 	}
 }

@@ -83,15 +83,15 @@ namespace Kawashirov.FLT {
 	public partial class GeneratorEditor {
 		private void PipelineGUI() {
 			var complexity = serializedObject.FindProperty("complexity");
-			KawaGUIUtilities.PropertyEnumPopupCustomLabels(complexity, "DX11 Pipeline Stages", KFLTC.shaderComplexityNames);
+			KawaGUIUtility.PropertyEnumPopupCustomLabels(complexity, "DX11 Pipeline Stages", KFLTC.shaderComplexityNames);
 
 			complexity_VGF = !complexity.hasMultipleDifferentValues && complexity.intValue == (int)ShaderComplexity.VGF;
 			complexity_VHDGF = !complexity.hasMultipleDifferentValues && complexity.intValue == (int)ShaderComplexity.VHDGF;
 
 			using (new DisabledScope(!complexity_VHDGF)) {
 				using (new IndentLevelScope()) {
-					KawaGUIUtilities.DefaultPrpertyField(this, "tessPartitioning", "Tessellation Partitioning");
-					KawaGUIUtilities.DefaultPrpertyField(this, "tessDomain", "Tessellation Domain (Primitive Topology)");
+					KawaGUIUtility.DefaultPrpertyField(this, "tessPartitioning", "Tessellation Partitioning");
+					KawaGUIUtility.DefaultPrpertyField(this, "tessDomain", "Tessellation Domain (Primitive Topology)");
 				}
 			}
 		}

@@ -87,7 +87,7 @@ namespace Kawashirov.FLT {
 	public partial class GeneratorEditor {
 		private void ShadingGUI() {
 			var shading = serializedObject.FindProperty("shading");
-			KawaGUIUtilities.PropertyEnumPopupCustomLabels(shading, "Shading Method", KFLTC.shadingModeNames);
+			KawaGUIUtility.PropertyEnumPopupCustomLabels(shading, "Shading Method", KFLTC.shadingModeNames);
 		}
 	}
 }

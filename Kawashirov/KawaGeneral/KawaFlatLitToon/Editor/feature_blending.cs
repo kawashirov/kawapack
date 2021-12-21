@@ -78,7 +78,7 @@ namespace Kawashirov.FLT {
 	public partial class GeneratorEditor {
 		private void BlendingGUI() {
 			var mode = serializedObject.FindProperty("mode");
-			KawaGUIUtilities.DefaultPrpertyField(mode, "Blending Mode");
+			KawaGUIUtility.DefaultPrpertyField(mode, "Blending Mode");
 			var mode_int = !mode.hasMultipleDifferentValues ? mode.intValue : (int?)null;
 			var mode_Opaque = mode_int.HasValue && mode_int.Value == (int)BlendTemplate.Opaque;
 			var mode_Cutout = mode_int.HasValue && mode_int.Value == (int)BlendTemplate.Cutout;
@@ -90,7 +90,7 @@ namespace Kawashirov.FLT {
 			}
 
 			var queueOffset = serializedObject.FindProperty("queueOffset");
-			KawaGUIUtilities.DefaultPrpertyField(queueOffset);
+			KawaGUIUtility.DefaultPrpertyField(queueOffset);
 			var queueOffset_int = !queueOffset.hasMultipleDifferentValues ? queueOffset.intValue : (int?)null;
 			using (new DisabledScope(true)) {
 				using (new IndentLevelScope()) {
@@ -111,7 +111,7 @@ namespace Kawashirov.FLT {
 			}
 
 			var forceNoShadowCasting = serializedObject.FindProperty("forceNoShadowCasting");
-			KawaGUIUtilities.DefaultPrpertyField(forceNoShadowCasting);
+			KawaGUIUtility.DefaultPrpertyField(forceNoShadowCasting);
 			var forceNoShadowCasting_bool = !forceNoShadowCasting.hasMultipleDifferentValues ? forceNoShadowCasting.boolValue : (bool?)null;
 			if (forceNoShadowCasting_bool.HasValue && mode_int.HasValue && !forceNoShadowCasting_bool.Value && mode_int.Value == (int)BlendTemplate.Fade) {
 				EGUIL.HelpBox(
@@ -122,15 +122,15 @@ namespace Kawashirov.FLT {
 				);
 			}
 
-			KawaGUIUtilities.DefaultPrpertyField(this, "cull");
+			KawaGUIUtility.DefaultPrpertyField(this, "cull");
 
-			KawaGUIUtilities.DefaultPrpertyField(this, "instancing");
+			KawaGUIUtility.DefaultPrpertyField(this, "instancing");
 
 			using (new DisabledScope(true)) {
-				KawaGUIUtilities.DefaultPrpertyField(this, "disableBatching");
+				KawaGUIUtility.DefaultPrpertyField(this, "disableBatching");
 			}
 
-			KawaGUIUtilities.DefaultPrpertyField(this, "ignoreProjector");
+			KawaGUIUtility.DefaultPrpertyField(this, "ignoreProjector");
 		}
 	}
 }

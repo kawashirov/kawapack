@@ -7,7 +7,7 @@ using GUIL = UnityEngine.GUILayout;
 using EGUIL = UnityEditor.EditorGUILayout;
 
 using static UnityEditor.EditorGUI;
-using static Kawashirov.KawaGUIUtilities;
+using static Kawashirov.KawaGUIUtility;
 
 // Имя файла длжно совпадать с именем типа.
 // https://forum.unity.com/threads/solved-blank-scriptableobject-on-import.511527/

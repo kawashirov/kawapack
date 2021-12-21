@@ -5,11 +5,34 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEditor.SceneManagement;
+using UnityEngine.SceneManagement;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 
 namespace Kawashirov.LightProbesTools {
 	public static class LightProbesUtility {
+
+		public static Color MapColor(float fromMn, float fromMx, float toMn, float toMx, Color color) {
+			color.r = Mathf.Lerp(toMn, toMx, Mathf.InverseLerp(fromMn, fromMx, color.r));
+			color.g = Mathf.Lerp(toMn, toMx, Mathf.InverseLerp(fromMn, fromMx, color.g));
+			color.b = Mathf.Lerp(toMn, toMx, Mathf.InverseLerp(fromMn, fromMx, color.b));
+			return color;
+		}
+
+		public static void RegisterLightingUndo(string name) {
+			if (LightmapSettings.lightProbes)
+				Undo.RegisterCompleteObjectUndo(LightmapSettings.lightProbes, name);
+			if (Lightmapping.lightingDataAsset)
+				Undo.RegisterCompleteObjectUndo(Lightmapping.lightingDataAsset, name);
+		}
+
+		public static void SetLightingDirty() {
+			if (LightmapSettings.lightProbes)
+				EditorUtility.SetDirty(LightmapSettings.lightProbes);
+			if (Lightmapping.lightingDataAsset)
+				EditorUtility.SetDirty(Lightmapping.lightingDataAsset);
+			EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+		}
 
 		[Obsolete("Does not work. Unity just does not want to saves changes.")]
 		public static bool SetLightProbes(LightProbes newProbes) {

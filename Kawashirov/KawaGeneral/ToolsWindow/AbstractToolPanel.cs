@@ -10,13 +10,18 @@ using UnityEditor;
 namespace Kawashirov.ToolsGUI {
 	public abstract class AbstractToolPanel : ScriptableObject {
 
-		[NonSerialized] public bool active;
+		[NonSerialized] public bool active = false;
 
 		public virtual void ToolsGUI() { }
 
 		public virtual void DrawGizmos() { }
 
 		public virtual void Update() { }
+
+		public virtual void OnSceneGUI(SceneView sceneView) { }
+
+		public virtual bool ShouldCallSceneGUIDrawMesh(SceneView sceneView) => false;
+		public virtual void OnSceneGUIDrawMesh(SceneView sceneView) { }
 
 	}
 }

@@ -44,7 +44,7 @@ namespace Kawashirov.FLT {
 		private static readonly GUIContent gui_feature_wnoise = new GUIContent("White Noise Feature");
 		private void WhiteNoise() {
 			var wnoise = serializedObject.FindProperty("wnoise");
-			KawaGUIUtilities.ToggleLeft(wnoise, gui_feature_wnoise);
+			KawaGUIUtility.ToggleLeft(wnoise, gui_feature_wnoise);
 		}
 	}
 }

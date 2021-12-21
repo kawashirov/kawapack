@@ -67,11 +67,11 @@ namespace Kawashirov.FLT {
 
 		private void MatcapGUI() {
 			var matcap = serializedObject.FindProperty("matcap");
-			KawaGUIUtilities.ToggleLeft(matcap, gui_feature_matcap);
+			KawaGUIUtility.ToggleLeft(matcap, gui_feature_matcap);
 			using (new DisabledScope(matcap.hasMultipleDifferentValues || !matcap.boolValue)) {
 				using (new IndentLevelScope()) {
-					KawaGUIUtilities.DefaultPrpertyField(this, "matcapMode", "Mode");
-					KawaGUIUtilities.DefaultPrpertyField(this, "matcapKeepUp", "Keep Upward Direction");
+					KawaGUIUtility.DefaultPrpertyField(this, "matcapMode", "Mode");
+					KawaGUIUtility.DefaultPrpertyField(this, "matcapKeepUp", "Keep Upward Direction");
 				}
 			}
 		}

@@ -71,12 +71,12 @@ namespace Kawashirov.FLT {
 		private void IWDGUI() {
 			using (new DisabledScope(!complexity_VGF && !complexity_VHDGF)) {
 				var iwd = serializedObject.FindProperty("iwd");
-				KawaGUIUtilities.ToggleLeft(iwd, gui_feature_iwd);
+				KawaGUIUtility.ToggleLeft(iwd, gui_feature_iwd);
 				using (new DisabledScope(
 					iwd.hasMultipleDifferentValues || !iwd.boolValue || (!complexity_VGF && !complexity_VHDGF)
 				)) {
 					using (new IndentLevelScope()) {
-						KawaGUIUtilities.DefaultPrpertyField(this, "iwdDirections", "Directions");
+						KawaGUIUtility.DefaultPrpertyField(this, "iwdDirections", "Directions");
 					}
 				}
 			}

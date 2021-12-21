@@ -179,7 +179,7 @@ namespace Kawashirov {
 			EditorGUILayout.Space();
 			OnGUI_TileAnim();
 
-			KawaGUIUtilities.ShaderEditorFooter();
+			KawaGUIUtility.ShaderEditorFooter();
 
 			if (updateMeta || checkValues) {
 				foreach (var obj in materialEditor.targets) {

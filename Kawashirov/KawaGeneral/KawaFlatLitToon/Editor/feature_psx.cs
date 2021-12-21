@@ -42,7 +42,7 @@ namespace Kawashirov.FLT {
 		private static readonly GUIContent gui_feature_psx = new GUIContent("PSX Feature");
 		private void PSXGUI() {
 			var PSX = serializedObject.FindProperty("PSX");
-			KawaGUIUtilities.ToggleLeft(PSX, gui_feature_psx);
+			KawaGUIUtility.ToggleLeft(PSX, gui_feature_psx);
 		}
 	}
 }

@@ -59,10 +59,10 @@ namespace Kawashirov.FLT {
 
 		private void FPSGUI() {
 			var FPS = serializedObject.FindProperty("FPS");
-			KawaGUIUtilities.ToggleLeft(FPS, gui_feature_fps);
+			KawaGUIUtility.ToggleLeft(FPS, gui_feature_fps);
 			using (new DisabledScope(FPS.hasMultipleDifferentValues || !FPS.boolValue)) {
 				using (new IndentLevelScope()) {
-					KawaGUIUtilities.DefaultPrpertyField(this, "FPSMode", "Mode");
+					KawaGUIUtility.DefaultPrpertyField(this, "FPSMode", "Mode");
 				}
 			}
 		}

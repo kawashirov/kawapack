@@ -163,12 +163,43 @@ namespace Kawashirov.ToolsGUI {
 		public void OnEnable() {
 			ValidateWindow();
 			ReloadPanels();
+			SceneView.duringSceneGui += OnSceneGUI;
+		}
+
+		public void OnDisable() {
+			SceneView.duringSceneGui -= OnSceneGUI;
 		}
 
 		public void OnInspectorUpdate() {
 			ValidateWindow();
 			if (currentPanel)
 				currentPanel.Update();
+		}
+
+		private int OnSceneGUI_lastRenderedFrame = -1;
+		public void OnSceneGUI(SceneView sceneView) {
+			if (!currentPanel)
+				return;
+
+			currentPanel.OnSceneGUI(sceneView);
+
+			if (Event.current.type == EventType.Layout) {
+				// Workaraund: https://answers.unity.com/questions/594420/how-to-flush-mesh-batch-in-editor-or-how-to-draw-a.html
+				var proxy = ValidateProxy();
+				if (currentPanel.ShouldCallSceneGUIDrawMesh(sceneView)) {
+					if (proxy)
+						EditorUtility.SetDirty(proxy.gameObject);
+					if (OnSceneGUI_lastRenderedFrame != Time.renderedFrameCount) {
+						OnSceneGUI_lastRenderedFrame = Time.renderedFrameCount;
+						// Debug.Log($"OnSceneGUIDrawMesh Event: {Event.current.type}", this);
+						currentPanel.OnSceneGUIDrawMesh(sceneView);
+					}
+				} else {
+					// Еще раз, что бы сменить кадр
+					if (proxy && OnSceneGUI_lastRenderedFrame == Time.renderedFrameCount)
+						EditorUtility.SetDirty(proxy.gameObject);
+				}
+			}
 		}
 
 		private AbstractToolPanel GetPanelInstance(Type type) {
@@ -237,11 +268,13 @@ namespace Kawashirov.ToolsGUI {
 				hierarchy = hierarchy.subHierarchy[hierarchy.currentPanel];
 			}
 
+
 			if (hierarchy != null && hierarchy.panel) {
 				if (currentPanel)
 					currentPanel.active = false;
 				currentPanel = hierarchy.panel;
 				currentPanel.active = true;
+				EditorGUILayout.Space();
 				using (var scrollScope = new EditorGUILayout.ScrollViewScope(scroll, false, false)) {
 					currentPanel.ToolsGUI();
 					scroll = scrollScope.scrollPosition;

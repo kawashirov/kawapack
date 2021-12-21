@@ -66,10 +66,10 @@ namespace Kawashirov.FLT {
 		private void PolyColorWaveGUI() {
 			using (new DisabledScope(!complexity_VGF && !complexity_VHDGF)) {
 				var pcw = serializedObject.FindProperty("pcw");
-				KawaGUIUtilities.ToggleLeft(pcw, gui_feature_pcw);
+				KawaGUIUtility.ToggleLeft(pcw, gui_feature_pcw);
 				using (new DisabledScope(pcw.hasMultipleDifferentValues || !pcw.boolValue || (!complexity_VGF && !complexity_VHDGF))) {
 					using (new IndentLevelScope()) {
-						KawaGUIUtilities.DefaultPrpertyField(this, "pcwMode", "Mode");
+						KawaGUIUtility.DefaultPrpertyField(this, "pcwMode", "Mode");
 					}
 				}
 			}
@@ -106,7 +106,7 @@ internal partial class KawaFLTShaderGUI {
 				AnimationUtility.SetKeyRightTangentMode(time_curve, i, AnimationUtility.TangentMode.Linear);
 			}
 			EGUIL.CurveField("Preview amplitude (read-only)", time_curve);
-			KawaGUIUtilities.HelpBoxRich(string.Format("Time for singe wave cycle: <b>{0:f}</b> sec. ", t4));
+			KawaGUIUtility.HelpBoxRich(string.Format("Time for singe wave cycle: <b>{0:f}</b> sec. ", t4));
 
 			return t4;
 		} else {
@@ -170,7 +170,7 @@ internal partial class KawaFLTShaderGUI {
 						var time_rainbow = _PCW_RnbwTm.floatValue;
 						var gcd_t = gcd(time_rainbow, time_period.Value);
 						var lcm_t = time_rainbow * time_period / gcd_t;
-						KawaGUIUtilities.HelpBoxRich(string.Format(
+						KawaGUIUtility.HelpBoxRich(string.Format(
 							"Period of the wave <b>{0:f1}</b> sec. and period of Rainbow <b>{1:f1}</b> sec. produces total cycle of ~<b>{2:f1}</b> sec. (GCD: ~<b>{3:f}</b>)",
 							time_period, time_rainbow, lcm_t, gcd_t
 						));

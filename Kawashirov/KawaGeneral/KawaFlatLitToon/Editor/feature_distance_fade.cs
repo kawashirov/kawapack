@@ -62,10 +62,10 @@ namespace Kawashirov.FLT {
 
 		private void DistanceFadeGUI() {
 			var distanceFade = serializedObject.FindProperty("distanceFade");
-			KawaGUIUtilities.ToggleLeft(distanceFade, gui_feature_dstfd);
+			KawaGUIUtility.ToggleLeft(distanceFade, gui_feature_dstfd);
 			using (new DisabledScope(distanceFade.hasMultipleDifferentValues || !distanceFade.boolValue)) {
 				using (new IndentLevelScope()) {
-					KawaGUIUtilities.DefaultPrpertyField(this, "distanceFadeMode", "Mode");
+					KawaGUIUtility.DefaultPrpertyField(this, "distanceFadeMode", "Mode");
 				}
 			}
 		}

@@ -73,12 +73,12 @@ namespace Kawashirov.FLT {
 					"These options affects it's behaivor.",
 					MessageType.None
 				);
-				KawaGUIUtilities.DefaultPrpertyField(this, "rndMixTime", "Use Time where possible");
-				KawaGUIUtilities.DefaultPrpertyField(this, "rndMixCords", "Use Screen-Space coords where possible");
-				KawaGUIUtilities.DefaultPrpertyField(this, "rndScreenScale", "Screen-Space scaling");
+				KawaGUIUtility.DefaultPrpertyField(this, "rndMixTime", "Use Time where possible");
+				KawaGUIUtility.DefaultPrpertyField(this, "rndMixCords", "Use Screen-Space coords where possible");
+				KawaGUIUtility.DefaultPrpertyField(this, "rndScreenScale", "Screen-Space scaling");
 				using (new GUIL.HorizontalScope()) {
 					var rndDefaultTexture = serializedObject.FindProperty("rndDefaultTexture");
-					KawaGUIUtilities.DefaultPrpertyField(rndDefaultTexture, "Default noise texture.");
+					KawaGUIUtility.DefaultPrpertyField(rndDefaultTexture, "Default noise texture.");
 					if (GUIL.Button("Default")) {
 						rndDefaultTexture.objectReferenceValue = Generator.GetRndDefaultTexture();
 					}

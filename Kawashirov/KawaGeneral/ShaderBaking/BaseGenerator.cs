@@ -48,7 +48,7 @@ namespace Kawashirov.ShaderBaking {
 
 				EGUIL.LabelField("Shader");
 				using (new IndentLevelScope()) {
-					KawaGUIUtilities.DefaultPrpertyField(this, "shaderName", "Name");
+					KawaGUIUtility.DefaultPrpertyField(this, "shaderName", "Name");
 
 					if (!result.hasMultipleDifferentValues) {
 						var value = result.objectReferenceValue;

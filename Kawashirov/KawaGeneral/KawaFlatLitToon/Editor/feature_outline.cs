@@ -56,12 +56,12 @@ namespace Kawashirov.FLT {
 		private void OutlineGUI() {
 			using (new DisabledScope(!complexity_VGF && !complexity_VHDGF)) {
 				var outline = serializedObject.FindProperty("outline");
-				KawaGUIUtilities.ToggleLeft(outline, gui_feature_outline);
+				KawaGUIUtility.ToggleLeft(outline, gui_feature_outline);
 				using (new DisabledScope(
 					outline.hasMultipleDifferentValues || !outline.boolValue || (!complexity_VGF && !complexity_VHDGF)
 				)) {
 					using (new IndentLevelScope()) {
-						KawaGUIUtilities.DefaultPrpertyField(this, "outlineMode", "Mode");
+						KawaGUIUtility.DefaultPrpertyField(this, "outlineMode", "Mode");
 					}
 				}
 			}

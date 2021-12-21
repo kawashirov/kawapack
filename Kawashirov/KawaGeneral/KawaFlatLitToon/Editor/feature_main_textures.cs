@@ -223,21 +223,21 @@ namespace Kawashirov.FLT {
 			EGUIL.LabelField("General Rendering Features");
 			using (new IndentLevelScope()) {
 				var mainTex = serializedObject.FindProperty("mainTex");
-				KawaGUIUtilities.PropertyEnumPopupCustomLabels(mainTex, "Main (Albedo) Texture", KFLTC.mainTexKeywordsNames);
-				KawaGUIUtilities.DefaultPrpertyField(this, "mainTexSeparateAlpha", "Alpha in separate texture");
+				KawaGUIUtility.PropertyEnumPopupCustomLabels(mainTex, "Main (Albedo) Texture", KFLTC.mainTexKeywordsNames);
+				KawaGUIUtility.DefaultPrpertyField(this, "mainTexSeparateAlpha", "Alpha in separate texture");
 
 				var cutout = serializedObject.FindProperty("cutout");
-				KawaGUIUtilities.PropertyEnumPopupCustomLabels(cutout, "Cutout Mode", KFLTC.cutoutModeNames);
+				KawaGUIUtility.PropertyEnumPopupCustomLabels(cutout, "Cutout Mode", KFLTC.cutoutModeNames);
 
 				var emission = serializedObject.FindProperty("emission");
-				KawaGUIUtilities.DefaultPrpertyField(emission);
+				KawaGUIUtility.DefaultPrpertyField(emission);
 				using (new DisabledScope(!emission.boolValue)) {
 					using (new IndentLevelScope()) {
 						var emissionMode = serializedObject.FindProperty("emissionMode");
-						KawaGUIUtilities.PropertyEnumPopupCustomLabels(emissionMode, "Mode", KFLTC.emissionMode);
+						KawaGUIUtility.PropertyEnumPopupCustomLabels(emissionMode, "Mode", KFLTC.emissionMode);
 					}
 				}
-				KawaGUIUtilities.DefaultPrpertyField(this, "bumpMap");
+				KawaGUIUtility.DefaultPrpertyField(this, "bumpMap");
 			}
 		}
 	}
