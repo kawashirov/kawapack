@@ -11,15 +11,4 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ce12c90333a42654b834c2ab4f03e6c5, type: 3}
   m_Name: LightProbesToolPanelSearchDark
-  m_EditorClassIdentifier: 
-  directionSamples: 310
-  darkThreshold: 0.05
-  topProbes: 10
-  topProbesFold: 1
-  fixTooDarkReRunAnalysis: 1
-  fixTooDarkPrecision: 0.01
-  fixTooDarkDirectionalVsAmbient: 0.5
-  displaySize: 0.1
-  displayFancy: 0
-  displaySelectionRange: {x: -1.6142695, y: 0}
-  displayMapRange: {x: 0, y: 1}
+  m_EditorClassIdentifier: KawaCommons:Kawashirov.LightProbesTools:LightProbesToolPanelSearchDark

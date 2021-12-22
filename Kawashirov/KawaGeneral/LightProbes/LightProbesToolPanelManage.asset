@@ -11,4 +11,4 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b4b427adc2ef684aa4398cf2a8edefa, type: 3}
   m_Name: LightProbesToolPanelManage
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: KawaCommons:Kawashirov.LightProbesTools:LightProbesToolPanelManage

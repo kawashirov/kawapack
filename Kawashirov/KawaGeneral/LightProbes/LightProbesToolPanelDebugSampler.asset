@@ -12,5 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 0}
   m_Name: LightProbesToolPanelDebugSampler
   m_EditorClassIdentifier: KawaCommons:Kawashirov.LightProbesTools:LightProbesToolPanelDebugSampler
-  gizmoSpheresSize: 0.05
-  gizmoDirectionsSize: 0.2
+
