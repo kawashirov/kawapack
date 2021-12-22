@@ -199,6 +199,26 @@ namespace Kawashirov {
 			return rect;
 		}
 
+		public static IEnumerable<Rect> RectSplitVerticalUniform(this Rect rect, int lines) {
+			var weights = new float[lines];
+			for (var i = 0; i < weights.Length; ++i)
+				weights[i] = 1;
+			return RectSplitVertical(rect, weights);
+		}
+
+		public static IEnumerable<Rect> RectSplitVertical(this Rect rect, params float[] weights) {
+			var spacing = 2f;
+			var weights_sum = weights.Sum();
+			var cell = new Rect(rect);
+			var reducedHeight = rect.height - spacing * (weights.Length - 1);
+			for (var i = 0; i < weights.Length; ++i) {
+				cell.height = reducedHeight * weights[i] / weights_sum;
+				yield return cell;
+				cell.y += cell.height + spacing;
+			}
+			yield break;
+		}
+
 		public static IEnumerable<Rect> RectSplitHorisontal(this Rect rect, params float[] weights) {
 			var spacing = 2f;
 			var weights_sum = weights.Sum();
@@ -211,6 +231,17 @@ namespace Kawashirov {
 			}
 			yield break;
 		}
+
+		public static void OpenInspector() {
+			const string menuItemPath =
+#if UNITY_2018_1_OR_NEWER
+"Window/General/Inspector";
+#else
+"Window/Inspector";
+#endif
+			EditorApplication.ExecuteMenuItem(menuItemPath);
+		}
+
 #endif
 	}
 }
