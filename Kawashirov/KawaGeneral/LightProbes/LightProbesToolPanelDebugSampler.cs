@@ -14,96 +14,94 @@ namespace Kawashirov.LightProbesTools {
 
 	[ToolsWindowPanel("Light Probes/Sample")]
 	public partial class LightProbesToolPanelDebugSampler : AbstractToolPanel {
-		private static GUIContent label_color = new GUIContent("Color");
-		private static GUIContent label_avg_color = new GUIContent("Average Color");
-		private static GUIContent label_as_color = new GUIContent("As Color");
-		private static GUIContent analysisLabelLines = new GUIContent("Lines");
-		private static GUIContent analysisLabelSpheres = new GUIContent("Spheres");
+		private const int evaluateN = 10;
+		private static readonly GUIContent label_color = new GUIContent("Color");
+		private static readonly GUIContent label_avg_color = new GUIContent("Average Color");
+		private static readonly Color MinColor = new Color(float.MinValue, float.MinValue, float.MinValue, 1f);
+		private static readonly Color MaxColor = new Color(float.MaxValue, float.MaxValue, float.MaxValue, 1f);
 
-		public float gizmoSpheresSize = 0.05f;
-		public float gizmoDirectionsSize = 0.2f;
+		public bool displayFancy = false;
+		public float displaySize = 0.1f;
+		public bool displayTetrahedron = true;
 
-		public struct SampleState {
-			private static readonly Color MinColor = new Color(float.MinValue, float.MinValue, float.MinValue, 1f);
-			private static readonly Color MaxColor = new Color(float.MaxValue, float.MaxValue, float.MaxValue, 1f);
-			private const int evaluateN = 10;
-			private static Vector3[] evaluateDirections = new Vector3[evaluateN];
-			private static Color[] evaluateColor = new Color[evaluateN];
+		[NonSerialized] public Vector3? position;
+		[NonSerialized] public SphericalHarmonicsL2 probe;
+		[NonSerialized] public Color colorMin;
+		[NonSerialized] public float componentMin;
+		[NonSerialized] public Vector3 directionMin;
+		[NonSerialized] public Color colorMax;
+		[NonSerialized] public float componentMax;
+		[NonSerialized] public Vector3 directionMax;
+		[NonSerialized] public Color colorAvg;
+		[NonSerialized] public long samples;
+		[NonSerialized] private Vector3[] evaluateDirections = new Vector3[evaluateN];
+		[NonSerialized] private Color[] evaluateColor = new Color[evaluateN];
 
-			public SphericalHarmonicsL2 probe;
-			public Vector3 rndDirection;
-			public Color colorMin;
-			public float componentMin;
-			public Vector3 directionMin;
-			public Color colorMax;
-			public float componentMax;
-			public Vector3 directionMax;
-			public Color colorAvg;
-			public long samples;
+		private void ApplyEvaluated(Vector3 direction, Color color) {
+			var cMin = Mathf.Min(color.r, color.g, color.b);
+			var cMax = Mathf.Max(color.r, color.g, color.b);
 
-			public void Reset() {
-				componentMin = float.MaxValue;
-				componentMax = float.MinValue;
-				colorMin = MaxColor;
-				colorMax = MinColor;
-				samples = 0;
+			if (cMin < componentMin) {
+				componentMin = cMin;
+				colorMin = color;
+				directionMin = direction;
+				colorAvg = colorMin * 0.5f + colorMax * 0.5f;
 			}
-
-			private void ApplyEvaluated(Vector3 direction, Color color) {
-				var cMin = Mathf.Min(color.r, color.g, color.b);
-				var cMax = Mathf.Max(color.r, color.g, color.b);
-
-				if (cMin < componentMin) {
-					componentMin = cMin;
-					colorMin = color;
-					directionMin = direction;
-					colorAvg = colorMin * 0.5f + colorMax * 0.5f;
-				}
-				if (cMax > componentMax) {
-					componentMax = cMax;
-					colorMax = color;
-					directionMax = direction;
-					colorAvg = colorMin * 0.5f + colorMax * 0.5f;
-				}
-				++samples;
+			if (cMax > componentMax) {
+				componentMax = cMax;
+				colorMax = color;
+				directionMax = direction;
+				colorAvg = colorMin * 0.5f + colorMax * 0.5f;
 			}
-
-			public void Sample() {
-				for (var i = 0; i < evaluateDirections.Length; ++i)
-					evaluateDirections[i] = rndDirection = UnityEngine.Random.onUnitSphere;
-				probe.Evaluate(evaluateDirections, evaluateColor);
-				for (var i = 0; i < evaluateColor.Length; ++i)
-					ApplyEvaluated(evaluateDirections[i], evaluateColor[i]);
-			}
+			++samples;
 		}
 
-		[NonSerialized] public SampleState sample;
+		public void Evaluate() {
+			for (var i = evaluateDirections.Length - 1; i >= 0; --i)
+				evaluateDirections[i] = UnityEngine.Random.onUnitSphere;
+			probe.Evaluate(evaluateDirections, evaluateColor);
+			for (var i = 0; i < evaluateColor.Length; ++i)
+				ApplyEvaluated(evaluateDirections[i], evaluateColor[i]);
+		}
 
 		public override void DrawGizmos() {
 			var proxy = ToolsWindow.ValidateProxy();
 			var transform = proxy.transform;
 			var position = transform.position;
 
-			var position_min = position + sample.directionMin * gizmoDirectionsSize;
-			var position_max = position + sample.directionMax * gizmoDirectionsSize;
-			var position_rnd = position + sample.rndDirection * gizmoDirectionsSize * 0.2f;
+			var position_min = position + directionMin * displaySize * 3 / 2;
+			var position_max = position + directionMax * displaySize * 3 / 2;
+			var position_rnd = position + evaluateDirections[0] * displaySize;
 
-			Color color;
-
-			color = sample.colorAvg;
+			Color color = colorAvg;
 			color.a = 1.0f;
 			Gizmos.color = color;
-			Gizmos.DrawSphere(position, gizmoSpheresSize);
 
-			color = sample.colorMin;
+			// LightProbesVisualizer.Tetrahedralize();
+
+			var fancy = displayFancy && LightProbesVisualizer.Prepare();
+			if (fancy) {
+				var matrix = Matrix4x4.TRS(position, Quaternion.identity, Vector3.one * displaySize);
+				LightProbesVisualizer.DrawProbesSphereNow(matrix, probe);
+				if (displayTetrahedron) {
+					LightProbesVisualizer.DrawLightProbeTetrahedra(position, displaySize / 2);
+				}
+			} else {
+				Gizmos.DrawSphere(position, displaySize / 2);
+				if (displayTetrahedron) {
+					LightProbesVisualizer.DrawLightProbeTetrahedra(position);
+				}
+			}
+
+			color = colorMin;
 			color.a = 1.0f;
 			Gizmos.color = color;
-			Gizmos.DrawSphere(position_min, gizmoSpheresSize);
+			Gizmos.DrawSphere(position_min, displaySize / 4);
 
-			color = sample.colorMax;
+			color = colorMax;
 			color.a = 1.0f;
 			Gizmos.color = color;
-			Gizmos.DrawSphere(position_max, gizmoSpheresSize);
+			Gizmos.DrawSphere(position_max, displaySize / 4);
 
 			Gizmos.color = Color.green;
 			Gizmos.DrawLine(position, position_rnd);
@@ -118,22 +116,30 @@ namespace Kawashirov.LightProbesTools {
 		public override void Update() {
 			var proxy = ToolsWindow.ValidateProxy();
 			var transform = proxy.transform;
-			var position = transform.position;
 
 			if (transform.hasChanged) {
-				LightProbes.GetInterpolatedProbe(position, null, out sample.probe);
 				transform.hasChanged = false;
-				sample.Reset();
+				position = null;
 			}
 
-			sample.Sample();
+			if (!position.HasValue) {
+				position = transform.position;
+				LightProbes.GetInterpolatedProbe(position.Value, null, out probe);
+				componentMin = float.MaxValue;
+				componentMax = float.MinValue;
+				colorMin = MaxColor;
+				colorMax = MinColor;
+				samples = 0;
+			}
+
+			Evaluate();
 		}
 
 		private static string[,] probe_data_names = new string[,]
 		{
-		{ "0", "L0+0", "DC" },
-		{ "1", "L1-1", "y" }, {"2", "L1+0", "z" }, {"3", "L1+1", "x" },
-		{ "4", "L2-2", "xy" }, {"5", "L2-1", "yz" }, {"6", "L2+0", "zz" }, {"7", "L2+1", "xz" }, {"8", "L2+2", "xx-yy" },
+			{ "0", "L0+0", "DC" },
+			{ "1", "L1-1", "y" }, {"2", "L1+0", "z" }, {"3", "L1+1", "x" },
+			{ "4", "L2-2", "xy" }, {"5", "L2-1", "yz" }, {"6", "L2+0", "zz" }, {"7", "L2+1", "xz" }, {"8", "L2+2", "xx-yy" },
 		};
 
 		public void ToolsGUI_Vector3Fix(string label, Vector3 vector) {
@@ -158,61 +164,90 @@ namespace Kawashirov.LightProbesTools {
 			ToolsGUI_Vector2Fix("Hue Sat", HSV);
 		}
 
+		// private static GUIContent analysisLabelSpheres = new GUIContent("Spheres");
+
 		public override void ToolsGUI() {
-			EditorGUILayout.LabelField("Gizmo sizes:");
-			using (new EditorGUI.IndentLevelScope(1)) {
-				gizmoSpheresSize = EditorGUILayout.FloatField(analysisLabelSpheres, gizmoSpheresSize);
-				gizmoDirectionsSize = EditorGUILayout.FloatField(analysisLabelLines, gizmoDirectionsSize);
+
+			displaySize = EditorGUILayout.Slider("Gizmo size", displaySize, 0.01f, 1);
+			displayFancy = EditorGUILayout.ToggleLeft("Fancy Gizmo (Work in Progress)", displayFancy);
+			displayTetrahedron = EditorGUILayout.ToggleLeft("Show Light Probes Tetrahedron (Work in Progress)", displayTetrahedron);
+
+			EditorGUILayout.Space();
+
+			{
+				var rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight * 2);
+				var rects = rect.RectSplitHorisontal(1, 1).ToArray();
+
+				if (GUI.Button(rects[0], "Focus on Gizmo")) {
+					ToolsWindow.ValidateProxy().Focus();
+				}
+
+				if (GUI.Button(rects[1], "Reset")) {
+					position = null;
+				}
 			}
 
 			EditorGUILayout.Space();
 
-			EditorGUILayout.LabelField("Minimal (Darkest) side:", EditorStyles.boldLabel);
+			EditorGUILayout.LabelField("Minimal (Darkest) side (Read-only):", EditorStyles.boldLabel);
 			using (new EditorGUI.IndentLevelScope(1)) {
-				EditorGUILayout.ColorField(label_color, sample.colorMin, false, false, true);
+				EditorGUILayout.ColorField(label_color, colorMin, false, false, true);
 				{
 					var guiColor = GUI.color;
-					if (sample.componentMin < 0)
+					if (componentMin < 0)
 						GUI.color = Color.red;
-					EditorGUILayout.FloatField("Min Component", sample.componentMin);
+					var rect = EditorGUILayout.GetControlRect();
+					rect = EditorGUI.PrefixLabel(rect, new GUIContent("Min Component"));
+					EditorGUI.SelectableLabel(rect, $"{componentMin}");
 					//	ToolsGUI_HSVLine(sample.colorMin);
 					GUI.color = guiColor;
 				}
-				ToolsGUI_Vector3Fix("Direction", sample.directionMin);
-				EditorGUILayout.FloatField("Of Maximum", sample.componentMin / sample.componentMax);
+				ToolsGUI_Vector3Fix("Direction", directionMin);
+				{
+					var rect = EditorGUILayout.GetControlRect();
+					rect = EditorGUI.PrefixLabel(rect, new GUIContent("Of Maximum"));
+					EditorGUI.SelectableLabel(rect, $"{componentMin / componentMax}");
+				}
 			}
-			EditorGUILayout.LabelField("Maximum (Brightest) side:", EditorStyles.boldLabel);
+			EditorGUILayout.LabelField("Maximum (Brightest) side (Read-only):", EditorStyles.boldLabel);
 			using (new EditorGUI.IndentLevelScope(1)) {
-				EditorGUILayout.ColorField(label_color, sample.colorMax, false, false, true);
+				EditorGUILayout.ColorField(label_color, colorMax, false, false, true);
 				{
 					var guiColor = GUI.color;
-					if (sample.colorMax.r < 0 || sample.colorMax.g < 0 || sample.colorMax.b < 0)
+					if (colorMax.r < 0 || colorMax.g < 0 || colorMax.b < 0)
 						GUI.color = Color.red;
-					EditorGUILayout.FloatField("Max Component", sample.componentMax);
+					var rect = EditorGUILayout.GetControlRect();
+					rect = EditorGUI.PrefixLabel(rect, new GUIContent("Max Component"));
+					EditorGUI.SelectableLabel(rect, $"{componentMax}");
 					//	ToolsGUI_HSVLine(sample.colorMax);
 					GUI.color = guiColor;
 				}
-				ToolsGUI_Vector3Fix("Direction", sample.directionMax);
-				EditorGUILayout.FloatField("Of Minimum", sample.componentMax / sample.componentMin);
+				ToolsGUI_Vector3Fix("Direction", directionMax);
+				{
+					var rect = EditorGUILayout.GetControlRect();
+					rect = EditorGUI.PrefixLabel(rect, new GUIContent("Of Minimum"));
+					EditorGUI.SelectableLabel(rect, $"{componentMax / componentMin}");
+				}
 			}
 
 			EditorGUILayout.Space();
 
-			EditorGUILayout.ColorField(label_avg_color, sample.colorAvg, false, false, true);
+			EditorGUILayout.ColorField(label_avg_color, colorAvg, false, false, true);
 
 			EditorGUILayout.Space();
 
-			EditorGUILayout.LabelField("Direction probes:", EditorStyles.boldLabel);
+			EditorGUILayout.LabelField("Sampling status (Read-only):", EditorStyles.boldLabel);
 			using (new EditorGUI.IndentLevelScope(1)) {
-				ToolsGUI_Vector3Fix("Last", sample.rndDirection);
-				EditorGUILayout.FloatField("Total", sample.samples);
+				ToolsGUI_Vector3Fix("Last Direction", evaluateDirections[0]);
+				var rect = EditorGUILayout.GetControlRect();
+				rect = EditorGUI.PrefixLabel(rect, new GUIContent("Total Samples"));
+				EditorGUI.SelectableLabel(rect, $"{samples}");
 			}
 
 			EditorGUILayout.Space();
 
 			EditorGUILayout.LabelField("Current Sampled SphericalHarmonicsL2:", EditorStyles.boldLabel);
 			using (new EditorGUI.IndentLevelScope(1)) {
-				var probe = sample.probe;
 				var as_color = Color.white;
 				for (var i = 0; i < 9; ++i) {
 					Vector3 values;
@@ -230,16 +265,7 @@ namespace Kawashirov.LightProbesTools {
 					}
 				}
 			}
-			{
-				var rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight * 2);
-				var rects = rect.RectSplitHorisontal(1, 1).ToArray();
 
-				if (GUI.Button(rects[0], "Focus on Gizmo"))
-					ToolsWindow.ValidateProxy().Focus();
-
-				if (GUI.Button(rects[1], "Reset"))
-					sample.Reset();
-			}
 		}
 	}
 }

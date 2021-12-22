@@ -1,5 +1,6 @@
 ﻿#if UNITY_EDITOR
 using System;
+using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,22 +20,40 @@ namespace Kawashirov.LightProbesTools {
 			return color;
 		}
 
+		private static MethodInfo GetLightmapSettings_Method;
+		public static UnityEngine.Object GetLightmapSettings() {
+			if (GetLightmapSettings_Method == null) {
+				var flags = BindingFlags.Static | BindingFlags.NonPublic;
+				GetLightmapSettings_Method = typeof(LightmapEditorSettings).GetMethod("GetLightmapSettings", flags);
+			}
+			try {
+				return GetLightmapSettings_Method.Invoke(null, new object[0]) as UnityEngine.Object;
+			} catch (Exception) {
+				return null;
+			}
+		}
+
+		public static IEnumerable<UnityEngine.Object> LightingObjects() {
+			yield return GetLightmapSettings();
+			yield return Lightmapping.lightingDataAsset;
+			yield return LightmapSettings.lightProbes;
+		}
+
 		public static void RegisterLightingUndo(string name) {
-			if (LightmapSettings.lightProbes)
-				Undo.RegisterCompleteObjectUndo(LightmapSettings.lightProbes, name);
-			if (Lightmapping.lightingDataAsset)
-				Undo.RegisterCompleteObjectUndo(Lightmapping.lightingDataAsset, name);
+			var objects = LightingObjects().Where(x => x != null).ToArray();
+			if (objects.Length > 0) {
+				Undo.RegisterCompleteObjectUndo(objects, name);
+			}
 		}
 
 		public static void SetLightingDirty() {
-			if (LightmapSettings.lightProbes)
-				EditorUtility.SetDirty(LightmapSettings.lightProbes);
-			if (Lightmapping.lightingDataAsset)
-				EditorUtility.SetDirty(Lightmapping.lightingDataAsset);
+			foreach(var obj in LightingObjects().Where(x => x != null)) {
+				EditorUtility.SetDirty(obj);
+			}
 			EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
 		}
 
-		[Obsolete("Does not work. Unity just does not want to saves changes.")]
+		[System.Obsolete("Does not work. Unity just does not want to saves changes.")]
 		public static bool SetLightProbes(LightProbes newProbes) {
 			var oldProbes = LightmapSettings.lightProbes;
 			if (oldProbes == newProbes)

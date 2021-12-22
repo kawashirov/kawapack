@@ -18,6 +18,8 @@ namespace Kawashirov.LightProbesTools {
 	[ToolsWindowPanel("Light Probes/Manage")]
 	public partial class LightProbesToolPanelManage : AbstractToolPanel {
 
+		[NonSerialized] public bool loadAllowPosMismatch = false;
+
 		public bool TryAssignLightProbes(UnityEngine.Object changedObject) {
 			if (changedObject == null || changedObject == LightmapSettings.lightProbes)
 				return false;
@@ -45,7 +47,7 @@ namespace Kawashirov.LightProbesTools {
 			return false;
 		}
 
-		public void LoadSavedSphericalHarmonicsL2() {
+		public void LoadSavedSphericalHarmonicsL2(bool allowPosMismatch) {
 			var loadPath = EditorUtility.OpenFilePanel("", Application.dataPath, "");
 
 			if (string.IsNullOrWhiteSpace(loadPath)) {
@@ -77,7 +79,7 @@ namespace Kawashirov.LightProbesTools {
 			var newLightProbes = lightProbesL[0];
 			var currentLightProbes = LightmapSettings.lightProbes;
 			if (newLightProbes == currentLightProbes) {
-				Debug.LogWarning($"Trying to load LightProbes thas already assigned to LightmapSettings.lightProbes: {loadPath}", this);
+				Debug.LogWarning($"Trying to load LightProbes that's already assigned to LightmapSettings.lightProbes: {loadPath}", this);
 				return;
 			}
 
@@ -86,44 +88,100 @@ namespace Kawashirov.LightProbesTools {
 			var currentPositions = currentLightProbes.positions;
 			var currentSHL2 = currentLightProbes.bakedProbes;
 
-			if (newPositions.Length != currentPositions.Length) {
-				Debug.LogWarning($"Number of positions of new LightProbes ({newPositions.Length}) and current LightProbes ({currentPositions.Length}) does not match.", this);
-				return;
-			}
-			if (newSHL2.Length != currentSHL2.Length) {
-				Debug.LogWarning($"Number of SphericalHarmonicsL2 of new LightProbes ({newSHL2.Length}) and current LightProbes ({currentSHL2.Length}) does not match.", this);
-				return;
-			}
-			for (var i = 0; i < newPositions.Length; ++i) {
-				if (newPositions[i] != currentPositions[i]) {
-					Debug.LogWarning($"Position at #{i}/{newPositions.Length} of new and current LightProbes does not match.", this);
+			if (allowPosMismatch) {
+
+				Debug.Log($"Copying LightProbes (missmatching mode) from path: {loadPath}", this);
+				var applyCounter = 0;
+				var ni = Math.Min(currentPositions.Length, currentSHL2.Length);
+				var nj = Math.Min(newPositions.Length, newSHL2.Length);
+				LightProbesUtility.RegisterLightingUndo("Load Saved SphericalHarmonicsL2");
+				for (var i = 0; i < ni; ++i) {
+					for (var j = 0; j < nj; ++j) {
+						if (currentPositions[i] == newPositions[j]) {
+							currentSHL2[i] = newSHL2[j];
+							++applyCounter;
+							break;
+						}
+					}
+				}
+				currentLightProbes.bakedProbes = currentSHL2;
+				LightProbesUtility.SetLightingDirty();
+				Debug.Log($"Copied {applyCounter} of {currentSHL2.Length} and {newSHL2.Length} LightProbes (missmatching mode) from path: {loadPath}", this);
+
+			} else {
+
+				Debug.Log($"Copying LightProbes (matching mode) from path: {loadPath}", this);
+				if (newPositions.Length != currentPositions.Length) {
+					Debug.LogWarning($"Number of positions of new LightProbes ({newPositions.Length}) and current LightProbes ({currentPositions.Length}) does not match.", this);
 					return;
 				}
+				if (newSHL2.Length != currentSHL2.Length) {
+					Debug.LogWarning($"Number of SphericalHarmonicsL2 of new LightProbes ({newSHL2.Length}) and current LightProbes ({currentSHL2.Length}) does not match.", this);
+					return;
+				}
+				for (var i = 0; i < newPositions.Length; ++i) {
+					if (newPositions[i] != currentPositions[i]) {
+						Debug.LogWarning($"Position at #{i}/{newPositions.Length} of new and current LightProbes does not match.", this);
+						return;
+					}
+				}
+				LightProbesUtility.RegisterLightingUndo("Load Saved SphericalHarmonicsL2");
+				Array.Copy(newSHL2, currentSHL2, newSHL2.Length);
+				currentLightProbes.bakedProbes = currentSHL2;
+				LightProbesUtility.SetLightingDirty();
+				Debug.Log($"Copied {currentSHL2.Length} LightProbes (matching mode) from path: {loadPath}", this);
 			}
+		}
 
-			Debug.Log($"Copying LightProbes from path: {loadPath}", this);
-			Array.Copy(newSHL2, currentSHL2, newSHL2.Length);
-			LightProbesUtility.RegisterLightingUndo("Load Saved SphericalHarmonicsL2");
-			currentLightProbes.bakedProbes = currentSHL2;
-			LightProbesUtility.SetLightingDirty();
-			Debug.Log($"Copied LightProbes from path: {loadPath}", this);
+		private void ToolsGUI_CurrentLightProbes() {
+			EditorGUILayout.LabelField("Current LightmapSettings.lightProbes:", EditorStyles.boldLabel);
+			using (new EditorGUI.IndentLevelScope()) {
+				var lightProbes = LightmapSettings.lightProbes;
+				if (lightProbes == null) {
+					EditorGUILayout.LabelField("No Light Probes exist!");
+					return;
+				}
+
+				var purePath = AssetDatabase.GetAssetPath(lightProbes);
+				if (string.IsNullOrWhiteSpace(purePath))
+					purePath = null; // null вместо пустоты на всякий
+				var displayPath = purePath == null ? "<Asset does not exist>" : purePath;
+				var isMainAsset = AssetDatabase.IsMainAsset(lightProbes);
+				var isSubAsset = AssetDatabase.IsSubAsset(lightProbes);
+
+				{
+					var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight * 2));
+					var rects = rect.RectSplitHorisontal(3, 1).ToArray();
+					using (new KawaGUIUtility.ZeroIndentScope()) {
+						using (new EditorGUI.DisabledScope(true)) {
+							// Disabled не открывает окно выбора объекта по клику
+							EditorGUI.ObjectField(rects[0], lightProbes, typeof(UnityEngine.Object), true);
+						}
+						using (new EditorGUI.DisabledScope(purePath == null)) {
+							if (GUI.Button(rects[1], "Select")) {
+								EditorUtility.FocusProjectWindow();
+								// Пинг не подсвечивает файл, если ассет не основной.
+								var main = isMainAsset ? lightProbes : AssetDatabase.LoadMainAssetAtPath(purePath);
+								if (main == null)
+									main = lightProbes; // Такого не должно быть, просто на всякий.
+								Selection.objects = main == lightProbes ? new[] { lightProbes } : new[] { main, lightProbes };
+								Selection.activeObject = lightProbes;
+								EditorGUIUtility.PingObject(main);
+							}
+						}
+					}
+				}
+
+				EditorGUILayout.SelectableLabel(displayPath);
+				EditorGUILayout.LabelField("Light Probes Count", $"{lightProbes.count}");
+				EditorGUILayout.LabelField("CellCount", $"{lightProbes.cellCount}");
+				EditorGUILayout.LabelField("Is Main Asset", isMainAsset ? "Yes" : "No");
+				EditorGUILayout.LabelField("Is Sub Asset", isSubAsset ? "Yes" : "No");
+			}
 		}
 
 		public override void ToolsGUI() {
-			EditorGUILayout.LabelField("Current LightmapSettings.lightProbes:");
-			using (new EditorGUI.IndentLevelScope()) {
-				var objectRect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight * 2);
-				EditorGUI.ObjectField(objectRect, LightmapSettings.lightProbes, typeof(UnityEngine.Object), true);
-				var path = LightmapSettings.lightProbes ? AssetDatabase.GetAssetPath(LightmapSettings.lightProbes) : null;
-				if (string.IsNullOrWhiteSpace(path))
-					path = "<does not exist>";
-				var isMainAsset = LightmapSettings.lightProbes && AssetDatabase.IsMainAsset(LightmapSettings.lightProbes) ? "Yes" : "No";
-				var isSubAsset = LightmapSettings.lightProbes && AssetDatabase.IsSubAsset(LightmapSettings.lightProbes) ? "Yes" : "No";
-				EditorGUILayout.TextField("Path", path);
-				EditorGUILayout.LabelField("Is Main Asset", isMainAsset);
-				EditorGUILayout.LabelField("Is Sub Asset", isSubAsset);
-			}
-
+			ToolsGUI_CurrentLightProbes();
 			EditorGUILayout.Space();
 			var button1Rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight * 2);
 			if (GUI.Button(button1Rect, "Save Copy of Current LightProbes") && LightmapSettings.lightProbes) {
@@ -136,15 +194,17 @@ namespace Kawashirov.LightProbesTools {
 			}
 
 			EditorGUILayout.Space();
+			loadAllowPosMismatch = EditorGUILayout.ToggleLeft("Allow Position Mismatch", loadAllowPosMismatch);
 			var button2Rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight * 2);
 			if (GUI.Button(button2Rect, "Load SphericalHarmonicsL2 from Saved Copy of Current LightProbes") && LightmapSettings.lightProbes) {
-				LoadSavedSphericalHarmonicsL2();
+				LoadSavedSphericalHarmonicsL2(loadAllowPosMismatch);
 			}
 
 			EditorGUILayout.Space();
 			var button3Rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight * 2);
 			if (GUI.Button(button3Rect, "Tetrahedralize LightProbes") && LightmapSettings.lightProbes) {
 				LightProbes.Tetrahedralize();
+				LightProbesVisualizer.Tetrahedralize();
 			}
 
 		}

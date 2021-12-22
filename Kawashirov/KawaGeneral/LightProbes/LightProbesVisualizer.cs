@@ -8,6 +8,7 @@ using UnityEditor.SceneManagement;
 using UnityEditor;
 using Kawashirov;
 using Kawashirov.ToolsGUI;
+using System;
 
 namespace Kawashirov.LightProbesTools {
 	static class LightProbesVisualizer {
@@ -28,10 +29,11 @@ namespace Kawashirov.LightProbesTools {
 					sphereMesh = p.GetComponent<MeshFilter>()?.sharedMesh;
 					Debug.Log($"FancyGizmosMesh = {sphereMesh}");
 				} finally {
-					if (EditorApplication.isPlaying)
-						Object.DestroyImmediate(p);
-					else
-						Object.Destroy(p);
+					if (EditorApplication.isPlaying) {
+						UnityEngine.Object.Destroy(p);
+					} else {
+						UnityEngine.Object.DestroyImmediate(p);
+					}
 				}
 				if (sphereMesh == null) {
 					Debug.LogWarning("Can not get FancyGizmosMesh...");
@@ -99,6 +101,159 @@ namespace Kawashirov.LightProbesTools {
 				Graphics.DrawMeshNow(sphereMesh, matrix, 0);
 			}
 		}
+
+		private static int[] TetrahedralizatonIndicies;
+		private static Vector3[] TetrahedralizatonPositions;
+		private static int[] TetrahedralizatonIndiciesOrder;
+
+		public static void ResetTetrahedralization() {
+			TetrahedralizatonIndicies = null;
+			TetrahedralizatonPositions = null;
+			TetrahedralizatonIndiciesOrder = null;
+		}
+
+		public static void Tetrahedralize() {
+			var lightProbes = LightmapSettings.lightProbes;
+			if (!lightProbes) {
+				TetrahedralizatonIndicies = new int[0];
+				TetrahedralizatonPositions = new Vector3[0];
+				TetrahedralizatonIndiciesOrder = new int[0];
+				return;
+			}
+			Lightmapping.Tetrahedralize(lightProbes.positions, out TetrahedralizatonIndicies, out TetrahedralizatonPositions);
+			if (TetrahedralizatonIndiciesOrder == null || TetrahedralizatonIndiciesOrder.Length != TetrahedralizatonIndicies.Length / 4) {
+				TetrahedralizatonIndiciesOrder = new int[TetrahedralizatonIndicies.Length / 4];
+				for (var i = 0; i < TetrahedralizatonIndiciesOrder.Length; ++i)
+					TetrahedralizatonIndiciesOrder[i] = i;
+			}
+		}
+
+		public struct SolvedTetrahedron {
+			public int tetrahedronIndex;
+			public Vector3 corner1;
+			public Vector3 corner2;
+			public Vector3 corner3;
+			public Vector3 corner4;
+			public Plane plane1;
+			public Plane plane2;
+			public Plane plane3;
+			public Plane plane4;
+			public Vector3 surface1;
+			public Vector3 surface2;
+			public Vector3 surface3;
+			public Vector3 surface4;
+
+			public void MakePlanes() {
+				plane1 = new Plane(corner2, corner3, corner4);
+				plane2 = new Plane(corner1, corner3, corner4);
+				plane3 = new Plane(corner1, corner2, corner4);
+				plane4 = new Plane(corner1, corner2, corner3);
+			}
+
+
+			public static bool SameSideOrClose(Plane plane, Vector3 position, Vector3 reference) {
+				var distancePosition = plane.GetDistanceToPoint(position);
+				var distanceReference = plane.GetDistanceToPoint(reference);
+				return Math.Sign(distancePosition) == Math.Sign(distanceReference) || Mathf.Abs(distancePosition) < Vector3.kEpsilon;
+			}
+
+			public bool IsInside(Vector3 position) =>
+				SameSideOrClose(plane1, position, corner1) &&
+				SameSideOrClose(plane2, position, corner2) &&
+				SameSideOrClose(plane3, position, corner3) &&
+				SameSideOrClose(plane4, position, corner4);
+
+			public void MakeSurfacePoints(Vector3 position) {
+				surface1 = plane1.ClosestPointOnPlane(position);
+				surface2 = plane2.ClosestPointOnPlane(position);
+				surface3 = plane3.ClosestPointOnPlane(position);
+				surface4 = plane4.ClosestPointOnPlane(position);
+			}
+
+			public void Debug() {
+				var corners = $"corner1={corner1}\ncorner1={corner2}\ncorner3={corner3}\ncorner4={corner4}";
+				var planes = $"plane1={plane1}\nplane2={plane2}\nplane3={plane3}\nplane4={plane4}";
+				var surfaces = $"surface1={surface1}\nsurface2={surface2}\nsurface3={surface2}\nsurface4={surface4}";
+				UnityEngine.Debug.Log($"Tetrahedron: tetrahedronIndex={tetrahedronIndex}\n{corners}\n{planes}\n{surfaces}");
+			}
+
+		}
+
+		public static SolvedTetrahedron TetrahedronIndex(Vector3 position) {
+			var st = new SolvedTetrahedron();
+			var orderIndex = 0;
+			var solved = false;
+			for (; orderIndex < TetrahedralizatonIndiciesOrder.Length; ++orderIndex) {
+				st.tetrahedronIndex = TetrahedralizatonIndiciesOrder[orderIndex];
+				st.corner1 = TetrahedralizatonPositions[TetrahedralizatonIndicies[st.tetrahedronIndex * 4 + 0]];
+				st.corner2 = TetrahedralizatonPositions[TetrahedralizatonIndicies[st.tetrahedronIndex * 4 + 1]];
+				st.corner3 = TetrahedralizatonPositions[TetrahedralizatonIndicies[st.tetrahedronIndex * 4 + 2]];
+				st.corner4 = TetrahedralizatonPositions[TetrahedralizatonIndicies[st.tetrahedronIndex * 4 + 3]];
+
+				st.MakePlanes();
+
+				if (st.IsInside(position)) {
+					st.MakeSurfacePoints(position);
+					solved = true;
+					break;
+				}
+			}
+
+			if (!solved) {
+				st.tetrahedronIndex = -1;
+				return st;
+			}
+
+			if (st.tetrahedronIndex > 0) {
+				// перенос индекса в начало
+				Array.Copy(TetrahedralizatonIndiciesOrder, 0, TetrahedralizatonIndiciesOrder, 1, orderIndex);
+				TetrahedralizatonIndiciesOrder[0] = st.tetrahedronIndex;
+			}
+
+			return st;
+		}
+
+		public static void DrawProbesSphereNow(Vector3 position, float scale) {
+			var m1 = Matrix4x4.TRS(position, Quaternion.identity, Vector3.one * scale);
+			LightProbes.GetInterpolatedProbe(position, null, out var sh);
+			DrawProbesSphereNow(m1, sh);
+		}
+
+		public static bool DrawLightProbeTetrahedra(Vector3 position, float? sphereScale = null) {
+			if (TetrahedralizatonIndiciesOrder == null || TetrahedralizatonIndicies == null || TetrahedralizatonPositions == null)
+				Tetrahedralize();
+
+			var st = TetrahedronIndex(position);
+
+			// st.Debug();
+
+			if (st.tetrahedronIndex < 0)
+				return false;
+
+			Gizmos.color = Color.yellow;
+
+			Gizmos.DrawLine(st.corner1, st.corner2);
+			Gizmos.DrawLine(st.corner1, st.corner3);
+			Gizmos.DrawLine(st.corner1, st.corner4);
+			Gizmos.DrawLine(st.corner2, st.corner3);
+			Gizmos.DrawLine(st.corner2, st.corner4);
+			Gizmos.DrawLine(st.corner3, st.corner4);
+
+			Gizmos.DrawLine(st.surface1, position);
+			Gizmos.DrawLine(st.surface2, position);
+			Gizmos.DrawLine(st.surface3, position);
+			Gizmos.DrawLine(st.surface4, position);
+
+			if (sphereScale.HasValue) {
+				DrawProbesSphereNow(st.corner1, sphereScale.Value);
+				DrawProbesSphereNow(st.corner2, sphereScale.Value);
+				DrawProbesSphereNow(st.corner3, sphereScale.Value);
+				DrawProbesSphereNow(st.corner4, sphereScale.Value);
+			}
+
+			return true;
+		}
+
 
 	}
 }

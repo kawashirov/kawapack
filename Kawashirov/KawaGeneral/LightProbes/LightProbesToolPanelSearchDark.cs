@@ -51,16 +51,17 @@ namespace Kawashirov.LightProbesTools {
 
 		[NonSerialized] public List<ProbeMetadata> allProbes;
 
-		[NonSerialized] public Vector2 darkProbesRange;
+		[NonSerialized] public Vector2 darkProbesMinRange; // Диапазон минимальных значений darkProbes
 		[NonSerialized] public List<ProbeMetadata> darkProbes;
 
 		public float displaySize = 0.1f;
 		public bool displayFancy = false;
 		public Vector2 displaySelectionRange = new Vector2(-10, 0);
-		public Vector2 displayMapRange = new Vector2(-1, 2);
+		public Vector2 displayMapRange = new Vector2(0, 1);
 		[NonSerialized] public List<ProbeMetadata> displayProbes;
 		[NonSerialized] public float displayComponentMinMin;
 		[NonSerialized] public float displayComponentMinMax;
+		[NonSerialized] public int displayProbesVisible;
 
 		private static IEnumerable<Vector3> GenerateMustTestDirections(int step = 1) {
 			// Направления, которые обязателно нужно исследовать.
@@ -78,46 +79,56 @@ namespace Kawashirov.LightProbesTools {
 			}
 		}
 
-		public bool ShouldDrawFancy() => displayFancy && LightProbesVisualizer.Prepare();
+		// public override bool ShouldCallSceneGUIDrawMesh(SceneView sceneView) => displayFancy;
 
-		public override bool ShouldCallSceneGUIDrawMesh(SceneView sceneView) => displayFancy;
-
+		private static Plane[] DrawGizmos_Frustum = new Plane[6];
 		public override void DrawGizmos() {
 			if (displayProbes == null || displayProbes.Count < 1)
 				return;
 
-			var noFancy = !ShouldDrawFancy();
-
+			var fancy = displayFancy && LightProbesVisualizer.Prepare();
+			var camera = SceneView.lastActiveSceneView ? SceneView.lastActiveSceneView.camera : null;
+			if (camera) {
+				GeometryUtility.CalculateFrustumPlanes(camera, DrawGizmos_Frustum);
+			}
+			displayProbesVisible = 0;
 			foreach (var data in displayProbes) {
+				if (camera) {
+					if (!GeometryUtility.TestPlanesAABB(DrawGizmos_Frustum, new Bounds(data.position, Vector3.one * displaySize)))
+						continue;
+				}
+				++displayProbesVisible;
 				var factor = Mathf.InverseLerp(displayComponentMinMax, displayComponentMinMin, data.componentMin);
 				var base_size = Mathf.Lerp(0.1f, 1.0f, factor) * displaySize;
 				Gizmos.color = Color.Lerp(Color.yellow, Color.red, factor);
-				if (noFancy) {
+				if (fancy) {
+					var matrix = Matrix4x4.TRS(data.position, Quaternion.identity, Vector3.one * base_size);
+					LightProbesVisualizer.DrawProbesSphereNow(matrix, data.probe, displayMapRange);
+				} else {
 					Gizmos.DrawWireSphere(data.position, base_size / 2);
 				}
 				Gizmos.DrawLine(data.position, data.position + data.directionMin * base_size * 2);
 			}
 		}
 
-		public override void OnSceneGUI(SceneView sceneView) {
-			if (displayProbes == null || displayProbes.Count < 1)
-				return;
-			if (Event.current.type != EventType.Repaint || !sceneView.camera)
-				return;
-			if (!ShouldDrawFancy())
-				return;
-			// Debug.Log($"displayMapRange = {displayMapRange}");
-			foreach (var data in displayProbes) {
-				var pos = sceneView.camera.WorldToViewportPoint(data.position);
-				if (pos.x < 0 || pos.x > 1 || pos.y < 0 || pos.y > 1)
-					continue; // Not visible by camera
-				var factor = Mathf.InverseLerp(displayComponentMinMax, displayComponentMinMin, data.componentMin);
-				var base_size = Mathf.Lerp(0.1f, 1, factor) * displaySize;
-				var matrix = Matrix4x4.TRS(data.position, Quaternion.identity, Vector3.one * base_size);
-				LightProbesVisualizer.DrawProbesSphereNow(matrix, data.probe, displayMapRange);
-			}
-
-		}
+		//public override void OnSceneGUI(SceneView sceneView) {
+		//	if (displayProbes == null || displayProbes.Count < 1)
+		//		return;
+		//	if (Event.current.type != EventType.Repaint || !sceneView.camera)
+		//		return;
+		//	if (!ShouldDrawFancy())
+		//		return;
+		//	// Debug.Log($"displayMapRange = {displayMapRange}");
+		//	foreach (var data in displayProbes) {
+		//		var pos = sceneView.camera.WorldToViewportPoint(data.position);
+		//		if (pos.x < 0 || pos.x > 1 || pos.y < 0 || pos.y > 1)
+		//			continue; // Not visible by camera
+		//		var factor = Mathf.InverseLerp(displayComponentMinMax, displayComponentMinMin, data.componentMin);
+		//		var base_size = Mathf.Lerp(0.1f, 1, factor) * displaySize;
+		//		var matrix = Matrix4x4.TRS(data.position, Quaternion.identity, Vector3.one * base_size);
+		//		LightProbesVisualizer.DrawProbesSphereNow(matrix, data.probe, displayMapRange);
+		//	}
+		//}
 
 		private void AnalyzeLightProbePrepareArrays() {
 			// TODO 
@@ -170,9 +181,23 @@ namespace Kawashirov.LightProbesTools {
 			return data;
 		}
 
-		private void AnalyzeLightProbesInternal() {
-			AnalyzeLightProbePrepareArrays();
+		private void ResetProbeMetadataList(ref List<ProbeMetadata> list, int? capacity = null) {
+			if (list == null) {
+				list = capacity.HasValue ? new List<ProbeMetadata>(capacity.Value) : new List<ProbeMetadata>();
+			} else {
+				list.Clear();
+				if (capacity.HasValue && capacity.Value > list.Capacity)
+					list.Capacity = capacity.Value;
+			}
+		}
 
+		private void ResetAnalyzedData(int? allCapacity = null, int? darkCapacity = null, int? displayCapacity = null) {
+			ResetProbeMetadataList(ref allProbes, allCapacity);
+			ResetProbeMetadataList(ref darkProbes, darkCapacity);
+			ResetProbeMetadataList(ref displayProbes, displayCapacity.HasValue ? displayCapacity : darkCapacity);
+		}
+
+		private void AnalyzeLightProbesInternal() {
 			var positions = LightmapSettings.lightProbes.positions;
 			var bakedProbes = LightmapSettings.lightProbes.bakedProbes;
 
@@ -180,28 +205,17 @@ namespace Kawashirov.LightProbesTools {
 
 			EditorUtility.DisplayProgressBar("Analyzing Light Probes...", "...", 1.0f / (analysisTotalProbes + 1));
 
-			if (allProbes == null) {
-				allProbes = new List<ProbeMetadata>(positions.Length);
-			} else {
-				allProbes.Clear();
-				allProbes.Capacity = Mathf.Max(allProbes.Capacity, positions.Length);
-			}
+			AnalyzeLightProbePrepareArrays();
+			ResetAnalyzedData(positions.Length, positions.Length / 4);
 
-			if (darkProbes == null) {
-				darkProbes = new List<ProbeMetadata>(positions.Length / 4);
-			} else {
-				darkProbes.Clear();
-				darkProbes.Capacity = Mathf.Max(allProbes.Capacity, positions.Length / 4);
-			}
-
-			displayProbes?.Clear();
-
-			float time = -1;
+			float progressNextDispaly = -1;
 			for (var i = 0; i < analysisTotalProbes; ++i) {
-				if (time < Time.realtimeSinceStartup) {
-					time = Time.realtimeSinceStartup + 1f;
-					if (EditorUtility.DisplayCancelableProgressBar("Analyzing Light Probes...", $"{i}/{positions.Length}...", 1.0f * (i + 1) / (positions.Length + 1)))
+				if (progressNextDispaly < Time.realtimeSinceStartup) {
+					progressNextDispaly = Time.realtimeSinceStartup + 0.1f;
+					if (EditorUtility.DisplayCancelableProgressBar("Analyzing Light Probes...", $"{i}/{positions.Length}...", 1.0f * (i + 1) / (positions.Length + 1))) {
+						ResetAnalyzedData();
 						break;
+					}
 				}
 				var data = AnalyzeLightProbeSingle(i, positions[i], bakedProbes[i]);
 				allProbes.Add(data);
@@ -212,11 +226,11 @@ namespace Kawashirov.LightProbesTools {
 			EditorUtility.DisplayProgressBar("Analyzing Light Probes...", "Sorting...", 1.0f);
 			if (darkProbes.Count > 0) {
 				darkProbes.Sort((a, b) => Comparer<float>.Default.Compare(a.componentMin, b.componentMin));
-				darkProbesRange.x = darkProbes.First().componentMin;
-				darkProbesRange.y = darkProbes.Last().componentMin;
+				darkProbesMinRange.x = darkProbes.First().componentMin;
+				darkProbesMinRange.y = darkProbes.Last().componentMin;
 			} else {
-				darkProbesRange.x = float.MaxValue;
-				darkProbesRange.y = float.MinValue;
+				darkProbesMinRange.x = float.MaxValue;
+				darkProbesMinRange.y = float.MinValue;
 			}
 		}
 
@@ -482,10 +496,14 @@ namespace Kawashirov.LightProbesTools {
 			var bakedProbes = LightmapSettings.lightProbes.bakedProbes;
 			var newBakedProbes = new SphericalHarmonicsL2[bakedProbes.Length];
 			Array.Copy(bakedProbes, newBakedProbes, bakedProbes.Length);
+			var progressNextDispaly = -1.0f;
 			for (var i = 0; i < darkProbes.Count; ++i) {
-				if (EditorUtility.DisplayCancelableProgressBar("Applying LightProbes fix...", $"{i + 1}/{darkProbes.Count}", (i + 1.0f) / (darkProbes.Count + 1.0f))) {
-					Debug.LogWarning($"Applying Dark LightProbes fix cancelled by user at {i}!");
-					return;
+				if (progressNextDispaly < Time.realtimeSinceStartup) {
+					progressNextDispaly = Time.realtimeSinceStartup + 0.1f;
+					if (EditorUtility.DisplayCancelableProgressBar("Applying LightProbes fix...", $"{i + 1}/{darkProbes.Count}", (i + 1.0f) / (darkProbes.Count + 1.0f))) {
+						Debug.LogWarning($"Applying Dark LightProbes fix cancelled by user at {i}!");
+						return;
+					}
 				}
 				var data = darkProbes[i];
 				if (newBakedProbes[data.index] != data.probe) {
@@ -511,8 +529,8 @@ namespace Kawashirov.LightProbesTools {
 		}
 
 		private const string ToolsGUI_Analysis_Info =
-			"Light Probes in which minimum brightness is less than this threshold " +
-			"multiplied by maximum brightness are considered as \"dark\" light probes." +
+			"Light Probes in which minimum brightness is less than this % threshold " +
+			"of maximum brightness are considered as \"dark\" light probes." +
 			"\n\n" +
 			"Dark probes can be fixed below.";
 
@@ -536,13 +554,20 @@ namespace Kawashirov.LightProbesTools {
 						EditorGUI.SelectableLabel(rect, $"{darkProbes?.Count ?? 0} / {allProbes.Count}");
 					}
 				}
-				darkThreshold = EditorGUILayout.Slider("Dark Threshold", darkThreshold, 0f, 1f);
+				darkThreshold = EditorGUILayout.Slider("Dark Threshold %", darkThreshold * 100, 0f, 100f) / 100;
 				using (new EditorGUI.IndentLevelScope(1)) {
 					EditorGUILayout.HelpBox(ToolsGUI_Analysis_Info, MessageType.Info);
 				}
-				var buttonRect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight * 2));
-				if (GUI.Button(buttonRect, "Analyze Light Probes")) {
-					AnalyzeLightProbes();
+				{
+					var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight * 2));
+					var rects = rect.RectSplitHorisontal(3, 1).ToArray();
+					if (GUI.Button(rects[0], "Analyze Light Probes")) {
+						AnalyzeLightProbes();
+					}
+					if (GUI.Button(rects[1], "Reset")) {
+						ResetAnalyzedData();
+					}
+
 				}
 			}
 		}
@@ -589,7 +614,7 @@ namespace Kawashirov.LightProbesTools {
 
 		private void ToolsGUI_HighlightDarkProbes_Gizmos() {
 			using (var check = new EditorGUI.ChangeCheckScope()) {
-				displaySize = EditorGUILayout.FloatField("Gizmo size", displaySize);
+				displaySize = EditorGUILayout.Slider("Gizmo size", displaySize, 0.01f, 1);
 				displayFancy = EditorGUILayout.ToggleLeft("Fancy Gizmos (Work in Progress: Laggy & Buggy)", displayFancy);
 				using (new EditorGUI.IndentLevelScope(1))
 				using (new EditorGUI.DisabledScope(!displayFancy)) {
@@ -631,6 +656,7 @@ namespace Kawashirov.LightProbesTools {
 			"This feature shows darkest light probes as spheres and it's darkest side as line. " +
 			"Useful for searching baking issues. Larger gizmos means darker probes.";
 		private readonly GUIContent ToolsGUI_HighlightDarkProbes_CurrentlyHighlighted = new GUIContent("Currently Highlighted");
+		private readonly GUIContent ToolsGUI_HighlightDarkProbes_CurrentlyVisible = new GUIContent("Currently On Screen");
 		private readonly GUIContent ToolsGUI_HighlightDarkProbes_ProbeColorMinMax = new GUIContent("Range of Darkest Values");
 
 		private void ToolsGUI_HighlightDarkProbes() {
@@ -648,25 +674,30 @@ namespace Kawashirov.LightProbesTools {
 				}
 				{
 					var rect = EditorGUILayout.GetControlRect();
+					rect = EditorGUI.PrefixLabel(rect, ToolsGUI_HighlightDarkProbes_CurrentlyVisible);
+					EditorGUI.SelectableLabel(rect, $"{displayProbesVisible} / {darkProbes?.Count ?? 0}");
+				}
+				{
+					var rect = EditorGUILayout.GetControlRect();
 					rect = EditorGUI.PrefixLabel(rect, ToolsGUI_HighlightDarkProbes_ProbeColorMinMax);
-					EditorGUI.SelectableLabel(rect, $"{darkProbesRange.x} .. {darkProbesRange.y}");
+					EditorGUI.SelectableLabel(rect, $"{darkProbesMinRange.x} .. {darkProbesMinRange.y}");
 				}
 				{
 					var rect = EditorGUILayout.GetControlRect(false);
-					EditorGUI.MinMaxSlider(rect, ref displaySelectionRange.x, ref displaySelectionRange.y, darkProbesRange.x, darkProbesRange.y);
+					EditorGUI.MinMaxSlider(rect, ref displaySelectionRange.x, ref displaySelectionRange.y, darkProbesMinRange.x, darkProbesMinRange.y);
 				}
 				{
 					var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false));
 					using (new KawaGUIUtility.ZeroIndentScope()) {
 						var rects = rect.RectSplitHorisontal(1, 1, 1, 1).ToArray();
-						EditorGUI.SelectableLabel(rects[0], $"{darkProbesRange.x}");
+						EditorGUI.SelectableLabel(rects[0], $"{darkProbesMinRange.x}");
 						displaySelectionRange.x = EditorGUI.DelayedFloatField(rects[1], GUIContent.none, displaySelectionRange.x);
 						displaySelectionRange.y = EditorGUI.DelayedFloatField(rects[2], GUIContent.none, displaySelectionRange.y);
-						EditorGUI.SelectableLabel(rects[3], $"{darkProbesRange.y}");
+						EditorGUI.SelectableLabel(rects[3], $"{darkProbesMinRange.y}");
 					}
 				}
-				displaySelectionRange.x = Mathf.Clamp(displaySelectionRange.x, darkProbesRange.x, darkProbesRange.y);
-				displaySelectionRange.y = Mathf.Clamp(displaySelectionRange.y, darkProbesRange.x, darkProbesRange.y);
+				displaySelectionRange.x = Mathf.Clamp(displaySelectionRange.x, darkProbesMinRange.x, darkProbesMinRange.y);
+				displaySelectionRange.y = Mathf.Clamp(displaySelectionRange.y, darkProbesMinRange.x, darkProbesMinRange.y);
 				displaySelectionRange.x = Mathf.Min(displaySelectionRange.x, displaySelectionRange.y);
 				displaySelectionRange.y = Mathf.Max(displaySelectionRange.x, displaySelectionRange.y);
 				{
@@ -679,13 +710,13 @@ namespace Kawashirov.LightProbesTools {
 						displayProbes.Clear();
 					}
 					if (GUI.Button(rects[2], "Show All")) {
-						displaySelectionRange.x = darkProbesRange.x;
-						displaySelectionRange.y = darkProbesRange.y;
+						displaySelectionRange.x = darkProbesMinRange.x;
+						displaySelectionRange.y = darkProbesMinRange.y;
 						UpdateDisplayProbes();
 					}
 					if (GUI.Button(rects[3], "Show All Negative")) {
-						displaySelectionRange.x = darkProbesRange.x;
-						displaySelectionRange.y = Mathf.Min(darkProbesRange.y, 0);
+						displaySelectionRange.x = darkProbesMinRange.x;
+						displaySelectionRange.y = Mathf.Min(darkProbesMinRange.y, 0);
 						UpdateDisplayProbes();
 					}
 				}
