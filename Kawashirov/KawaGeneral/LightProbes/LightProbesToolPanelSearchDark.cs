@@ -235,6 +235,8 @@ namespace Kawashirov.LightProbesTools {
 		}
 
 		public void AnalyzeLightProbes() {
+			if (LightmapSettings.lightProbes == null)
+				return;
 			try {
 				AnalyzeLightProbesInternal();
 			} finally {
@@ -731,6 +733,9 @@ namespace Kawashirov.LightProbesTools {
 		private const string ToolsGUI_FixDarkProbes_Info_UpscaleAmbient =
 			"Scale up Ambient coefficients. Preserves contrast, but not looses energy balance. Can cause major over-exposure.";
 
+		private static readonly Lazy<GUIStyle> multilineLabel =
+			new Lazy<GUIStyle>(() => new GUIStyle(EditorStyles.label) { wordWrap = true });
+
 		private void ToolsGUI_FixDarkProbes() {
 			EditorGUILayout.LabelField("Fix Dark Light Probes:", EditorStyles.boldLabel);
 			using (new EditorGUI.IndentLevelScope(1)) {
@@ -744,9 +749,9 @@ namespace Kawashirov.LightProbesTools {
 					var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight * 4));
 					var rects = rect.RectSplitHorisontal(6, 1, 6).ToArray();
 					using (new KawaGUIUtility.ZeroIndentScope()) {
-						EditorGUI.LabelField(rects[0], ToolsGUI_FixDarkProbes_Info_DownscaleDirectional, KawaGUIUtility.GetMultilineLabel());
+						EditorGUI.LabelField(rects[0], ToolsGUI_FixDarkProbes_Info_DownscaleDirectional, multilineLabel.Value);
 						EditorGUI.LabelField(rects[1], "vs", EditorStyles.label);
-						EditorGUI.LabelField(rects[2], ToolsGUI_FixDarkProbes_Info_UpscaleAmbient, KawaGUIUtility.GetMultilineLabel());
+						EditorGUI.LabelField(rects[2], ToolsGUI_FixDarkProbes_Info_UpscaleAmbient, multilineLabel.Value);
 					}
 				}
 				EditorGUILayout.LabelField("Combine these two variants:");

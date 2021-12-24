@@ -133,14 +133,23 @@ namespace Kawashirov.LightProbesTools {
 			}
 		}
 
+		private static bool LightProbesExist() {
+			var lightProbes = LightmapSettings.lightProbes;
+			if (!lightProbes)
+				return false;
+			var positions = lightProbes.positions;
+			return positions != null && positions.Length > 0;
+		}
+
 		private void ToolsGUI_CurrentLightProbes() {
 			EditorGUILayout.LabelField("Current LightmapSettings.lightProbes:", EditorStyles.boldLabel);
 			using (new EditorGUI.IndentLevelScope()) {
-				var lightProbes = LightmapSettings.lightProbes;
-				if (lightProbes == null) {
+				if (!LightProbesExist()) {
 					EditorGUILayout.LabelField("No Light Probes exist!");
 					return;
 				}
+
+				var lightProbes = LightmapSettings.lightProbes;
 
 				var purePath = AssetDatabase.GetAssetPath(lightProbes);
 				if (string.IsNullOrWhiteSpace(purePath))
@@ -182,25 +191,33 @@ namespace Kawashirov.LightProbesTools {
 
 		public override void ToolsGUI() {
 			ToolsGUI_CurrentLightProbes();
+
 			EditorGUILayout.Space();
-			var button1Rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight * 2);
-			if (GUI.Button(button1Rect, "Save Copy of Current LightProbes") && LightmapSettings.lightProbes) {
-				var instance_id = LightmapSettings.lightProbes.GetInstanceID();
-				var savePath = EditorUtility.SaveFilePanelInProject("Save LightProbes asset", $"light_probes_{instance_id}.asset", "asset", "Save LightProbes asset");
-				if (!string.IsNullOrWhiteSpace(savePath)) {
-					var newProbes = Instantiate(LightmapSettings.lightProbes);
-					AssetDatabase.CreateAsset(newProbes, savePath);
+
+			using (new EditorGUI.DisabledScope(!LightProbesExist())) {
+				var button1Rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight * 2);
+				if (GUI.Button(button1Rect, "Save Copy of Current LightProbes")) {
+					var instance_id = LightmapSettings.lightProbes.GetInstanceID();
+					var savePath = EditorUtility.SaveFilePanelInProject("Save LightProbes asset", $"light_probes_{instance_id}.asset", "asset", "Save LightProbes asset");
+					if (!string.IsNullOrWhiteSpace(savePath)) {
+						var newProbes = Instantiate(LightmapSettings.lightProbes);
+						AssetDatabase.CreateAsset(newProbes, savePath);
+					}
 				}
 			}
 
 			EditorGUILayout.Space();
-			loadAllowPosMismatch = EditorGUILayout.ToggleLeft("Allow Position Mismatch", loadAllowPosMismatch);
-			var button2Rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight * 2);
-			if (GUI.Button(button2Rect, "Load SphericalHarmonicsL2 from Saved Copy of Current LightProbes") && LightmapSettings.lightProbes) {
-				LoadSavedSphericalHarmonicsL2(loadAllowPosMismatch);
+
+			using (new EditorGUI.DisabledScope(!LightProbesExist())) {
+				loadAllowPosMismatch = EditorGUILayout.ToggleLeft("Allow Position Mismatch", loadAllowPosMismatch);
+				var button2Rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight * 2);
+				if (GUI.Button(button2Rect, "Load SphericalHarmonicsL2 from Saved Copy of Current LightProbes") && LightmapSettings.lightProbes) {
+					LoadSavedSphericalHarmonicsL2(loadAllowPosMismatch);
+				}
 			}
 
 			EditorGUILayout.Space();
+
 			var button3Rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight * 2);
 			if (GUI.Button(button3Rect, "Tetrahedralize LightProbes") && LightmapSettings.lightProbes) {
 				LightProbes.Tetrahedralize();

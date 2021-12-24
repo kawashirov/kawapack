@@ -65,7 +65,8 @@ namespace Kawashirov.LightProbesTools {
 			return true;
 		}
 
-		[MenuItem("Kawashirov/Smooth SH")]
+		//[MenuItem("Kawashirov/Smooth SH")]
+		[Obsolete()]
 		public static void SmoothSH() {
 			// TODO panel
 			try {
@@ -89,7 +90,6 @@ namespace Kawashirov.LightProbesTools {
 			} finally {
 				EditorUtility.ClearProgressBar();
 			}
-
 		}
 
 		public static void Report(UnityEngine.Object obj, string path, int depth, ref HashSet<UnityEngine.Object> noLoops) {
@@ -128,7 +128,8 @@ namespace Kawashirov.LightProbesTools {
 			}
 		}
 
-		[MenuItem("Kawashirov/Report LightingData")]
+		//[MenuItem("Kawashirov/Report LightingData")]
+		[Obsolete]
 		public static void ReportLightingData() {
 			// TODO panel
 			Debug.Log("LightingDataAsset begin:");
@@ -139,7 +140,6 @@ namespace Kawashirov.LightProbesTools {
 
 			Debug.Log("LightingDataAsset end.");
 		}
-
 
 	}
 }

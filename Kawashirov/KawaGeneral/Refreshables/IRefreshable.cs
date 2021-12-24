@@ -35,6 +35,6 @@ namespace Kawashirov.Refreshables {
 		// Для компонентов в префабе рекомендуется выводить путь/в/проекте/до/префаба.prefab/путь/в/иерархии
 		string RefreshablePath();
 
-#endif
+#endif // UNITY_EDITOR
 	}
 }

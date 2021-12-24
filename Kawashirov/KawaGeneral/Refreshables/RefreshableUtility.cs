@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections;
+﻿#if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
-using UnityEngine.SceneManagement;
-
-#if UNITY_EDITOR
+using System.Text;
+using System.Threading.Tasks;
 using UnityEditor;
-#endif
+using UnityEngine;
 
 namespace Kawashirov.Refreshables {
-	public static class RefreshableUtilities {
-#if UNITY_EDITOR
+	public static class RefreshableUtility {
 
 		[MenuItem("Kawashirov/Refreshables/Refresh every IRefreshable in loaded scenes")]
 		public static void RefreshEverytingInLoadedScenes() {
@@ -53,7 +50,7 @@ namespace Kawashirov.Refreshables {
 
 		public static void RefreshEverytingInProject<T>(bool ui = false) where T : class, IRefreshable {
 			var list = FindAllRefreshablesInProject<T>(ui);
-			
+
 			list.RefreshMultiple();
 
 			try {
@@ -110,7 +107,38 @@ namespace Kawashirov.Refreshables {
 			}
 		}
 
-#endif
+		public static void BehaviourRefreshGUI(this Editor editor) {
+			var refreshables = editor.targets.OfType<IRefreshable>().ToList();
+
+			if (refreshables.Count < 1)
+				return;
+
+			if (GUILayout.Button("Only refresh this")) {
+				refreshables.RefreshMultiple();
+			}
+
+			var scenes = editor.targets.OfType<Component>().Select(r => r.gameObject.scene).Distinct().ToList();
+			var scene_str = string.Join(", ", scenes.Select(s => s.name));
+
+			var types = editor.targets.Select(t => t.GetType()).Distinct().ToList();
+			var types_str = string.Join(", ", types.Select(t => t.Name));
+
+			var types_btn = string.Format("Refresh every {0} on scene: {1}", types_str, scene_str);
+			if (GUILayout.Button(types_btn)) {
+				var all_targets = scenes.SelectMany(s => s.GetRootGameObjects())
+						.SelectMany(g => types.SelectMany(t => g.GetComponentsInChildren(t, true)))
+						.Distinct().OfType<IRefreshable>().ToList();
+				all_targets.RefreshMultiple();
+			}
+
+			var scene_btn = string.Format("Refresh every Behaviour on scene: {0}", scene_str);
+			if (GUILayout.Button(scene_btn)) {
+				var all_targets = scenes.SelectMany(s => s.GetRootGameObjects())
+						.SelectMany(g => g.GetComponentsInChildren<IRefreshable>(true)).ToList();
+				all_targets.RefreshMultiple();
+			}
+		}
 	}
 }
 
+#endif // UNITY_EDITOR

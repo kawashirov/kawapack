@@ -24,29 +24,11 @@ namespace Kawashirov {
 			return (Texture2D)EditorGUIUtility_GetHelpIcon.Invoke(null, new object[] { type });
 		}
 
-		private static GUIStyle richHelpBox = null;
-
-		public static GUIStyle GetRichHelpBox() {
-			if (richHelpBox == null) {
-				// по требованию, т.к. стили инициализирутся не сразу 
-				var helpbox = GUI.skin.GetStyle("HelpBox");
-				richHelpBox = new GUIStyle(helpbox) { richText = true };
-			}
-			return richHelpBox;
-		}
+		private static readonly Lazy<GUIStyle> richHelpBox =
+			new Lazy<GUIStyle>(() => new GUIStyle(EditorStyles.helpBox) { richText = true });
 
 		public static void HelpBoxRich(string msg) {
-			EditorGUILayout.TextArea(msg, GetRichHelpBox());
-		}
-
-
-		private static GUIStyle multilineLabel = null;
-
-		public static GUIStyle GetMultilineLabel() {
-			if (multilineLabel == null) {
-				multilineLabel = new GUIStyle(EditorStyles.label) { wordWrap = true };
-			}
-			return multilineLabel;
+			EditorGUILayout.TextArea(msg, richHelpBox.Value);
 		}
 
 		public static bool PropertyEnumPopupCustomLabels<E>(
@@ -105,38 +87,6 @@ namespace Kawashirov {
 			}
 		}
 
-		public static void BehaviourRefreshGUI(this Editor editor) {
-			var refreshables = editor.targets.OfType<IRefreshable>().ToList();
-
-			if (refreshables.Count < 1)
-				return;
-
-			if (GUILayout.Button("Only refresh this")) {
-				refreshables.RefreshMultiple();
-			}
-
-			var scenes = editor.targets.OfType<Component>().Select(r => r.gameObject.scene).Distinct().ToList();
-			var scene_str = string.Join(", ", scenes.Select(s => s.name));
-
-			var types = editor.targets.Select(t => t.GetType()).Distinct().ToList();
-			var types_str = string.Join(", ", types.Select(t => t.Name));
-
-			var types_btn = string.Format("Refresh every {0} on scene: {1}", types_str, scene_str);
-			if (GUILayout.Button(types_btn)) {
-				var all_targets = scenes.SelectMany(s => s.GetRootGameObjects())
-						.SelectMany(g => types.SelectMany(t => g.GetComponentsInChildren(t, true)))
-						.Distinct().OfType<IRefreshable>().ToList();
-				all_targets.RefreshMultiple();
-			}
-
-			var scene_btn = string.Format("Refresh every Behaviour on scene: {0}", scene_str);
-			if (GUILayout.Button(scene_btn)) {
-				var all_targets = scenes.SelectMany(s => s.GetRootGameObjects())
-						.SelectMany(g => g.GetComponentsInChildren<IRefreshable>(true)).ToList();
-				all_targets.RefreshMultiple();
-			}
-		}
-
 		public static void ShaderEditorFooter() {
 			var style = new GUIStyle { richText = true };
 
@@ -186,50 +136,6 @@ namespace Kawashirov {
 				KawaIndent -= offset;
 			}
 
-		}
-
-		public static Rect IndentedRect(this Rect rect, int indentLevel) {
-			var oldIndentLevel = EditorGUI.indentLevel;
-			try {
-				EditorGUI.indentLevel = indentLevel;
-				rect = EditorGUI.IndentedRect(rect);
-			} finally {
-				EditorGUI.indentLevel = oldIndentLevel;
-			}
-			return rect;
-		}
-
-		public static IEnumerable<Rect> RectSplitVerticalUniform(this Rect rect, int lines) {
-			var weights = new float[lines];
-			for (var i = 0; i < weights.Length; ++i)
-				weights[i] = 1;
-			return RectSplitVertical(rect, weights);
-		}
-
-		public static IEnumerable<Rect> RectSplitVertical(this Rect rect, params float[] weights) {
-			var spacing = 2f;
-			var weights_sum = weights.Sum();
-			var cell = new Rect(rect);
-			var reducedHeight = rect.height - spacing * (weights.Length - 1);
-			for (var i = 0; i < weights.Length; ++i) {
-				cell.height = reducedHeight * weights[i] / weights_sum;
-				yield return cell;
-				cell.y += cell.height + spacing;
-			}
-			yield break;
-		}
-
-		public static IEnumerable<Rect> RectSplitHorisontal(this Rect rect, params float[] weights) {
-			var spacing = 2f;
-			var weights_sum = weights.Sum();
-			var cell = new Rect(rect);
-			var reducedWidth = rect.width - spacing * (weights.Length - 1);
-			for (var i = 0; i < weights.Length; ++i) {
-				cell.width = reducedWidth * weights[i] / weights_sum;
-				yield return cell;
-				cell.x += cell.width + spacing;
-			}
-			yield break;
 		}
 
 		public static void OpenInspector() {

@@ -3,88 +3,27 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine;
-using UnityEditor;
 using UnityEngine.SceneManagement;
+using UnityEditor;
 using Kawashirov.ToolsGUI;
 using static Kawashirov.KawaUtilities;
 using Object = UnityEngine.Object;
-using System.Text;
 
 namespace Kawashirov {
-	[ToolsWindowPanel("Reveal Hidden Objects")]
+	[ToolsWindowPanel("Objects/Reveal Hidden")]
 	public class HiddenObjectsToolPanel : AbstractToolPanel {
 
-
-		[MenuItem("Kawashirov/Reveal Hidden Objects In Loaded Scenes")]
-		public static void ReportMissingScriptsInLoadedScenes() {
-			Debug.Log("Searching hidden objects in loaded scenes...");
-			var roots = IterScenesRoots().ToList();
-			var counter = 0;
-			try {
-				for (var i = 0; i < roots.Count; ++i) {
-					if (EditorUtility.DisplayCancelableProgressBar("Searching Hidden Objects", string.Format("{0}/{1}", i + 1, roots.Count), (i + 1.0f) / (roots.Count + 1.0f))) {
-						break;
-					}
-					counter += RevealInGameObject(roots[i]);
-				}
-			} finally {
-				EditorUtility.ClearProgressBar();
-			}
-			if (counter > 0) {
-				Debug.LogWarningFormat("Found {0} hidden objects in loaded scenes!", counter);
-			} else {
-				Debug.Log("There is no hidden objects in loaded scenes!");
-			}
-		}
-
-		private static int RevealInGameObject(GameObject go) {
-			var queue = new Queue<GameObject>();
-			queue.Enqueue(go);
-			var counter = 0;
-			while (queue.Count > 0) {
-				go = queue.Dequeue();
-				if (RevealObject(go, go))
-					++counter;
-				foreach (var component in go.GetComponents<Component>().Where(c => c != null))
-					if (RevealObject(component, go))
-						++counter;
-				foreach (Transform child in go.transform) {
-					queue.Enqueue(child.gameObject);
-				}
-			}
-			return counter;
-		}
-
-		private static bool RevealObject(Object obj, GameObject source) {
-			var flags = (int)obj.hideFlags;
-			flags &= ~(int)HideFlags.HideInHierarchy;
-			flags &= ~(int)HideFlags.HideInInspector;
-			flags &= ~(int)HideFlags.NotEditable;
-			if (flags != (int)obj.hideFlags) {
-				var old_flags = (int)obj.hideFlags;
-				obj.hideFlags = (HideFlags)flags;
-				EditorUtility.SetDirty(obj);
-				if (source) {
-					Debug.LogWarningFormat(source, "Changing flags of {0} in {1} from {2} to {3}...", obj, source.KawaGetFullPath(), old_flags, flags);
-				}
-				return true;
-			}
-			return false;
-		}
-
-		//====//
-
-		public struct FoundObject {
+		private struct FoundObject {
 			public Object obj;
 			public Object pingObject;
 		}
 
-
-		[NonSerialized] public List<FoundObject> foundObjects = new List<FoundObject>();
+		private List<FoundObject> foundObjects = new List<FoundObject>();
 		[NonSerialized] public bool ignoreForeignAsset = true;
 		[NonSerialized] public int foundObjectsDisplaySize = 20;
-		[NonSerialized] public float foundObjectsDisplayOffset = 0; // 0..1
+		[NonSerialized] public float foundObjectsDisplayOffset = 0;
 
 		public static bool IsHiddenInHierarchy(Object obj) => (obj.hideFlags & HideFlags.HideInHierarchy) != 0;
 		public static bool IsHiddenInInspector(Object obj) => (obj.hideFlags & HideFlags.HideInInspector) != 0;
@@ -107,15 +46,49 @@ namespace Kawashirov {
 
 		public void FindHiddenInHierarchy() {
 			foundObjects.Clear();
-			var allGameObjects = IterScenesRoots().SelectMany(g => g.Traverse()).Where(x => x != null);
+			var components = new List<Component>();
+			var allGameObjects = IterScenesRoots().SelectMany(KawaUtilities.Traverse).Where(x => x != null);
 			foreach (var gobj in allGameObjects) {
 				if (IsHidden(gobj)) {
 					foundObjects.Add(new FoundObject() { obj = gobj, pingObject = gobj });
 				}
-				foreach (var component in gobj.GetComponents<Component>().Where(x => x != null)) {
-					if (IsHidden(component)) {
+				components.Clear();
+				gobj.GetComponents(typeof(Component), components);
+				foreach (var component in components) {
+					if (component != null && IsHidden(component)) {
 						foundObjects.Add(new FoundObject() { obj = component, pingObject = gobj });
 					}
+				}
+			}
+		}
+
+		private void FindHiddenInProject(string assetPath, ref int totalObjects) {
+			var wasLoaded = AssetDatabase.IsMainAssetAtPathLoaded(assetPath);
+			var mainAsset = AssetDatabase.LoadMainAssetAtPath(assetPath);
+			if (mainAsset == null)
+				return; // Странная ситуация, но бывет.
+			if (ignoreForeignAsset && AssetDatabase.IsForeignAsset(mainAsset)) {
+				if (!wasLoaded && !(mainAsset is GameObject || mainAsset is Component)) {
+					Resources.UnloadAsset(mainAsset);
+				}
+				return;
+			}
+			var assets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+			for (var j = 0; j < assets.Length; ++j) {
+				++totalObjects;
+				var asset = assets[j];
+				if (asset == null)
+					continue; // Странная ситуация, но бывет.
+				if (ignoreForeignAsset && AssetDatabase.IsForeignAsset(asset)) {
+					if (!wasLoaded && !(asset is GameObject || asset is Component)) {
+						// Подразумеваем, что если дочерние ассеты прогружены, то и главный тоже был прогружен,
+						// а если главный тоже не был прогружен, то дочерние ассеты тоже не были прогружены
+						Resources.UnloadAsset(asset);
+					}
+					continue;
+				}
+				if (IsHidden(assets[j])) {
+					foundObjects.Add(new FoundObject() { obj = asset, pingObject = mainAsset == null ? asset : mainAsset });
 				}
 			}
 		}
@@ -128,7 +101,6 @@ namespace Kawashirov {
 				var assetPaths = AssetDatabase.GetAllAssetPaths();
 				var progressBarTime = -1f;
 				for (var i = 0; i < assetPaths.Length; ++i) {
-					var assetPath = assetPaths[i];
 					if (progressBarTime < Time.realtimeSinceStartup) {
 						//Resources.UnloadUnusedAssets();
 						progressBarTime = Time.realtimeSinceStartup + 0.1f;
@@ -138,34 +110,7 @@ namespace Kawashirov {
 							break;
 						}
 					}
-					var wasLoaded = AssetDatabase.IsMainAssetAtPathLoaded(assetPath);
-					var mainAsset = AssetDatabase.LoadMainAssetAtPath(assetPath);
-					if (mainAsset == null)
-						continue; // Странная ситуация, но бывет.
-					if (ignoreForeignAsset && AssetDatabase.IsForeignAsset(mainAsset)) {
-						if (!wasLoaded && !(mainAsset is GameObject || mainAsset is Component)) {
-							Resources.UnloadAsset(mainAsset);
-						}
-						continue; // i
-					}
-					var assets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
-					for (var j = 0; j < assets.Length; ++j) {
-						++totalObjects;
-						var asset = assets[j];
-						if (asset == null)
-							continue; // Странная ситуация, но бывет.
-						if (ignoreForeignAsset && AssetDatabase.IsForeignAsset(asset)) {
-							if (!wasLoaded && !(asset is GameObject || asset is Component)) {
-								// Подразумеваем, что если дочерние ассеты прогружены, то и главный тоже был прогружен,
-								// а если главный тоже не был прогружен, то дочерние ассеты тоже не были прогружены
-								Resources.UnloadAsset(asset);
-							}
-							continue; // j
-						}
-						if (IsHidden(assets[j])) {
-							foundObjects.Add(new FoundObject() { obj = asset, pingObject = mainAsset == null ? asset : mainAsset });
-						}
-					}
+					FindHiddenInProject(assetPaths[i], ref totalObjects);
 				}
 			} finally {
 				try {
@@ -176,6 +121,7 @@ namespace Kawashirov {
 				}
 			}
 		}
+
 		private void RevealObject(Object obj, HideFlags flagsToUnset) {
 			obj.hideFlags &= ~flagsToUnset;
 			EditorUtility.SetDirty(obj);
@@ -193,7 +139,7 @@ namespace Kawashirov {
 			}
 		}
 
-		public Lazy<GUIStyle> labelCentred = new Lazy<GUIStyle>(() => new GUIStyle(EditorStyles.label) {
+		public static Lazy<GUIStyle> labelCentred = new Lazy<GUIStyle>(() => new GUIStyle(EditorStyles.label) {
 			alignment = TextAnchor.MiddleCenter
 		});
 

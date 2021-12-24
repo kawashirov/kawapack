@@ -4,9 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using UnityEngine;
+using Kawashirov;
+using Kawashirov.Refreshables;
 
 using GUIL = UnityEngine.GUILayout;
-using UnityEngine.UI;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -17,7 +18,7 @@ using static UnityEditor.EditorGUI;
 namespace Kawashirov.ShaderBaking {
 
 	[Serializable]
-	public class BaseGenerator : ScriptableObject, Refreshables.IRefreshable {
+	public class BaseGenerator : ScriptableObject, IRefreshable {
 
 		public string shaderName = "";
 		public bool debug = false;
@@ -86,7 +87,7 @@ namespace Kawashirov.ShaderBaking {
 
 		[MenuItem("Kawashirov/Shader Baking/Refresh every shader in project")]
 		public static void RefreshEverytingInLoadedScenes() {
-			Refreshables.RefreshableUtilities.RefreshEverytingInProject<BaseGenerator>(true);
+			RefreshableUtility.RefreshEverytingInProject<BaseGenerator>(true);
 		}
 
 		public static void DeleteGeneratedAtPath(string path) {
