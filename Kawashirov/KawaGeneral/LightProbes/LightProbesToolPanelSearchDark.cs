@@ -15,7 +15,7 @@ namespace Kawashirov.LightProbesTools {
 
 	[ToolsWindowPanel("Light Probes/Search Dark")]
 	public class LightProbesToolPanelSearchDark : AbstractToolPanel {
-		public struct ProbeMetadata {
+		public struct ProbeMetadata : IComparable<ProbeMetadata> {
 			public int index;
 			public Vector3 position;
 			public SphericalHarmonicsL2 probe;
@@ -34,6 +34,11 @@ namespace Kawashirov.LightProbesTools {
 			public float componentAmbient;
 			//
 			public Color[] samples; // match analysisRndDirection
+
+			public static int Compare(ProbeMetadata a, ProbeMetadata b) =>
+				Comparer<float>.Default.Compare(a.componentMin, b.componentMin);
+
+			public int CompareTo(ProbeMetadata other) => Compare(this, other);
 		}
 
 		private static Vector3[] mustTestDirections = GenerateMustTestDirections(3).Distinct().ToArray();
@@ -42,23 +47,23 @@ namespace Kawashirov.LightProbesTools {
 
 		public int directionSamples = 1000;
 		public float darkThreshold = 0.05f; // [0, 1]
-		public int topProbes = 10;
-		public bool topProbesFold = false;
+		public int listProbesSize = 20;
+		[NonSerialized] public float listProbesScroll;
 
 		public bool fixTooDarkReRunAnalysis = true;
 		public float fixTooDarkPrecision = 0.01f;
 		public float fixTooDarkDirectionalVsAmbient = 0.5f;
 
-		[NonSerialized] public List<ProbeMetadata> allProbes;
+		[NonSerialized] public readonly List<ProbeMetadata> allProbes = new List<ProbeMetadata>();
 
 		[NonSerialized] public Vector2 darkProbesMinRange; // Диапазон минимальных значений darkProbes
-		[NonSerialized] public List<ProbeMetadata> darkProbes;
+		[NonSerialized] public readonly List<ProbeMetadata> darkProbes = new List<ProbeMetadata>();
 
 		public float displaySize = 0.1f;
 		public bool displayFancy = false;
 		public Vector2 displaySelectionRange = new Vector2(-10, 0);
 		public Vector2 displayMapRange = new Vector2(0, 1);
-		[NonSerialized] public List<ProbeMetadata> displayProbes;
+		[NonSerialized] public readonly List<ProbeMetadata> displayProbes = new List<ProbeMetadata>();
 		[NonSerialized] public float displayComponentMinMin;
 		[NonSerialized] public float displayComponentMinMax;
 		[NonSerialized] public int displayProbesVisible;
@@ -181,21 +186,20 @@ namespace Kawashirov.LightProbesTools {
 			return data;
 		}
 
-		private void ResetProbeMetadataList(ref List<ProbeMetadata> list, int? capacity = null) {
-			if (list == null) {
-				list = capacity.HasValue ? new List<ProbeMetadata>(capacity.Value) : new List<ProbeMetadata>();
-			} else {
-				list.Clear();
-				if (capacity.HasValue && capacity.Value > list.Capacity)
-					list.Capacity = capacity.Value;
-			}
+		private void ResetProbeMetadataList(List<ProbeMetadata> list, int? capacity = null) {
+			list.Clear();
+			if (capacity.HasValue && capacity.Value > list.Capacity)
+				list.Capacity = capacity.Value;
 		}
 
 		private void ResetAnalyzedData(int? allCapacity = null, int? darkCapacity = null, int? displayCapacity = null) {
-			ResetProbeMetadataList(ref allProbes, allCapacity);
-			ResetProbeMetadataList(ref darkProbes, darkCapacity);
-			ResetProbeMetadataList(ref displayProbes, displayCapacity.HasValue ? displayCapacity : darkCapacity);
+			ResetProbeMetadataList(allProbes, allCapacity);
+			ResetProbeMetadataList(darkProbes, darkCapacity);
+			ResetProbeMetadataList(displayProbes, displayCapacity.HasValue ? displayCapacity : darkCapacity);
 		}
+
+		private bool DarkCriteria(ProbeMetadata data) =>
+			data.componentMin < data.componentMax * darkThreshold || data.componentMax <= Vector3.kEpsilon;
 
 		private void AnalyzeLightProbesInternal() {
 			var positions = LightmapSettings.lightProbes.positions;
@@ -219,13 +223,14 @@ namespace Kawashirov.LightProbesTools {
 				}
 				var data = AnalyzeLightProbeSingle(i, positions[i], bakedProbes[i]);
 				allProbes.Add(data);
-				if (data.componentMin < data.componentMax * darkThreshold) {
-					darkProbes.Add(data);
-				}
 			}
 			EditorUtility.DisplayProgressBar("Analyzing Light Probes...", "Sorting...", 1.0f);
+			if (allProbes.Count > 0) {
+				allProbes.Sort();
+			}
+			darkProbes.AddRange(allProbes.Where(DarkCriteria));
 			if (darkProbes.Count > 0) {
-				darkProbes.Sort((a, b) => Comparer<float>.Default.Compare(a.componentMin, b.componentMin));
+				// allProbes сортирован, так что и darkProbes тоже
 				darkProbesMinRange.x = darkProbes.First().componentMin;
 				darkProbesMinRange.y = darkProbes.Last().componentMin;
 			} else {
@@ -244,18 +249,14 @@ namespace Kawashirov.LightProbesTools {
 			}
 		}
 
-		private bool RangeSelector(ProbeMetadata data) {
-			return displaySelectionRange.x < data.componentMax && data.componentMin < displaySelectionRange.y;
-		}
+		private bool RangeSelector(ProbeMetadata data) =>
+			displaySelectionRange.x <= data.componentMax && data.componentMin <= displaySelectionRange.y;
 
 		public void UpdateDisplayProbes() {
-			if (displayProbes == null) {
-				displayProbes = new List<ProbeMetadata>(darkProbes.Where(RangeSelector));
-			} else {
-				displayProbes.Clear();
-				displayProbes.AddRange(darkProbes.Where(RangeSelector));
-			}
+			displayProbes.Clear();
+			displayProbes.AddRange(darkProbes.Where(RangeSelector));
 			if (displayProbes.Count > 1) {
+				// darkProbes сортированый, так что и displayProbes тоже
 				displayComponentMinMin = displayProbes.First().componentMin;
 				displayComponentMinMax = displayProbes.Last().componentMin;
 			}
@@ -574,21 +575,19 @@ namespace Kawashirov.LightProbesTools {
 			}
 		}
 
-		private void ToolsGUI_HighlightDarkProbes_TopDarkest() {
-			var n = Mathf.Min(topProbes, displayProbes?.Count ?? 0);
-			topProbes = EditorGUILayout.IntField("List Most Darkest Probes", topProbes);
-			topProbesFold = EditorGUILayout.Foldout(topProbesFold, $"{n} Darkest Probes:");
-			if (!topProbesFold)
-				return;
+		private void ToolsGUI_ListProbes() {
+			EditorGUILayout.LabelField("List All Probes (Darkest to Brightest)", EditorStyles.boldLabel);
 			using (new EditorGUI.IndentLevelScope(1)) {
-				if (n < 1) {
+				listProbesSize = EditorGUILayout.IntField("Max Display Items", listProbesSize);
+				var numberOfItemsToShow = Mathf.Min(listProbesSize, allProbes?.Count ?? 0);
+				if (numberOfItemsToShow < 1) {
 					EditorGUILayout.LabelField("Nothing to display.");
 					return;
 				}
-				{
-					// Title
-					var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect());
-					var rects = rect.RectSplitHorisontal(1, 3, 5, 2).ToArray();
+				var list = ScrollableList.AutoLayout(allProbes.Count, listProbesSize, null, 0);
+				list.DrawList(ref listProbesScroll);
+				{ // Title
+					var rects = list.GetHeader().RectSplitHorisontal(1, 3, 5, 2).ToArray();
 					using (new KawaGUIUtility.ZeroIndentScope()) {
 						EditorGUI.LabelField(rects[0], "№");
 						EditorGUI.LabelField(rects[1], "Min. Component");
@@ -596,10 +595,9 @@ namespace Kawashirov.LightProbesTools {
 						EditorGUI.LabelField(rects[3], "Move");
 					}
 				}
-				for (var i = 0; i < n; ++i) {
-					var probeData = displayProbes[i];
-					var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect());
-					var rects = rect.RectSplitHorisontal(1, 3, 5, 2).ToArray();
+				for (var i = 0; i < numberOfItemsToShow; ++i) {
+					var rects = list.GetRow(i, out var index).RectSplitHorisontal(1, 3, 5, 2).ToArray();
+					var probeData = allProbes[index];
 					using (new KawaGUIUtility.ZeroIndentScope()) {
 						EditorGUI.LabelField(rects[0], $"№{i}");
 						EditorGUI.FloatField(rects[1], probeData.componentMin);
@@ -724,7 +722,6 @@ namespace Kawashirov.LightProbesTools {
 				}
 
 				ToolsGUI_HighlightDarkProbes_Gizmos();
-				ToolsGUI_HighlightDarkProbes_TopDarkest();
 			}
 		}
 
@@ -790,6 +787,8 @@ namespace Kawashirov.LightProbesTools {
 			ToolsGUI_Analysis();
 			EditorGUILayout.Space();
 			ToolsGUI_HighlightDarkProbes();
+			EditorGUILayout.Space();
+			ToolsGUI_ListProbes();
 			EditorGUILayout.Space();
 			ToolsGUI_FixDarkProbes();
 		}
