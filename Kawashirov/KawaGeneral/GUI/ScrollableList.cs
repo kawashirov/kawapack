@@ -39,10 +39,16 @@ namespace Kawashirov {
 			if (!scrollWidth.HasValue)
 				scrollWidth = lineHeight;
 
-			var fullRect = EditorGUILayout.GetControlRect(false, (lineHeight.Value + 2) * visibleItems - 2 + header.Value + footer.Value);
+			var height = (lineHeight.Value + 2) * visibleItems - 2;
+			if (header.Value > 0)
+				height += header.Value + 2;
+			if (footer.Value > 0)
+				height += footer.Value + 2;
+
+			var fullRect = EditorGUILayout.GetControlRect(false, height);
 			fullRect = EditorGUI.IndentedRect(fullRect);
 
-			return ManualLayout(fullRect, totalItems, visibleItems, scrollWidth.Value, header, footer);
+			return ManualLayout(fullRect, totalItems, visibleItems, scrollWidth.Value, header.Value, footer.Value);
 		}
 
 		public static ScrollableList ManualLayout(Rect fullRect, int totalItems, int visibleItems, float scrollWidth, float? header = null, float? footer = null) {
