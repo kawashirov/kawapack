@@ -6,7 +6,6 @@ using UnityEngine;
 using UnityEditor;
 using Kawashirov;
 using Kawashirov.ToolsGUI;
-using static Kawashirov.KawaUtilities;
 using System;
 
 namespace Kawashirov {
@@ -23,6 +22,7 @@ namespace Kawashirov {
 		private static readonly Queue<GameObject> searchQueue = new Queue<GameObject>();
 
 		[NonSerialized] public bool checkForMissingPrefabInName = true;
+		[NonSerialized] public bool onlyInSelection = false;
 		[NonSerialized] public int foundObjectsDisplaySize = 20;
 		[NonSerialized] public float foundObjectsDisplayOffset = 0;
 
@@ -63,7 +63,8 @@ namespace Kawashirov {
 		public void FindMissingPrefabsInHierarchy() {
 			Debug.Log($"Searching GameObjects with missing/disconnected Prefab asset...", this);
 			foundObjects.Clear();
-			foreach (var gobj in IterScenesRoots().Where(x => x != null)) {
+			var gameObjects = onlyInSelection ? Selection.GetFiltered<GameObject>(SelectionMode.TopLevel | SelectionMode.Editable) : KawaUtilities.IterScenesRoots();
+			foreach (var gobj in gameObjects.Where(x => x != null)) {
 				FindMissingPrefabs(gobj);
 			}
 			Debug.Log($"Found {foundObjects.Count} GameObjects with missing/disconnected Prefab asset!", this);
@@ -85,7 +86,7 @@ namespace Kawashirov {
 				EditorUtility.DisplayProgressBar("Searching Missing Scripts...", "Preparing...", 0);
 				var totalObjects = 0;
 				foundObjects.Clear();
-				var assetPaths = AssetDatabase.FindAssets("t:GameObject").Select(AssetDatabase.GUIDToAssetPath).ToArray();
+				var assetPaths = onlyInSelection ? AssetUtility.GetSelectedAssetPaths() : AssetUtility.FindAllGameObjectAssetPaths();
 				var progressBarTime = -1f;
 				for (var i = 0; i < assetPaths.Length; ++i) {
 					if (progressBarTime < Time.realtimeSinceStartup) {
@@ -114,7 +115,8 @@ namespace Kawashirov {
 		});
 
 		private void ToolsGUI_Buttons() {
-			checkForMissingPrefabInName = EditorGUILayout.ToggleLeft("Also check for \"(Missing Prefab)\" in name.", checkForMissingPrefabInName);
+			checkForMissingPrefabInName = EditorGUILayout.ToggleLeft("Also Check for \"(Missing Prefab)\" in Name.", checkForMissingPrefabInName);
+			onlyInSelection = EditorGUILayout.ToggleLeft("Search Only in Selection", onlyInSelection);
 			var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight * 2));
 			var rects = rect.RectSplitHorisontal(1, 1).ToArray();
 			if (GUI.Button(rects[0], "On Scenes")) {
@@ -135,6 +137,7 @@ namespace Kawashirov {
 
 			foundObjectsDisplaySize = EditorGUILayout.IntField("Max Display Items", foundObjectsDisplaySize);
 			var numberOfItemsToShow = Mathf.Min(foundObjectsDisplaySize, foundObjects.Count);
+			EditorGUILayout.LabelField($"{numberOfItemsToShow}/{foundObjects.Count} Objects");
 			var list = ScrollableList.AutoLayout(foundObjects.Count, numberOfItemsToShow, null, 0);
 			list.DrawList(ref foundObjectsDisplayOffset);
 			{ // Header 
@@ -165,7 +168,7 @@ namespace Kawashirov {
 						Selection.activeObject = found.gobj;
 						KawaGUIUtility.OpenInspector();
 						EditorGUIUtility.PingObject(found.gobj);
-						KawaGUIUtility.OpenInspector();
+						EditorUtility.FocusProjectWindow();
 						EditorGUIUtility.PingObject(found.pingObject);
 					}
 				}
