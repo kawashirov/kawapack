@@ -45,6 +45,15 @@ namespace Kawashirov.LightProbesTools {
 		private static Vector3[] analysisRndDirection;
 		private static Color[] analysisRndColors;
 
+		public static readonly List<ProbeMetadata> allProbes = new List<ProbeMetadata>();
+
+		public static readonly List<ProbeMetadata> darkProbes = new List<ProbeMetadata>();
+		public static Vector2 darkProbesMinRange; // Диапазон минимальных значений darkProbes
+
+		public static readonly List<ProbeMetadata> displayProbes = new List<ProbeMetadata>();
+		public static Vector2 displayProbesMinRange; // Диапазон минимальных значений displayProbes
+		public static int displayProbesVisible;
+
 		public int directionSamples = 1000;
 		public float darkThreshold = 0.05f; // [0, 1]
 		public int listProbesSize = 20;
@@ -54,19 +63,10 @@ namespace Kawashirov.LightProbesTools {
 		public float fixTooDarkPrecision = 0.01f;
 		public float fixTooDarkDirectionalVsAmbient = 0.5f;
 
-		[NonSerialized] public readonly List<ProbeMetadata> allProbes = new List<ProbeMetadata>();
-
-		[NonSerialized] public Vector2 darkProbesMinRange; // Диапазон минимальных значений darkProbes
-		[NonSerialized] public readonly List<ProbeMetadata> darkProbes = new List<ProbeMetadata>();
-
 		public float displaySize = 0.1f;
 		public bool displayFancy = false;
 		public Vector2 displaySelectionRange = new Vector2(-10, 0);
 		public Vector2 displayMapRange = new Vector2(0, 1);
-		[NonSerialized] public readonly List<ProbeMetadata> displayProbes = new List<ProbeMetadata>();
-		[NonSerialized] public float displayComponentMinMin;
-		[NonSerialized] public float displayComponentMinMax;
-		[NonSerialized] public int displayProbesVisible;
 
 		private static IEnumerable<Vector3> GenerateMustTestDirections(int step = 1) {
 			// Направления, которые обязателно нужно исследовать.
@@ -86,7 +86,7 @@ namespace Kawashirov.LightProbesTools {
 
 		// public override bool ShouldCallSceneGUIDrawMesh(SceneView sceneView) => displayFancy;
 
-		private static Plane[] DrawGizmos_Frustum = new Plane[6];
+		private static readonly Plane[] DrawGizmos_Frustum = new Plane[6];
 		public override void DrawGizmos() {
 			if (displayProbes == null || displayProbes.Count < 1)
 				return;
@@ -103,8 +103,8 @@ namespace Kawashirov.LightProbesTools {
 						continue;
 				}
 				++displayProbesVisible;
-				var factor = Mathf.InverseLerp(displayComponentMinMax, displayComponentMinMin, data.componentMin);
-				var base_size = Mathf.Lerp(0.1f, 1.0f, factor) * displaySize;
+				var factor = Mathf.InverseLerp(displayProbesMinRange.y, displayProbesMinRange.x, data.componentMin);
+				var base_size = Mathf.Lerp(0.5f, 1.0f, factor) * displaySize;
 				Gizmos.color = Color.Lerp(Color.yellow, Color.red, factor);
 				if (fancy) {
 					var matrix = Matrix4x4.TRS(data.position, Quaternion.identity, Vector3.one * base_size);
@@ -186,13 +186,13 @@ namespace Kawashirov.LightProbesTools {
 			return data;
 		}
 
-		private void ResetProbeMetadataList(List<ProbeMetadata> list, int? capacity = null) {
+		private static void ResetProbeMetadataList(List<ProbeMetadata> list, int? capacity = null) {
 			list.Clear();
 			if (capacity.HasValue && capacity.Value > list.Capacity)
 				list.Capacity = capacity.Value;
 		}
 
-		private void ResetAnalyzedData(int? allCapacity = null, int? darkCapacity = null, int? displayCapacity = null) {
+		private static void ResetAnalyzedData(int? allCapacity = null, int? darkCapacity = null, int? displayCapacity = null) {
 			ResetProbeMetadataList(allProbes, allCapacity);
 			ResetProbeMetadataList(darkProbes, darkCapacity);
 			ResetProbeMetadataList(displayProbes, displayCapacity.HasValue ? displayCapacity : darkCapacity);
@@ -257,8 +257,8 @@ namespace Kawashirov.LightProbesTools {
 			displayProbes.AddRange(darkProbes.Where(RangeSelector));
 			if (displayProbes.Count > 1) {
 				// darkProbes сортированый, так что и displayProbes тоже
-				displayComponentMinMin = displayProbes.First().componentMin;
-				displayComponentMinMax = displayProbes.Last().componentMin;
+				displayProbesMinRange.x = displayProbes.First().componentMin;
+				displayProbesMinRange.y = displayProbes.Last().componentMin;
 			}
 			SceneView.RepaintAll();
 		}
@@ -587,22 +587,24 @@ namespace Kawashirov.LightProbesTools {
 				var list = ScrollableList.AutoLayout(allProbes.Count, listProbesSize, null, 0);
 				list.DrawList(ref listProbesScroll);
 				{ // Title
-					var rects = list.GetHeader().RectSplitHorisontal(1, 3, 5, 2).ToArray();
+					var rects = list.GetHeader().RectSplitHorisontal(2, 3, 3, 7, 2).ToArray();
 					using (new KawaGUIUtility.ZeroIndentScope()) {
 						EditorGUI.LabelField(rects[0], "№");
-						EditorGUI.LabelField(rects[1], "Min. Component");
-						EditorGUI.LabelField(rects[2], "Position");
-						EditorGUI.LabelField(rects[3], "Move");
+						EditorGUI.LabelField(rects[1], "Min");
+						EditorGUI.LabelField(rects[2], "Max");
+						EditorGUI.LabelField(rects[3], "Position");
+						EditorGUI.LabelField(rects[4], "Jump");
 					}
 				}
 				for (var i = 0; i < numberOfItemsToShow; ++i) {
-					var rects = list.GetRow(i, out var index).RectSplitHorisontal(1, 3, 5, 2).ToArray();
+					var rects = list.GetRow(i, out var index).RectSplitHorisontal(2, 3, 3, 7, 2).ToArray();
 					var probeData = allProbes[index];
 					using (new KawaGUIUtility.ZeroIndentScope()) {
-						EditorGUI.LabelField(rects[0], $"№{i}");
+						EditorGUI.LabelField(rects[0], $"№{probeData.index}");
 						EditorGUI.FloatField(rects[1], probeData.componentMin);
-						EditorGUI.Vector3Field(rects[2], GUIContent.none, probeData.position);
-						if (GUI.Button(rects[3], "Move")) {
+						EditorGUI.FloatField(rects[2], probeData.componentMax);
+						EditorGUI.Vector3Field(rects[3], GUIContent.none, probeData.position);
+						if (GUI.Button(rects[4], "Jump")) {
 							var proxy = ToolsWindow.ValidateProxy();
 							proxy.transform.position = probeData.position;
 							proxy.Focus();
@@ -620,8 +622,8 @@ namespace Kawashirov.LightProbesTools {
 				using (new EditorGUI.DisabledScope(!displayFancy)) {
 					var hasDisplay = displayProbes != null && displayProbes.Count > 0;
 					if (hasDisplay) {
-						var min = Mathf.Min(displayComponentMinMin, 0);
-						var max = Mathf.Max(displayComponentMinMax, 1);
+						var min = Mathf.Min(displayProbesMinRange.x, 0);
+						var max = Mathf.Max(displayProbesMinRange.y, 1);
 						{
 							var rect = EditorGUILayout.GetControlRect(false);
 							rect = EditorGUI.PrefixLabel(rect, new GUIContent("Dynamic Range"));
