@@ -16,11 +16,19 @@ namespace Kawashirov.ToolsGUI {
 
 		private static ToolsWindow window;
 
+		private static readonly Lazy<Texture2D> kawaIcon = new Lazy<Texture2D>(GetKawaIcon);
+
+		private static Texture2D GetKawaIcon() {
+			var path = AssetDatabase.GUIDToAssetPath("302691306fd300648a26254d75364f60");
+			return string.IsNullOrWhiteSpace(path) ? null : AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+		}
+
 		[MenuItem("Kawashirov/Toolbox Window", priority = -100)]
 		[MenuItem("Window/Kawashirov's Toolbox Window")]
 		static void ShowToolsWindow() {
-			if (!window)
+			if (!window) {
 				window = GetWindow<ToolsWindow>("Kawa's Toolbox", true);
+			}
 			window.Show();
 			window.Focus();
 		}
@@ -155,6 +163,12 @@ namespace Kawashirov.ToolsGUI {
 			}
 
 			window = this;
+
+			if (window.titleContent == null) {
+				window.titleContent = new GUIContent("Kawa's Toolbox", kawaIcon.Value);
+			} else if (window.titleContent.image == null) {
+				window.titleContent.image = kawaIcon.Value;
+			}
 		}
 
 		public void Awake() {
