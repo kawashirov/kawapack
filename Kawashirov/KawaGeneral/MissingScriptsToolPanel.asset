@@ -9,7 +9,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 45c5d84693de5aa4abdae00257b192b6, type: 3}
-  m_Name: LightProbesToolPanelDebugSampler
-  m_EditorClassIdentifier: KawaCommons:Kawashirov.LightProbesTools:LightProbesToolPanelDebugSampler
-
+  m_Script: {fileID: 11500000, guid: 0aa0a355b8f67b441b3c16a2c45a82b4, type: 3}
+  m_Name: MissingScriptsToolPanel
+  m_EditorClassIdentifier: 
