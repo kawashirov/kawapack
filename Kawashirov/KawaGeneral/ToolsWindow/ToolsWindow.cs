@@ -7,6 +7,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using System.IO;
 
 namespace Kawashirov.ToolsGUI {
 	public class ToolsWindow : EditorWindow, ISerializationCallbackReceiver {
@@ -202,6 +203,17 @@ namespace Kawashirov.ToolsGUI {
 			}
 		}
 
+		private static string GetPanelFolder(AbstractToolPanel panel) {
+			var monoScript = MonoScript.FromScriptableObject(panel);
+			if (monoScript == null)
+				return null;
+			var path = AssetDatabase.GetAssetPath(monoScript);
+			if (string.IsNullOrWhiteSpace(path))
+				return null;
+			path = Path.GetDirectoryName(path);
+			return string.IsNullOrWhiteSpace(path) ? null : path;
+		}
+
 		private AbstractToolPanel GetPanelInstance(Type type) {
 			var assets = AssetDatabase.FindAssets($"t:{type}")
 				.Select(AssetDatabase.GUIDToAssetPath)
@@ -216,9 +228,10 @@ namespace Kawashirov.ToolsGUI {
 			}
 			Debug.LogWarning($"There is no asset for panel of type {type} found. Creating temporary asset...", this);
 			var panel = (AbstractToolPanel)CreateInstance(type);
-			var path = $"Assets/tmp_{type}_{panel.GetInstanceID()}.asset";
+			var path = GetPanelFolder(panel) ?? "Assets";
+			path = $"{path}/tmp_{type}_{panel.GetInstanceID()}.asset";
 			AssetDatabase.CreateAsset(panel, path);
-			Debug.LogWarning($"Temporary asset for panel of type {type} created at: {path}", panel);
+			Debug.Log($"Temporary asset for panel of type {type} created at: {path}", panel);
 			return panel;
 		}
 
