@@ -6,7 +6,9 @@ namespace Kawashirov.FLT {
 
 	internal static partial class Commons {
 
-		internal static string[] tags = new string[] {
+		internal static Lazy<string[]> tags = new Lazy<string[]>(() => new string[] {
+			// Есть проблемы с порядком инициализации, т.к. это partial класс,
+			// по этому массив собираем по требованию, когда уже все инициализировлось.
 			ShaderBaking.Commons.GenaratorGUID,
 			//
 			RenderType,
@@ -18,14 +20,13 @@ namespace Kawashirov.FLT {
 			F_Emission, F_EmissionMode,
 			F_NormalMap,
 			F_Shading,
-			F_DistanceFade, F_DistanceFadeMode, 
+			F_DistanceFade, F_DistanceFadeMode,
 			F_Matcap, F_MatcapMode,
 			F_FPS, F_FPSMode,
 			F_Outline, F_OutlineMode,
 			F_IWD, F_IWDDirections,
 			F_PCW, F_PCWMode
-		};
-
+		});
 	}
 
 

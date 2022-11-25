@@ -11,7 +11,7 @@
 */
 
 uniform float _Sh_Kwshrv_ShdBlnd;
-uniform float _Sh_Kwshrv_Smth;
+uniform float _Sh_Kwshrv_ShdAmbnt;
 uniform float _Sh_KwshrvSngl_TngntLo;
 uniform float _Sh_KwshrvSngl_TngntHi;
 uniform float _Sh_KwshrvSngl_ShdLo;
@@ -46,9 +46,8 @@ inline float shade_kawaflt_single(float tangency, float shadow_atten) {
 		inline half3 frag_shade_kawaflt_single_forward_base(FRAGMENT_IN i, half3 albedo, half3 normal3, half3 emission) {
 			half3 ambient = half3(0,0,0);
 			#if defined(UNITY_SHOULD_SAMPLE_SH)
-				ambient = i.ambient + SHEvalLinearL2(half4(normal3, 1));
-				ambient = lerp(ambient, half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w), /*_Sh_Kwshrv_Smth*/ 1.0);
-				ambient = max(half3(0,0,0), ambient);
+				half3 ambient_l2 = lerp(half3(0,0,0), SHEvalLinearL2(half4(normal3, 1)), _Sh_Kwshrv_ShdAmbnt);
+				ambient = i.ambient + max(half3(0,0,0), ambient_l2);
 			#endif
 
 			half3 main = frag_shade_kawaflt_single_forward_main(i, normal3);

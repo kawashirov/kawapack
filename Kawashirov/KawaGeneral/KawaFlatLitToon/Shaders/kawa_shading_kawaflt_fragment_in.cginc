@@ -36,7 +36,7 @@
 
 				#if defined(SHADE_KAWAFLT_LOG)
 					float4 tangency = float4(_Sh_Kwshrv_Smth_Tngnt, _Sh_Kwshrv_Smth_Tngnt, _Sh_Kwshrv_Smth_Tngnt, _Sh_Kwshrv_Smth_Tngnt);
-					UNITY_BRANCH if (_Sh_Kwshrv_Smth < 0.99) {
+					UNITY_BRANCH if (_Sh_Kwshrv_Smth < 0.999) {
 						// Only calc tangency when not fully flat
 						float4 prec_tangency = toLightX * normal3.x + toLightY * normal3.y + toLightZ * normal3.z;
 						prec_tangency = max(float4(0,0,0,0), prec_tangency * rsqrt(lengthSq));
@@ -72,8 +72,15 @@
 					}
 				#endif
 			}
-			#if defined(UNITY_SHOULD_SAMPLE_SH) && (defined(SHADE_KAWAFLT_LOG) || defined(SHADE_KAWAFLT_SINGLE))
+			#if defined(UNITY_SHOULD_SAMPLE_SH)
+				// SHEvalLinearL2 во фрагментном
 				v.ambient = SHEvalLinearL0L1(half4(v.normal_world, 1));
+				#if defined(SHADE_KAWAFLT_SINGLE)
+					// SHADE_KAWAFLT_RAMP ???
+					v.ambient = lerp(SHEvalLinearL0L1(half4(0,0,0,1)), v.ambient, _Sh_Kwshrv_ShdAmbnt);
+				#endif
+				// No negative lighting
+				v.ambient = max(half3(0,0,0), v.ambient);
 			#endif
 		#endif
 	}

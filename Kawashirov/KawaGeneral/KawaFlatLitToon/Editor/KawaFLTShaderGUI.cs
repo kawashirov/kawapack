@@ -20,7 +20,7 @@ using static Kawashirov.MaterialsCommons;
 
 internal partial class KawaFLTShaderGUI : Kawashirov.ShaderBaking.BakedShaderGUI<Generator> {
 
-	public override IEnumerable<string> GetShaderTagsOfIntrest() => KFLTC.tags;
+	public override IEnumerable<string> GetShaderTagsOfIntrest() => KFLTC.tags.Value;
 
 	public override void CustomBakedGUI() {
 		EGUIL.Space();

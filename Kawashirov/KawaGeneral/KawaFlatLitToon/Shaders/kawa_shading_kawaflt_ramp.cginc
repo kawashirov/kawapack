@@ -11,6 +11,7 @@
 */
 
 uniform float _Sh_Kwshrv_ShdBlnd;
+uniform float _Sh_Kwshrv_ShdAmbnt;
 
 UNITY_DECLARE_TEX2D(_Sh_KwshrvRmp_Tex);
 uniform float _Sh_KwshrvRmp_Pwr;
@@ -40,8 +41,9 @@ inline half3 frag_shade_kawaflt_ramp_apply(half uv) {
 		inline half3 frag_shade_kawaflt_ramp_forward_base(FRAGMENT_IN i, half3 albedo, half3 normal3, half3 emission) {
 			half3 ambient = half3(0,0,0);
 			#if defined(UNITY_SHOULD_SAMPLE_SH)
-				ambient = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w) * _Sh_KwshrvRmp_NdrctClr.rgb * _Sh_KwshrvRmp_NdrctClr.a;
-				ambient = max(half3(0,0,0), ambient);
+				half3 ambient_l2 = lerp(half3(0,0,0), SHEvalLinearL2(half4(normal3, 1)), _Sh_Kwshrv_SmthAmbnt);
+				ambient = i.ambient + max(half3(0,0,0), ambient_l2);
+				ambient = ambient * _Sh_KwshrvRmp_NdrctClr.rgb * _Sh_KwshrvRmp_NdrctClr.a;
 			#endif
 
 			half3 main = frag_shade_kawaflt_ramp_forward_main(i, normal3);

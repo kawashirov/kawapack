@@ -102,7 +102,7 @@ inline half frag_shade_kawaflt_log_steps_color(half color) {
 			half3 ambient = half3(0,0,0);
 			#if defined(UNITY_SHOULD_SAMPLE_SH)
 				ambient = i.ambient + SHEvalLinearL2(half4(normal3, 1));
-				ambient = lerp(ambient, half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w), /* _Sh_Kwshrv_Smth */ 1.0) * rim_factor;
+				ambient = lerp(ambient, half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w), /* _Sh_Kwshrv_Smth */ 0.0) * rim_factor;
 				// ambient = max(frag_shade_kawaflt_log_steps_color(ambient), half3(0,0,0));
 			#endif
 

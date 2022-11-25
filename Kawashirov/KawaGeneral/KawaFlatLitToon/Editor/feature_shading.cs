@@ -69,6 +69,7 @@ namespace Kawashirov.FLT {
 
 		private void ConfigureFeatureShadingKawashirovFLTSingle(ShaderSetup shader) {
 			shader.properties.Add(new PropertyFloat() { name = "_Sh_Kwshrv_ShdBlnd", defualt = 0.7f, range = new Vector2(0, 1), power = 2 });
+			shader.properties.Add(new PropertyFloat() { name = "_Sh_Kwshrv_ShdAmbnt", defualt = 0.5f, range = new Vector2(0, 1) });
 			shader.properties.Add(new PropertyFloat() { name = "_Sh_KwshrvSngl_TngntLo", defualt = 0.7f, range = new Vector2(0, 1), power = 1.5f });
 			shader.properties.Add(new PropertyFloat() { name = "_Sh_KwshrvSngl_TngntHi", defualt = 0.8f, range = new Vector2(0, 1), power = 1.5f });
 			shader.properties.Add(new PropertyFloat() { name = "_Sh_KwshrvSngl_ShdLo", defualt = 0.4f, range = new Vector2(0, 1) });
@@ -77,6 +78,7 @@ namespace Kawashirov.FLT {
 
 		private void ConfigureFeatureShadingKawashirovFLTRamp(ShaderSetup shader) {
 			shader.properties.Add(new PropertyFloat() { name = "_Sh_Kwshrv_ShdBlnd", defualt = 0.7f, range = new Vector2(0, 1), power = 2 });
+			shader.properties.Add(new PropertyFloat() { name = "_Sh_Kwshrv_ShdAmbnt", defualt = 0.5f, range = new Vector2(0, 1) });
 			shader.properties.Add(new Property2D() { name = "_Sh_KwshrvRmp_Tex", defualt = "gray" });
 			shader.properties.Add(new PropertyColor() { name = "_Sh_KwshrvRmp_NdrctClr", defualt = Color.white });
 			shader.properties.Add(new PropertyFloat() { name = "_Sh_KwshrvSngl_TngntLo", defualt = 0.7f, range = new Vector2(0, 1), power = 1.5f });
@@ -103,6 +105,7 @@ internal partial class KawaFLTShaderGUI {
 					ShaderPropertyDisabled(FindProperty("_Sh_Cbdprdx_Shadow"), "Shadow");
 				} else if (shading == ShadingMode.KawashirovFLTSingle) {
 					ShaderPropertyDisabled(FindProperty("_Sh_Kwshrv_ShdBlnd"), "RT Shadows blending");
+					ShaderPropertyDisabled(FindProperty("_Sh_Kwshrv_ShdAmbnt"), "Ambient Shadows Contrast");
 
 					EGUIL.LabelField("Sides threshold");
 					using (new IndentLevelScope()) {
@@ -117,7 +120,8 @@ internal partial class KawaFLTShaderGUI {
 					}
 				} else if (shading == ShadingMode.KawashirovFLTRamp) {
 					var rampTex = FindProperty("_Sh_KwshrvRmp_Tex");
-					ShaderPropertyDisabled(FindProperty("_Sh_Kwshrv_ShdBlnd"), "RT Shadows blending");
+					ShaderPropertyDisabled(FindProperty("_Sh_Kwshrv_ShdBlnd"), "RT Shadows Blending");
+					ShaderPropertyDisabled(FindProperty("_Sh_Kwshrv_ShdAmbnt"), "Ambient Shadows Contrast");
 					materialEditor.TexturePropertySingleLine(new GUIContent("Ramp Texture", "Ramp Texture (RGB)"), rampTex);
 					materialEditor.TextureCompatibilityWarning(rampTex);
 					if (rampTex.textureValue == null) {
