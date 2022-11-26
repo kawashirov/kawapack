@@ -254,7 +254,7 @@ namespace Kawashirov.Udon {
 		public static bool HasEntryPoint(this IUdonSymbolTable table, string event_name)
 				=> table != null && table.GetExportedSymbols().Any(s => event_name.Equals(s));
 
-		private static readonly string[] LAGGY_SYMBOLS = new string[] {
+		public static readonly string[] LAGGY_SYMBOLS = new string[] {
 			"_update", "Update", "_lateUpdate", "LateUpdate", "_fixedUpdate", "FixedUpdate", "_postLateUpdate", "PostLateUpdate",
 			"_onAnimatorMove", "OnAnimatorMove",
 			"_onPlayerCollisionStay", "_onCollisionStay", "OnCollisionStay",
