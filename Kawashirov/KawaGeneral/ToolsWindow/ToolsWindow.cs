@@ -113,6 +113,7 @@ namespace Kawashirov.ToolsGUI {
 
 		private Dictionary<Type, AbstractToolPanel> panelInstances;
 		private PanelsHierarchy panelsHierarchy;
+		private bool panelsLoaded = false;
 		private AbstractToolPanel currentPanel;
 		[SerializeField] private Vector2 scroll;
 		private static ProxyBehaviour proxy;
@@ -128,7 +129,7 @@ namespace Kawashirov.ToolsGUI {
 		private static ProxyBehaviour TryFindProxy() {
 			for (var i = 0; i < EditorSceneManager.sceneCount; ++i) {
 				var scene = EditorSceneManager.GetSceneAt(i);
-				if (!scene.IsValid())
+				if (!(scene.isLoaded && scene.IsValid()))
 					continue;
 				foreach (var rootgobj in scene.GetRootGameObjects()) {
 					var p = rootgobj.GetComponentInChildren<ProxyBehaviour>();
@@ -172,12 +173,12 @@ namespace Kawashirov.ToolsGUI {
 		}
 
 		public void Awake() {
-			ValidateWindow();
+			// ValidateWindow();
 		}
 
 		public void OnEnable() {
-			ValidateWindow();
-			ReloadPanels();
+			// ValidateWindow();
+			// ReloadPanels();
 			SceneView.duringSceneGui += OnSceneGUI;
 		}
 
@@ -187,6 +188,8 @@ namespace Kawashirov.ToolsGUI {
 
 		public void OnInspectorUpdate() {
 			ValidateWindow();
+			if (!panelsLoaded)
+				ReloadPanels();
 			if (currentPanel)
 				currentPanel.Update();
 		}
@@ -251,6 +254,7 @@ namespace Kawashirov.ToolsGUI {
 
 		public void ReloadPanels() {
 			Debug.Log("Loading panels...", this);
+			panelsLoaded = true;
 			panelsHierarchy = new PanelsHierarchy();
 
 			var panelTypes = AppDomain.CurrentDomain.GetAssemblies()
@@ -319,7 +323,7 @@ namespace Kawashirov.ToolsGUI {
 
 		public void OnBeforeSerialize() {
 			foreach (var panel in panelInstances.Values)
-				if (panel)
+				if (panel != null)
 					EditorUtility.SetDirty(panel);
 		}
 

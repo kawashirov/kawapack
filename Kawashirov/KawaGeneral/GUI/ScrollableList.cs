@@ -23,6 +23,7 @@ namespace Kawashirov {
 		private Rect itemsRect;
 		private Rect[] rows;
 
+#if UNITY_EDITOR
 		public static ScrollableList AutoLayout(int totalItems, int visibleItems, float? header = null, float? footer = null, float? lineHeight = null, float? scrollWidth = null) {
 			if (!lineHeight.HasValue)
 				lineHeight = EditorGUIUtility.singleLineHeight;
@@ -50,6 +51,7 @@ namespace Kawashirov {
 
 			return ManualLayout(fullRect, totalItems, visibleItems, scrollWidth.Value, header.Value, footer.Value);
 		}
+#endif // UNITY_EDITOR
 
 		public static ScrollableList ManualLayout(Rect fullRect, int totalItems, int visibleItems, float scrollWidth, float? header = null, float? footer = null) {
 			return new ScrollableList {
