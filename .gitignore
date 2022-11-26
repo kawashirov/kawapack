@@ -41,3 +41,6 @@ Experemental*
 *.legacy~
 *_mod_*
 *_generated_*
+
+tmp_*.asset
+tmp_*.asset.meta
