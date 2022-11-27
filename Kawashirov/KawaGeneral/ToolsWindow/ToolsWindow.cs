@@ -8,6 +8,8 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using System.IO;
+using UnityEditor.IMGUI.Controls;
+using System.Runtime.InteropServices.Expando;
 
 namespace Kawashirov.ToolsGUI {
 	public class ToolsWindow : EditorWindow, ISerializationCallbackReceiver {
@@ -112,7 +114,10 @@ namespace Kawashirov.ToolsGUI {
 		}
 
 		private Dictionary<Type, AbstractToolPanel> panelInstances;
-		private PanelsHierarchy panelsHierarchy;
+		// private PanelsHierarchy panelsHierarchy;
+
+		public TreeViewState panelsTreeState;
+		private PanelsTreeView panelsTree;
 		private bool panelsLoaded = false;
 		private AbstractToolPanel currentPanel;
 		[SerializeField] private Vector2 scroll;
@@ -220,6 +225,32 @@ namespace Kawashirov.ToolsGUI {
 			}
 		}
 
+		public static void ActivatePanel(Type type) {
+			if (type == null) {
+				window.currentPanel = null;
+			} else if (window.panelInstances.TryGetValue(type, out var panel)) {
+				window.currentPanel = panel;
+				window.Focus();
+			} else {
+				Debug.LogWarning($"Panel of type {type.Name} is not loaded, can not show.");
+			}
+		}
+
+		public static void ActivatePanel(AbstractToolPanel panel) {
+			if (panel == null) {
+				window.currentPanel = null;
+			} else {
+				var type = panel.GetType();
+				if (window.panelInstances.TryGetValue(type, out var instancedPanel)) {
+					if (instancedPanel != panel) {
+						Debug.LogWarning($"Showind unregistred panel {type.Name}...");
+					}
+				}
+				window.currentPanel = panel;
+				window.Focus();
+			}
+		}
+
 		private static string GetPanelFolder(AbstractToolPanel panel) {
 			var monoScript = MonoScript.FromScriptableObject(panel);
 			if (monoScript == null)
@@ -231,11 +262,11 @@ namespace Kawashirov.ToolsGUI {
 			return string.IsNullOrWhiteSpace(path) ? null : path;
 		}
 
-		private AbstractToolPanel GetPanelInstance(Type type) {
+		private AbstractToolPanel LoadOrCreatePanelInstance(Type type) {
 			var assets = AssetDatabase.FindAssets($"t:{type}")
-				.Select(AssetDatabase.GUIDToAssetPath)
-				.Select(p => AssetDatabase.LoadAssetAtPath(p, type))
-				.OfType<AbstractToolPanel>().ToList();
+					.Select(AssetDatabase.GUIDToAssetPath)
+					.Select(p => AssetDatabase.LoadAssetAtPath(p, type))
+					.OfType<AbstractToolPanel>().ToList();
 			if (assets.Count == 1) {
 				return assets[0];
 			} else if (assets.Count > 1) {
@@ -248,6 +279,7 @@ namespace Kawashirov.ToolsGUI {
 			var path = GetPanelFolder(panel) ?? "Assets";
 			path = $"{path}/tmp_{type}_{panel.GetInstanceID()}.asset";
 			AssetDatabase.CreateAsset(panel, path);
+			panelInstances.Add(type, panel);
 			Debug.Log($"Temporary asset for panel of type {type} created at: {path}", panel);
 			return panel;
 		}
@@ -255,7 +287,6 @@ namespace Kawashirov.ToolsGUI {
 		public void ReloadPanels() {
 			Debug.Log("Loading panels...", this);
 			panelsLoaded = true;
-			panelsHierarchy = new PanelsHierarchy();
 
 			var panelTypes = AppDomain.CurrentDomain.GetAssemblies()
 				.SelectMany(GetTypesSafe)
@@ -272,47 +303,60 @@ namespace Kawashirov.ToolsGUI {
 				panelInstances = new Dictionary<Type, AbstractToolPanel>(panelTypes.Count);
 			}
 			foreach ((var type, var attribute) in panelTypes) {
-				panelInstances[type] = GetPanelInstance(type);
+				panelInstances[type] = LoadOrCreatePanelInstance(type);
 			}
 
-			foreach ((var type, var attribute) in panelTypes) {
-				// Debug.Log($"Creating panel for {type} in \"{attribute.path}\"...", this);
-				var path = attribute.path.Split(pathSplitChars, StringSplitOptions.RemoveEmptyEntries);
-				var hierarchy = panelsHierarchy;
-				foreach (var folder in path) {
-					hierarchy = hierarchy.GetSubPanel(folder, true);
-				}
-				hierarchy.panel = panelInstances[type];
+			if (panelsTree == null) {
+				panelsTreeState = new TreeViewState();
+				panelsTree = new PanelsTreeView();
 			}
+			panelsTree.panelInstances = panelInstances.Values.ToList();
+			panelsTree.Reload();
+
 			Debug.Log($"Loaded {panelTypes.Count} panels.", this);
 		}
 
 		public void OnGUI() {
-			if (GUILayout.Button("Reload Panels"))
+			GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight * 0.5f);
+			var headerH = EditorGUIUtility.singleLineHeight * 2;
+			var header = GUILayoutUtility.GetRect(1, 2000, headerH, headerH, GUILayout.ExpandWidth(true));
+			header.x += EditorGUIUtility.singleLineHeight * 0.5f;
+			header.width -= EditorGUIUtility.singleLineHeight;
+			var headerCells = header.RectSplitHorisontal(1, 3, 1).ToArray();
+
+
+			if (GUI.Button(headerCells[0], EditorGUIUtility.IconContent("CustomTool@2x"))) {
+				currentPanel = null;
+			}
+
+			if (currentPanel == null) {
+				GUI.Label(headerCells[1], "Select Tool");
+			} else {
+				var headerContent = currentPanel.GetMenuHeaderContent();
+				if (headerContent == null) {
+					headerContent = new GUIContent("");
+				}
+				GUI.Label(headerCells[1], headerContent);
+			}
+
+			if (GUI.Button(headerCells[2], "Reload\nPanels")) {
 				ReloadPanels();
+			}
 
 			EditorGUILayout.Space();
 
-			var hierarchy = panelsHierarchy;
-			while (hierarchy != null && hierarchy.subHierarchy != null && hierarchy.subHierarchy.Count > 0) {
-				hierarchy.currentPanel = GUILayout.Toolbar(hierarchy.currentPanel % hierarchy.subHierarchy.Count, hierarchy.GetTitles());
-				hierarchy = hierarchy.subHierarchy[hierarchy.currentPanel];
-			}
-
-
-			if (hierarchy != null && hierarchy.panel) {
-				if (currentPanel)
-					currentPanel.active = false;
-				currentPanel = hierarchy.panel;
-				currentPanel.active = true;
-				EditorGUILayout.Space();
-				using (var scrollScope = new EditorGUILayout.ScrollViewScope(scroll, false, false)) {
-					currentPanel.ToolsGUI();
-					scroll = scrollScope.scrollPosition;
-				}
+			if (currentPanel != null) {
+				currentPanel.ToolsGUI();
+			} else if (panelsTree == null) {
+				GUILayout.Label("Panels not loaded.");
 			} else {
-				currentPanel = null;
-				EditorGUILayout.HelpBox("Error: GUI Panel Destroyed.", MessageType.Error);
+				panelsTree.state.selectedIDs.Clear();
+				var panelsTreeRect = GUILayoutUtility.GetRect(10, 2000, 10, 2000, GUILayout.ExpandHeight(true));
+				panelsTreeRect.x += EditorGUIUtility.singleLineHeight * 0.5f;
+				panelsTreeRect.y += EditorGUIUtility.singleLineHeight * 0.5f;
+				panelsTreeRect.width -= EditorGUIUtility.singleLineHeight;
+				panelsTreeRect.height -= EditorGUIUtility.singleLineHeight;
+				panelsTree.OnGUI(panelsTreeRect);
 			}
 		}
 

@@ -6,11 +6,26 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEditor;
+using System.Reflection;
 
 namespace Kawashirov.ToolsGUI {
 	public abstract class AbstractToolPanel : ScriptableObject {
+		private readonly char[] pathSplitChars = new char[] { '/', '\\' };
 
 		[NonSerialized] public bool active = false;
+
+		public virtual string[] GetMenuPath() {
+			var path = GetType().GetCustomAttribute<ToolsWindowPanelAttribute>().path;
+			return path.Split(pathSplitChars, StringSplitOptions.RemoveEmptyEntries);
+		}
+
+		public virtual GUIContent GetMenuButtonContent() {
+			return null;
+		}
+
+		public virtual GUIContent GetMenuHeaderContent() {
+			return null;
+		}
 
 		public virtual void ToolsGUI() { }
 
