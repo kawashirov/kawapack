@@ -30,6 +30,12 @@ namespace Kawashirov {
 			public bool keep;
 		}
 
+		public override GUIContent GetMenuButtonContent() {
+			var image = EditorGUIUtility.IconContent("DefaultAsset Icon").image;
+			var guiContent = new GUIContent("Asset Bundles", image);
+			return guiContent;
+		}
+
 		public override void ToolsGUI() {
 
 			for (var i = 0; i < assetBundles.Count; ++i) {

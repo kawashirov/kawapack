@@ -19,10 +19,14 @@ namespace Kawashirov.ToolsGUI {
 		private static ToolsWindow window;
 
 		private static readonly Lazy<Texture2D> kawaIcon = new Lazy<Texture2D>(GetKawaIcon);
-
 		private static Texture2D GetKawaIcon() {
 			var path = AssetDatabase.GUIDToAssetPath("302691306fd300648a26254d75364f60");
 			return string.IsNullOrWhiteSpace(path) ? null : AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+		}
+
+		private static readonly Lazy<GUIContent> kawaMenu = new Lazy<GUIContent>(GetKawaMenu);
+		private static GUIContent GetKawaMenu() {
+			return new GUIContent("Toolbox\nMenu", kawaIcon.Value);
 		}
 
 		[MenuItem("Kawashirov/Toolbox Window", priority = -100)]
@@ -325,8 +329,11 @@ namespace Kawashirov.ToolsGUI {
 			var headerCells = header.RectSplitHorisontal(1, 3, 1).ToArray();
 
 
-			if (GUI.Button(headerCells[0], EditorGUIUtility.IconContent("CustomTool@2x"))) {
+			if (GUI.Button(headerCells[0], kawaMenu.Value)) {
 				currentPanel = null;
+				if (!panelsLoaded) {
+					ReloadPanels();
+				}
 			}
 
 			if (currentPanel == null) {
@@ -347,8 +354,8 @@ namespace Kawashirov.ToolsGUI {
 
 			if (currentPanel != null) {
 				currentPanel.ToolsGUI();
-			} else if (panelsTree == null) {
-				GUILayout.Label("Panels not loaded.");
+			} else if (panelsTree == null || !panelsLoaded) {
+				EditorGUILayout.HelpBox("Panels not loaded.", MessageType.Info);
 			} else {
 				panelsTree.state.selectedIDs.Clear();
 				var panelsTreeRect = GUILayoutUtility.GetRect(10, 2000, 10, 2000, GUILayout.ExpandHeight(true));

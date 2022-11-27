@@ -166,6 +166,12 @@ namespace Kawashirov.LightProbesTools {
 
 		// private static GUIContent analysisLabelSpheres = new GUIContent("Spheres");
 
+		public override GUIContent GetMenuButtonContent() {
+			var image = EditorGUIUtility.IconContent("LightProbes Icon").image;
+			var guiContent = new GUIContent("Sample Light Probes", image);
+			return guiContent;
+		}
+
 		public override void ToolsGUI() {
 
 			displaySize = EditorGUILayout.Slider("Gizmo size", displaySize, 0.01f, 1);

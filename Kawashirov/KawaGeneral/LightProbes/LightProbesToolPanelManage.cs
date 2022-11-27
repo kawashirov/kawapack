@@ -189,6 +189,12 @@ namespace Kawashirov.LightProbesTools {
 			}
 		}
 
+		public override GUIContent GetMenuButtonContent() {
+			var image = EditorGUIUtility.IconContent("LightProbes Icon").image;
+			var guiContent = new GUIContent("Manage Light Probes Data", image);
+			return guiContent;
+		}
+
 		public override void ToolsGUI() {
 			ToolsGUI_CurrentLightProbes();
 

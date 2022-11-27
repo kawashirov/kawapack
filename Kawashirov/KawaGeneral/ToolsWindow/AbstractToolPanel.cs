@@ -24,7 +24,7 @@ namespace Kawashirov.ToolsGUI {
 		}
 
 		public virtual GUIContent GetMenuHeaderContent() {
-			return null;
+			return GetMenuButtonContent();
 		}
 
 		public virtual void ToolsGUI() { }

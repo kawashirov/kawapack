@@ -179,6 +179,12 @@ namespace Kawashirov {
 
 		}
 
+		public override GUIContent GetMenuButtonContent() {
+			var image = EditorGUIUtility.IconContent("cs Script Icon").image;
+			var guiContent = new GUIContent("Find Missing Scripts", image);
+			return guiContent;
+		}
+
 		public override void ToolsGUI() {
 
 			EditorGUILayout.LabelField("Find Missing Scripts on GameObjects:", EditorStyles.boldLabel);

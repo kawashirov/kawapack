@@ -176,6 +176,12 @@ namespace Kawashirov {
 
 		}
 
+		public override GUIContent GetMenuButtonContent() {
+			var image = EditorGUIUtility.IconContent("PrefabVariant Icon").image;
+			var guiContent = new GUIContent("Find Missing Prefabs", image);
+			return guiContent;
+		}
+
 		public override void ToolsGUI() {
 
 			EditorGUILayout.LabelField("List Missing Prefabs:", EditorStyles.boldLabel);

@@ -247,6 +247,11 @@ namespace Kawashirov {
 
 		}
 
+		public override GUIContent GetMenuButtonContent() {
+			var image = EditorGUIUtility.IconContent("GameObject Icon").image;
+			var guiContent = new GUIContent("Find And Reveal Hidden Objects", image);
+			return guiContent;
+		}
 		public override void ToolsGUI() {
 
 			EditorGUILayout.LabelField("List Hidden Objects:", EditorStyles.boldLabel);
