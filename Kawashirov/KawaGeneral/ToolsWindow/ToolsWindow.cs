@@ -9,29 +9,17 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using System.IO;
 using UnityEditor.IMGUI.Controls;
-using System.Runtime.InteropServices.Expando;
+using static Kawashirov.KawaGUIUtility;
 
 namespace Kawashirov.ToolsGUI {
 	public class ToolsWindow : EditorWindow, ISerializationCallbackReceiver {
 
-		private readonly char[] pathSplitChars = new char[] { '/', '\\' };
-
-		private static ToolsWindow window;
-
-		private static readonly Lazy<Texture2D> kawaIcon = new Lazy<Texture2D>(GetKawaIcon);
-		private static Texture2D GetKawaIcon() {
-			var path = AssetDatabase.GUIDToAssetPath("302691306fd300648a26254d75364f60");
-			return string.IsNullOrWhiteSpace(path) ? null : AssetDatabase.LoadAssetAtPath<Texture2D>(path);
-		}
-
-		private static readonly Lazy<GUIContent> kawaMenu = new Lazy<GUIContent>(GetKawaMenu);
-		private static GUIContent GetKawaMenu() {
-			return new GUIContent("Toolbox\nMenu", kawaIcon.Value);
-		}
+		internal static ToolsWindow window;
+		internal static ToolsWindowHeaderGUI header;
 
 		[MenuItem("Kawashirov/Toolbox Window", priority = -100)]
 		[MenuItem("Window/Kawashirov's Toolbox Window")]
-		static void ShowToolsWindow() {
+		internal static void ShowToolsWindow() {
 			if (!window) {
 				window = GetWindow<ToolsWindow>("Kawa's Toolbox", true);
 			}
@@ -39,93 +27,14 @@ namespace Kawashirov.ToolsGUI {
 			window.Focus();
 		}
 
-		private class PanelsHierarchy {
-			public string name;
-			public int currentPanel = 0;
-			// Должен быть либо subHierarchy != null либо panel != null
-			public List<PanelsHierarchy> subHierarchy;
-			private GUIContent[] titles;
-			private bool needTitlesUpdate;
-			//
-			public AbstractToolPanel panel;
+		internal Dictionary<Type, AbstractToolPanel> panelInstances = new Dictionary<Type, AbstractToolPanel>();
 
-			public PanelsHierarchy GetSubPanel(string name, bool create) {
-				if (subHierarchy == null) {
-					if (!create)
-						return null;
-					subHierarchy = new List<PanelsHierarchy>();
-				}
-				var panelH = subHierarchy.FirstOrDefault(h => string.Equals(h.name, name));
-				if (panelH == null && create) {
-					panelH = new PanelsHierarchy() { name = name };
-					subHierarchy.Add(panelH);
-					needTitlesUpdate = true;
-				}
-				return panelH;
-			}
-
-			public GUIContent[] GetTitles() {
-				if (needTitlesUpdate || titles == null) {
-					if (subHierarchy == null || subHierarchy.Count < 1) {
-						titles = new GUIContent[0];
-					} else {
-						titles = subHierarchy.Select(ph => new GUIContent(ph.name)).ToArray();
-					}
-					needTitlesUpdate = false;
-				}
-				return titles;
-			}
-
-		}
-
-		[ExecuteInEditMode]
-		public class ProxyBehaviour : MonoBehaviour {
-			public void OnDrawGizmos() {
-				if (window)
-					window.OnDrawGizmosProxy();
-			}
-
-			public void Focus(bool select = true) {
-				EditorGUIUtility.PingObject(gameObject);
-				EditorGUIUtility.PingObject(this);
-				var bounds = new Bounds(transform.position, Vector3.one);
-				foreach (var obj in SceneView.sceneViews) {
-					if (obj is SceneView view) {
-						view.Frame(bounds);
-					}
-				}
-				if (select) {
-					var objects = Selection.objects;
-					ArrayUtility.AddRange(ref objects, new UnityEngine.Object[] { gameObject, transform, this });
-					Selection.objects = objects;
-					Selection.activeGameObject = gameObject;
-					Selection.activeTransform = transform;
-					Selection.activeObject = this;
-				}
-			}
-
-		}
-
-		[CustomEditor(typeof(ProxyBehaviour))]
-		private class ProxyBehaviourEditor : Editor {
-			public override void OnInspectorGUI() {
-				EditorGUILayout.HelpBox("This is temporary GameObject, it will not be saved.", MessageType.Warning, true);
-				var rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight * 3);
-				if (GUI.Button(rect, "Open Kawashirov's Toolbox Window")) {
-					ShowToolsWindow();
-				}
-			}
-		}
-
-		private Dictionary<Type, AbstractToolPanel> panelInstances;
-		// private PanelsHierarchy panelsHierarchy;
-
-		public TreeViewState panelsTreeState;
-		private PanelsTreeView panelsTree;
-		private bool panelsLoaded = false;
-		private AbstractToolPanel currentPanel;
+		internal TreeViewState panelsTreeState;
+		internal PanelsTreeView panelsTree;
+		internal bool panelsLoaded = false;
+		internal AbstractToolPanel currentPanel;
 		[SerializeField] private Vector2 scroll;
-		private static ProxyBehaviour proxy;
+		internal static ProxyBehaviour proxy;
 
 		public static Type[] GetTypesSafe(Assembly asm) {
 			try {
@@ -135,7 +44,7 @@ namespace Kawashirov.ToolsGUI {
 			}
 		}
 
-		private static ProxyBehaviour TryFindProxy() {
+		internal static ProxyBehaviour TryFindProxy() {
 			for (var i = 0; i < EditorSceneManager.sceneCount; ++i) {
 				var scene = EditorSceneManager.GetSceneAt(i);
 				if (!(scene.isLoaded && scene.IsValid()))
@@ -181,9 +90,9 @@ namespace Kawashirov.ToolsGUI {
 			}
 		}
 
-		public void Awake() {
-			// ValidateWindow();
-		}
+		//public void Awake() {
+		//	// ValidateWindow();
+		//}
 
 		public void OnEnable() {
 			// ValidateWindow();
@@ -290,7 +199,6 @@ namespace Kawashirov.ToolsGUI {
 
 		public void ReloadPanels() {
 			Debug.Log("Loading panels...", this);
-			panelsLoaded = true;
 
 			var panelTypes = AppDomain.CurrentDomain.GetAssemblies()
 				.SelectMany(GetTypesSafe)
@@ -301,11 +209,7 @@ namespace Kawashirov.ToolsGUI {
 				.ToList();
 			Debug.Log($"Found {panelTypes.Count} panel types...", this);
 
-			if (panelInstances != null) {
-				panelInstances.Clear();
-			} else {
-				panelInstances = new Dictionary<Type, AbstractToolPanel>(panelTypes.Count);
-			}
+			panelInstances.Clear();
 			foreach ((var type, var attribute) in panelTypes) {
 				panelInstances[type] = LoadOrCreatePanelInstance(type);
 			}
@@ -317,43 +221,29 @@ namespace Kawashirov.ToolsGUI {
 			panelsTree.panelInstances = panelInstances.Values.ToList();
 			panelsTree.Reload();
 
+			panelsLoaded = true;
 			Debug.Log($"Loaded {panelTypes.Count} panels.", this);
 		}
 
 		public void OnGUI() {
-			GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight * 0.5f);
-			var headerH = EditorGUIUtility.singleLineHeight * 2;
-			var header = GUILayoutUtility.GetRect(1, 2000, headerH, headerH, GUILayout.ExpandWidth(true));
-			header.x += EditorGUIUtility.singleLineHeight * 0.5f;
-			header.width -= EditorGUIUtility.singleLineHeight;
-			var headerCells = header.RectSplitHorisontal(1, 3, 1).ToArray();
-
-
-			if (GUI.Button(headerCells[0], kawaMenu.Value)) {
-				currentPanel = null;
-				if (!panelsLoaded) {
-					ReloadPanels();
-				}
+			if (header == null) {
+				header = new ToolsWindowHeaderGUI();
 			}
-
-			if (currentPanel == null) {
-				GUI.Label(headerCells[1], "Select Tool");
-			} else {
-				var headerContent = currentPanel.GetMenuHeaderContent();
-				if (headerContent == null) {
-					headerContent = new GUIContent("");
-				}
-				GUI.Label(headerCells[1], headerContent);
-			}
-
-			if (GUI.Button(headerCells[2], "Reload\nPanels")) {
-				ReloadPanels();
-			}
-
-			EditorGUILayout.Space();
+			header.OnHeaderGUI(this);
 
 			if (currentPanel != null) {
-				currentPanel.ToolsGUI();
+				var panelType = currentPanel.GetType();
+				try {
+					scroll = EditorGUILayout.BeginScrollView(scroll, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
+					currentPanel.ToolsGUI();
+				} catch (Exception exc) {
+					var msg = $"Panel {panelType.Name} GUI failed: {exc.Message}";
+					Debug.LogError(msg, currentPanel);
+					Debug.LogException(exc, currentPanel);
+					EditorGUILayout.HelpBox(msg, MessageType.Error);
+				} finally {
+					EditorGUILayout.EndScrollView();
+				}
 			} else if (panelsTree == null || !panelsLoaded) {
 				EditorGUILayout.HelpBox("Panels not loaded.", MessageType.Info);
 			} else {

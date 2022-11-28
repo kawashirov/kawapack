@@ -14,13 +14,18 @@ namespace Kawashirov {
 	public static class KawaGUIUtility {
 #if UNITY_EDITOR
 
-		private static readonly MethodInfo EditorGUIUtility_GetHelpIcon;
+		public static readonly Lazy<Texture2D> kawaIcon = new Lazy<Texture2D>(GetKawaIcon);
 
-		static KawaGUIUtility() {
-			EditorGUIUtility_GetHelpIcon = typeof(EditorGUIUtility).GetMethod("GetHelpIcon", BindingFlags.NonPublic | BindingFlags.Static);
+		private static Texture2D GetKawaIcon() {
+			var path = AssetDatabase.GUIDToAssetPath("302691306fd300648a26254d75364f60");
+			return string.IsNullOrWhiteSpace(path) ? null : AssetDatabase.LoadAssetAtPath<Texture2D>(path);
 		}
 
+		private static MethodInfo EditorGUIUtility_GetHelpIcon;
 		public static Texture2D GetHelpIcon(MessageType type) {
+			if (EditorGUIUtility_GetHelpIcon == null) {
+				EditorGUIUtility_GetHelpIcon = typeof(EditorGUIUtility).GetMethod("GetHelpIcon", BindingFlags.NonPublic | BindingFlags.Static);
+			}
 			return (Texture2D)EditorGUIUtility_GetHelpIcon.Invoke(null, new object[] { type });
 		}
 
