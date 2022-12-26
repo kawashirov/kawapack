@@ -5,7 +5,7 @@
 #include "UnityStandardUtils.cginc"
 
 /*
-	Kawashirov's Flat Lit Toon Common Code
+	KawaShade Common Code
 */
 
 // Тоже, что и UNITY_LIGHT_ATTENUATION из AutoLight.cginc, но без учёта теней.

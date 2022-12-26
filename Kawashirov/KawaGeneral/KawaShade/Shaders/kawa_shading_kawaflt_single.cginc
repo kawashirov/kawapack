@@ -7,7 +7,7 @@
 #include ".\kawa_shading_kawaflt_common.cginc"
 
 /*
-	Kawashirov's Flat Lit Toon Single Diffuse-based
+	KawaShade Single Diffuse-based
 */
 
 uniform float _Sh_Kwshrv_ShdBlnd;

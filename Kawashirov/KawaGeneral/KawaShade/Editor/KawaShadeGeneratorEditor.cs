@@ -2,21 +2,17 @@
 using System.Linq;
 using UnityEngine;
 using UnityEditor;
-
-using GUIL = UnityEngine.GUILayout;
-using EGUIL = UnityEditor.EditorGUILayout;
-
-using static UnityEditor.EditorGUI;
-using static Kawashirov.KawaGUIUtility;
+using Kawashirov;
+using Kawashirov.ShaderBaking;
 
 // Имя файла длжно совпадать с именем типа.
 // https://forum.unity.com/threads/solved-blank-scriptableobject-on-import.511527/
 
-namespace Kawashirov.FLT  
+namespace Kawashirov.KawaShade  
 {
 	[CanEditMultipleObjects]
-	[CustomEditor(typeof(Generator))]
-	public partial class GeneratorEditor : ShaderBaking.BaseGenerator.Editor<Generator> {
+	[CustomEditor(typeof(KawaShadeGenerator))]
+	public partial class KawaShadeGeneratorEditor : BaseGenerator.Editor<KawaShadeGenerator> {
 
 		private bool error = false;
 		private bool complexity_VGF = false;
@@ -30,13 +26,13 @@ namespace Kawashirov.FLT
 			complexity_VGF = false;
 			complexity_VHDGF = false;
 
-			EGUIL.Space();
+			EditorGUILayout.Space();
 			var debug = serializedObject.FindProperty("debug");
-			DefaultPrpertyField(debug, "Debug Build");
+			KawaGUIUtility.DefaultPrpertyField(debug, "Debug Build");
 			var debug_bool = !debug.hasMultipleDifferentValues ? debug.boolValue : (bool?)null;
 			var debug_true = debug_bool.HasValue && debug_bool.Value;
 			if (debug_true) {
-				EGUIL.HelpBox(
+				EditorGUILayout.HelpBox(
 					"Debug mode is On! In debug mode:\n" +
 					"- d3d11 debug symbols included into shader build;\n" +
 					"- Some configuration errors are warnings;\n" +
@@ -46,9 +42,9 @@ namespace Kawashirov.FLT
 				);
 			}
 
-			EGUIL.Space();
-			EGUIL.LabelField("General Shader Options");
-			using (new IndentLevelScope()) {
+			EditorGUILayout.Space();
+			EditorGUILayout.LabelField("General Shader Options");
+			using (new EditorGUI.IndentLevelScope()) {
 				PipelineGUI();
 				
 
@@ -56,46 +52,46 @@ namespace Kawashirov.FLT
 
 			}
 
-			EGUIL.Space();
+			EditorGUILayout.Space();
 			TexturesGUI();
 			
-			EGUIL.Space();
+			EditorGUILayout.Space();
 			RandomGUI();
 
-			EGUIL.Space();
+			EditorGUILayout.Space();
 			ShadingGUI();
 
-			EGUIL.Space();
+			EditorGUILayout.Space();
 			MatcapGUI();
 
-			EGUIL.Space();
+			EditorGUILayout.Space();
 			DistanceFadeGUI();
 
-			EGUIL.Space();
+			EditorGUILayout.Space();
 			WhiteNoise();
 
-			EGUIL.Space();
+			EditorGUILayout.Space();
 			FPSGUI();
 
-			EGUIL.Space();
+			EditorGUILayout.Space();
 			PSXGUI();
 
-			EGUIL.Space();
+			EditorGUILayout.Space();
 			OutlineGUI();
 
-			EGUIL.Space();
+			EditorGUILayout.Space();
 			IWDGUI();
 			
-			EGUIL.Space();
+			EditorGUILayout.Space();
 			PolyColorWaveGUI();
 
-			EGUIL.Space();
-			using (new DisabledScope(error)) {
-				if (GUIL.Button("(Re)Bake Shader")) {
+			EditorGUILayout.Space();
+			using (new EditorGUI.DisabledScope(error)) {
+				if (GUILayout.Button("(Re)Bake Shader")) {
 					if (error)
 						return;
 					foreach (var t in targets) {
-						var generator = t as Generator;
+						var generator = t as KawaShadeGenerator;
 						if (generator)
 							generator.Refresh();
 					}

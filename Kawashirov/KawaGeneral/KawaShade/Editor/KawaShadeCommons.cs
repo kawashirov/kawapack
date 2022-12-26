@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using Kawashirov.ShaderBaking;
 
-namespace Kawashirov.FLT {
+namespace Kawashirov.KawaShade {
 
-	internal static partial class Commons {
+	internal static partial class KawaShadeCommons {
 
 		internal static Lazy<string[]> tags = new Lazy<string[]>(() => new string[] {
 			// Есть проблемы с порядком инициализации, т.к. это partial класс,
