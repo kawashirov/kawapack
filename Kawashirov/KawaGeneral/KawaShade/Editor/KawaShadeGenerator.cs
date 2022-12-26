@@ -157,6 +157,7 @@ namespace Kawashirov.KawaShade {
 			ConfigureFeatureOutline(shader);
 			ConfigureFeatureInfinityWarDecimation(shader);
 			ConfigureFeaturePolyColorWave(shader);
+			ConfigureFeatureGlitter(shader);
 
 			ConfigureFeaturePRNG(shader);
 

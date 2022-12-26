@@ -239,12 +239,6 @@ namespace Kawashirov.KawaShade {
 				var _ColorMask_label = new GUIContent("Color Mask", "Masks Color Tint (R)");
 
 				TexturePropertySingleLineDisabled(_MainTex_label, _MainTex);
-				if (_MainTex != null && _MainTex.textureValue == null) {
-					EditorGUILayout.HelpBox(
-						"No albedo texture is set! Disable main tex feature in shader generator, if you don't need this.",
-						MessageType.Warning
-					);
-				}
 
 				using (new EditorGUI.IndentLevelScope()) {
 					var _MainTexAlpha = FindProperty("_MainTexAlpha");
@@ -261,12 +255,6 @@ namespace Kawashirov.KawaShade {
 					ShaderPropertyDisabled(_Color, "Color");
 
 					TexturePropertySingleLineDisabled(_ColorMask_label, _ColorMask);
-					if (_ColorMask != null && _ColorMask.textureValue == null) {
-						EditorGUILayout.HelpBox(
-							"No color mask texture set! Disable main texture color mask feature in shader generator, if you don't need this.",
-							MessageType.Warning
-						);
-					}
 				}
 
 				var _EmissionMask = FindProperty("_EmissionMask");
@@ -282,21 +270,9 @@ namespace Kawashirov.KawaShade {
 
 							var _EmissionMask_label = new GUIContent("Emission Mask", "Mask for Emission by Albedo Main Texture (R)");
 							TexturePropertySingleLineDisabled(_EmissionMask_label, _EmissionMask);
-							if (_EmissionMask != null && _EmissionMask.textureValue == null) {
-								EditorGUILayout.HelpBox(
-									"No emission mask texture set! Disable emission mask feature in shader generator, if you don't need this.",
-									MessageType.Warning
-								);
-							}
 
 							var _EmissionMap_label = new GUIContent("Emission Texture", "Custom Emission Texture (RGB)");
 							TexturePropertySingleLineDisabled(_EmissionMap_label, _EmissionMap);
-							if (_EmissionMap != null && _EmissionMap.textureValue == null) {
-								EditorGUILayout.HelpBox(
-									"No emission map texture set! Disable emission map feature in shader generator, if you don't need this.",
-									MessageType.Warning
-								);
-							}
 
 							ShaderPropertyDisabled(_EmissionColor, new GUIContent("Emission Color (Tint)", "Emission Color Tint (RGB)"));
 							var _EmissionColor_value = _EmissionColor.colorValue;

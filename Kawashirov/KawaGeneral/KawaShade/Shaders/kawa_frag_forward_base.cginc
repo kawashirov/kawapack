@@ -13,6 +13,7 @@
 #include ".\kawa_feature_distance_fade.cginc"
 #include ".\kawa_feature_matcap.cginc"
 #include ".\kawa_feature_white_noise.cginc"
+#include ".\kawa_feature_glitter.cginc"
 
 #include ".\kawa_shading_cubedparadox.cginc"
 #include ".\kawa_shading_kawaflt_log.cginc"
@@ -54,6 +55,7 @@ half4 frag_forwardbase(FRAGMENT_IN i) : COLOR {
 	float2 texST = frag_applyst(i.uv0);
 
 	uint rnd4_sc = frag_rnd_init(i);
+	uint rnd = rnd4_sc;
 	
 	dstfd_frag_clip(i, rnd4_sc);
 
@@ -64,6 +66,8 @@ half4 frag_forwardbase(FRAGMENT_IN i) : COLOR {
 	frag_alphatest(i, rnd4_sc, albedo.a);
 
 	albedo.rgb = matcap_apply(i, albedo.rgb);
+	
+	apply_glitter(albedo.rgb, emissive, texST, rnd);
 	
 	half4 finalColor;
 	finalColor.a = albedo.a;

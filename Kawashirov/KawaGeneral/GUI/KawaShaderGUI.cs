@@ -69,12 +69,19 @@ namespace Kawashirov {
 			}
 		}
 
-		protected void TexturePropertySingleLineDisabled(GUIContent label, MaterialProperty prop, bool compatibility = true) {
+		protected void TexturePropertySingleLineDisabled(GUIContent label, MaterialProperty prop, 
+			bool compatibility = true, bool emptyWarning = true) {
 			using (new DisabledScope(prop == null)) {
 				if (prop != null) {
 					materialEditor.TexturePropertySingleLine(label, prop);
 					if (compatibility) {
 						materialEditor.TextureCompatibilityWarning(prop);
+					}
+					if (emptyWarning && prop.textureValue == null) {
+						EditorGUILayout.HelpBox(
+							"No texture set! Disable feature of this texture in shader generator, if you don't need this.",
+							MessageType.Warning
+						);
 					}
 				} else {
 					EditorGUILayout.LabelField(label, new GUIContent("Disabled"));

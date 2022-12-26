@@ -71,6 +71,9 @@ namespace Kawashirov.KawaShade
 			WhiteNoise();
 
 			EditorGUILayout.Space();
+			GlitterGUI();
+
+			EditorGUILayout.Space();
 			FPSGUI();
 
 			EditorGUILayout.Space();
