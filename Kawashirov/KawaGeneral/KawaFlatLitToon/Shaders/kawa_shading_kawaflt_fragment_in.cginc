@@ -11,7 +11,7 @@
 // Общаяя функа для pre-frag, записывает vertexlight и ambient
 
 #if defined(FRAGMENT_IN)
-	// (v.normalDir) -> (v.vertexlight, v.ambient)
+	// (v.normalDir) -> (v.vertexlight)
 	inline void kawaflt_fragment_in(inout FRAGMENT_IN v, bool vertexlight_on, float3 wsvd) {
 		#if defined(KAWAFLT_PASS_FORWARDBASE) && defined(SHADE_KAWAFLT)
 			v.vertexlight = half3(0,0,0);
@@ -72,16 +72,7 @@
 					}
 				#endif
 			}
-			#if defined(UNITY_SHOULD_SAMPLE_SH)
-				// SHEvalLinearL2 во фрагментном
-				v.ambient = SHEvalLinearL0L1(half4(v.normal_world, 1));
-				#if defined(SHADE_KAWAFLT_SINGLE)
-					// SHADE_KAWAFLT_RAMP ???
-					v.ambient = lerp(SHEvalLinearL0L1(half4(0,0,0,1)), v.ambient, _Sh_Kwshrv_ShdAmbnt);
-				#endif
-				// No negative lighting
-				v.ambient = max(half3(0,0,0), v.ambient);
-			#endif
+			// ShadeSH9 во фрагментном
 		#endif
 	}
 #endif // defined(FRAGMENT_IN)

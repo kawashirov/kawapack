@@ -41,8 +41,10 @@ inline half3 frag_shade_kawaflt_ramp_apply(half uv) {
 		inline half3 frag_shade_kawaflt_ramp_forward_base(FRAGMENT_IN i, half3 albedo, half3 normal3, half3 emission) {
 			half3 ambient = half3(0,0,0);
 			#if defined(UNITY_SHOULD_SAMPLE_SH)
-				half3 ambient_l2 = lerp(half3(0,0,0), SHEvalLinearL2(half4(normal3, 1)), _Sh_Kwshrv_SmthAmbnt);
-				ambient = i.ambient + max(half3(0,0,0), ambient_l2);
+				half3 ambient_sh9 = ShadeSH9(half4(normal3, 1));
+				half3 ambient_flat = ShadeSH9(half4(0,0,0,1));
+				ambient = lerp(ambient_flat, ambient_sh9, _Sh_Kwshrv_ShdAmbnt);
+				ambient = max(half3(0,0,0), ambient);
 				ambient = ambient * _Sh_KwshrvRmp_NdrctClr.rgb * _Sh_KwshrvRmp_NdrctClr.a;
 			#endif
 

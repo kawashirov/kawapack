@@ -61,9 +61,6 @@ struct g2f {
 		#endif
 		#if defined(KAWAFLT_PASS_FORWARDBASE) && defined(SHADE_KAWAFLT)
 			half3 vertexlight : KAWASMNT_VERTEXLIGHT;
-			#if defined(UNITY_SHOULD_SAMPLE_SH)
-				half3 ambient : KAWASMNT_AMBIENT;
-			#endif
 		#endif
 		#if defined(OUTLINE_ON)
 			nointerpolation bool is_outline : KAWASMNT_OUTLINE;
