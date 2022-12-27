@@ -151,13 +151,14 @@ namespace Kawashirov.KawaShade {
 			ConfigureFeatureMatcap(shader);
 			ConfigureFeatureDistanceFade(shader);
 			ConfigureFeatureWNoise(shader);
+			ConfigureFeatureGlitter(shader);
+			ConfigureFeaturePenetrationSystem(shader);
 			ConfigureFeatureFPS(shader);
 			ConfigureFeaturePSX(shader);
 
 			ConfigureFeatureOutline(shader);
 			ConfigureFeatureInfinityWarDecimation(shader);
 			ConfigureFeaturePolyColorWave(shader);
-			ConfigureFeatureGlitter(shader);
 
 			ConfigureFeaturePRNG(shader);
 

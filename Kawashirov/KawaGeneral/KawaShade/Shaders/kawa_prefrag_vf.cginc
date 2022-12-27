@@ -8,6 +8,7 @@
 
 #include ".\kawa_prefrag_shared.cginc"
 
+#include ".\kawa_feature_dps.cginc"
 #include ".\kawa_feature_distance_fade.cginc"
 #include ".\kawa_feature_fps.cginc"
 #include ".\kawa_feature_matcap.cginc"
@@ -15,7 +16,7 @@
 
 #include ".\kawa_shading_kawaflt_fragment_in.cginc"
 
-VERTEX_OUT vert(appdata_full v_in) {
+VERTEX_OUT vert(VERTEX_IN v_in) {
 	UNITY_SETUP_INSTANCE_ID(v_in);
 	VERTEX_OUT v_out;
 	//UNITY_INITIALIZE_OUTPUT(VERTEX_OUT, v_out);
@@ -30,6 +31,7 @@ VERTEX_OUT vert(appdata_full v_in) {
 		v_out.uv1 = v_in.texcoord1;
 	#endif
 	
+	apply_dps(v_in);
 	fps_vertex(v_in, v_out);
 
 	v_out.pos = UnityObjectToClipPos(v_in.vertex); 

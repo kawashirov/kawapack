@@ -9,6 +9,7 @@
 
 #include ".\kawa_prefrag_shared.cginc"
 
+#include ".\kawa_feature_dps.cginc"
 #include ".\kawa_feature_distance_fade.cginc"
 #include ".\kawa_feature_fps.cginc"
 #include ".\kawa_feature_matcap.cginc"
@@ -22,12 +23,14 @@
 
 /* General */
 
-VERTEX_OUT vert(appdata_full v_in) {
+VERTEX_OUT vert(VERTEX_IN v_in) {
 	UNITY_SETUP_INSTANCE_ID(v_in);
 	VERTEX_OUT v_out;
 	// UNITY_INITIALIZE_OUTPUT(VERTEX_OUT, v_out);
 	UNITY_TRANSFER_INSTANCE_ID(v_in, v_out);
 	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(v_out);
+	
+	apply_dps(v_in);
 	
 	v_out.uv0 = v_in.texcoord;
 	#if defined(NEED_UV1)

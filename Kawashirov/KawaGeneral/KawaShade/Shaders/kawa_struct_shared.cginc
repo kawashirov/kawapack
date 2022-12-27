@@ -122,6 +122,20 @@ uniform float4 _Color;
 	// TODO UVS
 #endif
 
+struct appdata_full_extended {
+    float4 vertex : POSITION;
+    float4 tangent : TANGENT;
+    float3 normal : NORMAL;
+    float4 texcoord : TEXCOORD0;
+    float4 texcoord1 : TEXCOORD1;
+    float4 texcoord2 : TEXCOORD2;
+    float4 texcoord3 : TEXCOORD3;
+    fixed4 color : COLOR;
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+	uint vertexId : SV_VertexID;
+};
+
+
 /* Helper functions */
 
 inline float3 KawaWorldSpaceCamPos() {

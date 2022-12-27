@@ -44,6 +44,9 @@ namespace Kawashirov.KawaShade {
 			OnGUI_Glitter();
 
 			EditorGUILayout.Space();
+			OnGUI_PenetrationSystem();
+
+			EditorGUILayout.Space();
 			OnGUI_FPS();
 
 			EditorGUILayout.Space();

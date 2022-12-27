@@ -82,7 +82,7 @@ struct g2f {
 	#endif
 };
 
-#define VERTEX_IN appdata_full
+#define VERTEX_IN appdata_full_extended
 #define VERTEX_OUT v2g
 #define HULL_IN v2g
 #define HULL_OUT v2g

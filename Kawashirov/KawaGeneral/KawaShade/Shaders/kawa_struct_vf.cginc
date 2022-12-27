@@ -46,7 +46,7 @@ struct v2f {
 };
 
 
-#define VERTEX_IN appdata_full
+#define VERTEX_IN appdata_full_extended
 #define VERTEX_OUT v2f
 #define FRAGMENT_IN v2f
 
