@@ -60,10 +60,9 @@
 
 uniform float4 _Color;
 
-#if defined(CUTOFF_CLASSIC) || defined(CUTOFF_FADE)
+#if defined(CUTOFF_CLASSIC)
 	uniform float _Cutoff;
-#endif
-#if defined(CUTOFF_RANDOM)
+#elif defined(CUTOFF_RANGE)
 	uniform float _CutoffMin;
 	uniform float _CutoffMax;
 #endif

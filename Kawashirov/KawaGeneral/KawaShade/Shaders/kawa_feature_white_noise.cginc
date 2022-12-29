@@ -1,8 +1,6 @@
 #ifndef KAWAFLT_FEATURE_WNOISE_INCLUDED
 #define KAWAFLT_FEATURE_WNOISE_INCLUDED
 
-#include ".\kawa_rnd.cginc"
-
 /*
 	White Noise features
 */

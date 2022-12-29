@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor;
@@ -6,24 +7,28 @@ using Kawashirov;
 using Kawashirov.ShaderBaking;
 
 namespace Kawashirov.KawaShade {
-	public enum PolyColorWaveMode { Classic, KawaColorfulWaves }
 
-	internal static partial class KawaShadeCommons {
+	public class FeaturePolyColorWave : AbstractFeature {
 		internal static readonly string F_PCW = "KawaShade_Feature_PCW";
 		internal static readonly string F_PCWMode = "KawaShade_Feature_PCWMode";
-	}
+		internal static readonly GUIContent gui_feature_pcw = new GUIContent("Poly ColorWave Feature");
 
-	public partial class KawaShadeGenerator {
-		public bool pcw = false;
-		public PolyColorWaveMode pcwMode = PolyColorWaveMode.Classic;
+		public enum PolyColorWaveMode { Classic, KawaColorfulWaves }
 
-		private void ConfigureFeaturePolyColorWave(ShaderSetup shader) {
-			shader.TagBool(KawaShadeCommons.F_PCW, pcw);
-			if (pcw) {
-				needRandomVert = true;
+		public override void PopulateShaderTags(List<string> tags) {
+			tags.Add(F_PCW);
+			tags.Add(F_PCWMode);
+		}
+
+		public override void ConfigureShader(KawaShadeGenerator generator, ShaderSetup shader) {
+			IncludeFeatureDirect(shader, "kawa_feature_poly_color_wave.cginc");
+
+			shader.TagBool(F_PCW, generator.pcw);
+			if (generator.pcw) {
+				generator.needRandomVert = true;
 				shader.Define("PCW_ON 1");
-				shader.TagEnum(KawaShadeCommons.F_PCWMode, pcwMode);
-				if (pcw) {
+				shader.TagEnum(F_PCWMode, generator.pcwMode);
+				if (generator.pcw) {
 					shader.properties.Add(new PropertyFloat() { name = "_PCW_WvTmLo", defualt = 4 });
 					shader.properties.Add(new PropertyFloat() { name = "_PCW_WvTmAs", defualt = 0.25f });
 					shader.properties.Add(new PropertyFloat() { name = "_PCW_WvTmHi", defualt = 0.5f });
@@ -43,30 +48,24 @@ namespace Kawashirov.KawaShade {
 				shader.Define("PCW_OFF 1");
 			}
 		}
-	}
 
-	public partial class KawaShadeGeneratorEditor {
-		private static readonly GUIContent gui_feature_pcw = new GUIContent("Poly ColorWave Feature");
-
-		private void PolyColorWaveGUI() {
-			using (new EditorGUI.DisabledScope(!complexity_VGF && !complexity_VHDGF)) {
-				var pcw = serializedObject.FindProperty("pcw");
+		public override void GeneratorEditorGUI(KawaShadeGeneratorEditor editor) {
+			using (new EditorGUI.DisabledScope(!editor.complexity_VGF && !editor.complexity_VHDGF)) {
+				var pcw = editor.serializedObject.FindProperty("pcw");
 				KawaGUIUtility.ToggleLeft(pcw, gui_feature_pcw);
-				using (new EditorGUI.DisabledScope(pcw.hasMultipleDifferentValues || !pcw.boolValue || (!complexity_VGF && !complexity_VHDGF))) {
+				using (new EditorGUI.DisabledScope(pcw.hasMultipleDifferentValues || !pcw.boolValue || (!editor.complexity_VGF && !editor.complexity_VHDGF))) {
 					using (new EditorGUI.IndentLevelScope()) {
-						KawaGUIUtility.DefaultPrpertyField(this, "pcwMode", "Mode");
+						KawaGUIUtility.DefaultPrpertyField(editor, "pcwMode", "Mode");
 					}
 				}
 			}
 		}
-	}
 
-	internal partial class KawaShadeGUI {
 		protected static double gcd(double a, double b) {
 			return a < b ? gcd(b, a) : Math.Abs(b) < 0.001 ? a : gcd(b, a - (Math.Floor(a / b) * b));
 		}
 
-		private float? OnGUI_PolyColorWave_WvTmHelper(MaterialProperty _PCW_WvTmLo, MaterialProperty _PCW_WvTmAs, MaterialProperty _PCW_WvTmHi, MaterialProperty _PCW_WvTmDe) {
+		private float? WvTmHelper(MaterialProperty _PCW_WvTmLo, MaterialProperty _PCW_WvTmAs, MaterialProperty _PCW_WvTmHi, MaterialProperty _PCW_WvTmDe) {
 			if (
 				_PCW_WvTmLo != null && !_PCW_WvTmLo.hasMixedValue &&
 				_PCW_WvTmAs != null && !_PCW_WvTmAs.hasMixedValue &&
@@ -98,57 +97,60 @@ namespace Kawashirov.KawaShade {
 			}
 		}
 
-		private void OnGUI_PolyColorWave() {
-			var _PCW_WvTmLo = FindProperty("_PCW_WvTmLo");
-			var _PCW_WvTmAs = FindProperty("_PCW_WvTmAs");
-			var _PCW_WvTmHi = FindProperty("_PCW_WvTmHi");
-			var _PCW_WvTmDe = FindProperty("_PCW_WvTmDe");
-			var _PCW_WvTmRnd = FindProperty("_PCW_WvTmRnd");
-			var _PCW_WvTmUV = FindProperty("_PCW_WvTmUV");
-			var _PCW_WvTmVtx = FindProperty("_PCW_WvTmVtx");
+		public override void ShaderEditorGUI(KawaShadeGUI editor) {
+			var _PCW_WvTmLo = editor.FindProperty("_PCW_WvTmLo");
+			var _PCW_WvTmAs = editor.FindProperty("_PCW_WvTmAs");
+			var _PCW_WvTmHi = editor.FindProperty("_PCW_WvTmHi");
+			var _PCW_WvTmDe = editor.FindProperty("_PCW_WvTmDe");
+			var _PCW_WvTmRnd = editor.FindProperty("_PCW_WvTmRnd");
+			var _PCW_WvTmUV = editor.FindProperty("_PCW_WvTmUV");
+			var _PCW_WvTmVtx = editor.FindProperty("_PCW_WvTmVtx");
 
-			var _PCW_Em = FindProperty("_PCW_Em");
-			var _PCW_Color = FindProperty("_PCW_Color");
-			var _PCW_RnbwTm = FindProperty("_PCW_RnbwTm");
-			var _PCW_RnbwTmRnd = FindProperty("_PCW_RnbwTmRnd");
-			var _PCW_RnbwStrtn = FindProperty("_PCW_RnbwStrtn");
-			var _PCW_RnbwBrghtnss = FindProperty("_PCW_RnbwBrghtnss");
-			var _PCW_Mix = FindProperty("_PCW_Mix");
+			var _PCW_Em = editor.FindProperty("_PCW_Em");
+			var _PCW_Color = editor.FindProperty("_PCW_Color");
+			var _PCW_RnbwTm = editor.FindProperty("_PCW_RnbwTm");
+			var _PCW_RnbwTmRnd = editor.FindProperty("_PCW_RnbwTmRnd");
+			var _PCW_RnbwStrtn = editor.FindProperty("_PCW_RnbwStrtn");
+			var _PCW_RnbwBrghtnss = editor.FindProperty("_PCW_RnbwBrghtnss");
+			var _PCW_Mix = editor.FindProperty("_PCW_Mix");
 
-			var f_PCW = shaderTags[KawaShadeCommons.F_PCW].IsTrue();
+			var f_PCW = KawaUtilities.AnyNotNull(
+				_PCW_WvTmLo, _PCW_WvTmAs, _PCW_WvTmHi, _PCW_WvTmDe, _PCW_WvTmRnd, _PCW_WvTmUV, _PCW_WvTmVtx,
+				_PCW_Em, _PCW_Color, _PCW_RnbwTm, _PCW_RnbwTmRnd, _PCW_RnbwStrtn, _PCW_RnbwBrghtnss, _PCW_Mix
+			);
 			using (new EditorGUI.DisabledScope(!f_PCW)) {
 				EditorGUILayout.LabelField("Poly Color Wave Feature", f_PCW ? "Enabled" : "Disabled");
 				using (new EditorGUI.IndentLevelScope()) {
 					if (f_PCW) {
-						LabelShaderTagEnumValue<PolyColorWaveMode>(KawaShadeCommons.F_PCWMode, "Mode", "Unknown");
+						editor.LabelShaderTagEnumValue<PolyColorWaveMode>(F_PCWMode, "Mode", "Unknown");
 
 						EditorGUILayout.LabelField("Wave timings:");
 						float? time_period = null;
 						using (new EditorGUI.IndentLevelScope()) {
-							ShaderPropertyDisabled(_PCW_WvTmLo, "Hidden");
-							ShaderPropertyDisabled(_PCW_WvTmAs, "Fade-in");
-							ShaderPropertyDisabled(_PCW_WvTmHi, "Shown");
-							ShaderPropertyDisabled(_PCW_WvTmDe, "Fade-out");
-							time_period = OnGUI_PolyColorWave_WvTmHelper(_PCW_WvTmLo, _PCW_WvTmAs, _PCW_WvTmHi, _PCW_WvTmDe);
+							editor.ShaderPropertyDisabled(_PCW_WvTmLo, "Hidden");
+							editor.ShaderPropertyDisabled(_PCW_WvTmAs, "Fade-in");
+							editor.ShaderPropertyDisabled(_PCW_WvTmHi, "Shown");
+							editor.ShaderPropertyDisabled(_PCW_WvTmDe, "Fade-out");
+							time_period = WvTmHelper(_PCW_WvTmLo, _PCW_WvTmAs, _PCW_WvTmHi, _PCW_WvTmDe);
 
-							ShaderPropertyDisabled(_PCW_WvTmRnd, "Random per tris");
+							editor.ShaderPropertyDisabled(_PCW_WvTmRnd, "Random per tris");
 
 							EditorGUILayout.LabelField("Time offset from UV0 (XY) and UV1 (ZW):");
-							ShaderPropertyDisabled(_PCW_WvTmUV, "");
+							editor.ShaderPropertyDisabled(_PCW_WvTmUV, "");
 
 							EditorGUILayout.LabelField("Time offset from mesh-space coords: ");
-							ShaderPropertyDisabled(_PCW_WvTmVtx, "");
+							editor.ShaderPropertyDisabled(_PCW_WvTmVtx, "");
 						}
 
 						EditorGUILayout.LabelField("Wave coloring:");
 						using (new EditorGUI.IndentLevelScope()) {
-							ShaderPropertyDisabled(_PCW_Em, "Emissiveness");
-							ShaderPropertyDisabled(_PCW_Color, "Color");
-							ShaderPropertyDisabled(_PCW_RnbwTm, "Rainbow time");
-							ShaderPropertyDisabled(_PCW_RnbwTmRnd, "Rainbow time random");
-							ShaderPropertyDisabled(_PCW_RnbwStrtn, "Rainbow saturation");
-							ShaderPropertyDisabled(_PCW_RnbwBrghtnss, "Rainbow brightness");
-							ShaderPropertyDisabled(_PCW_Mix, "Color vs. Rainbow");
+							editor.ShaderPropertyDisabled(_PCW_Em, "Emissiveness");
+							editor.ShaderPropertyDisabled(_PCW_Color, "Color");
+							editor.ShaderPropertyDisabled(_PCW_RnbwTm, "Rainbow time");
+							editor.ShaderPropertyDisabled(_PCW_RnbwTmRnd, "Rainbow time random");
+							editor.ShaderPropertyDisabled(_PCW_RnbwStrtn, "Rainbow saturation");
+							editor.ShaderPropertyDisabled(_PCW_RnbwBrghtnss, "Rainbow brightness");
+							editor.ShaderPropertyDisabled(_PCW_Mix, "Color vs. Rainbow");
 						}
 						if (time_period.HasValue && _PCW_RnbwTm != null && !_PCW_RnbwTm.hasMixedValue) {
 							var time_rainbow = _PCW_RnbwTm.floatValue;
@@ -163,5 +165,10 @@ namespace Kawashirov.KawaShade {
 				}
 			}
 		}
+	}
+
+	public partial class KawaShadeGenerator {
+		public bool pcw = false;
+		public FeaturePolyColorWave.PolyColorWaveMode pcwMode = FeaturePolyColorWave.PolyColorWaveMode.Classic;
 	}
 }

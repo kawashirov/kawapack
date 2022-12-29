@@ -4,11 +4,7 @@
 #include "UnityLightingCommon.cginc"
 #include "UnityStandardUtils.cginc"
 
-#include ".\kawa_shading_kawaflt_common.cginc"
-
-/*
-	KawaShade Ramp
-*/
+// KawaShade Ramp
 
 uniform float _Sh_Kwshrv_ShdBlnd;
 uniform float _Sh_Kwshrv_ShdAmbnt;

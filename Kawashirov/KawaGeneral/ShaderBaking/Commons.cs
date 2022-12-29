@@ -13,16 +13,16 @@ namespace Kawashirov.ShaderBaking {
 			sb.Append("Tags {\n");
 			var ic = CultureInfo.InvariantCulture;
 			foreach (var tag in tags)
-				sb.AppendFormat(ic, "\"{0}\" = \"{1}\"\n", tag.Key, tag.Value);
-			sb.Append("}\n");
+				sb.AppendFormat(ic, "\"{0}\" = \"{1}\"", tag.Key, tag.Value).Append("\n");
+			sb.Append("} // End of Tags\n");
 		}
 
 		public static void BakeProperties(this StringBuilder sb, List<Property> properties) {
-			sb.Append("Properties { ");
+			sb.Append("Properties {\n");
 			foreach (var property in properties) {
 				property.Bake(sb);
 			}
-			sb.Append("} ");
+			sb.Append("} // End of Properties\n");
 		}
 	}
 }

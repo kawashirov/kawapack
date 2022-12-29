@@ -9,11 +9,11 @@ using UnityEditor;
 using Kawashirov;
 using Kawashirov.ShaderBaking;
 using Kawashirov.KawaShade;
+using System.Security.Cryptography;
 
 namespace Kawashirov.KawaShade {
-	public enum ShadingMode { CubedParadoxFLT, KawashirovFLTSingle, KawashirovFLTRamp }
 
-	internal static partial class KawaShadeCommons {
+	public class FeatureShading : AbstractFeature {
 		internal static readonly string F_Shading = "KawaShade_Feature_Shading";
 
 		internal static readonly Dictionary<ShadingMode, string> shadingModeNames = new Dictionary<ShadingMode, string>() {
@@ -24,17 +24,19 @@ namespace Kawashirov.KawaShade {
 
 		internal static readonly Dictionary<ShadingMode, string> shadingModeDesc = new Dictionary<ShadingMode, string>() {
 			{ ShadingMode.CubedParadoxFLT, "CubedParadox Flat Lit Toon. Legacy. Not recommended. And I dislike this." },
-			{ ShadingMode.KawashirovFLTSingle, "KawaShade, Single-Step, Diffuse-based, Simple. Like CubedParadox, but better: supports more standard unity lighting features and also fast as fuck compare to other cbd-flt-like shaders." },
+			{ ShadingMode.KawashirovFLTSingle, "KawaShade, Single-Step, Diffuse-based, Simple. Like CubedParadox, but better: supports more standard unity lighting Features and also fast as fuck compare to other cbd-flt-like shaders." },
 			{ ShadingMode.KawashirovFLTRamp, "KawaShade, Ramp-based, In dev yet, need extra tests in various conditions, but you can use it, It should work well." },
 		};
-	}
 
-	public partial class KawaShadeGenerator {
-		public ShadingMode shading = ShadingMode.KawashirovFLTSingle;
+		public enum ShadingMode { CubedParadoxFLT, KawashirovFLTSingle, KawashirovFLTRamp }
 
-		private void ConfigureFeatureShading(ShaderSetup shader) {
-			shader.TagEnum(KawaShadeCommons.F_Shading, shading);
-			switch (shading) {
+		public override void PopulateShaderTags(List<string> tags) {
+
+		}
+
+		public override void ConfigureShader(KawaShadeGenerator gen, ShaderSetup shader) {
+			shader.TagEnum(F_Shading, gen.shading);
+			switch (gen.shading) {
 				case ShadingMode.CubedParadoxFLT:
 					shader.forward.defines.Add("SHADE_CUBEDPARADOXFLT 1");
 					shader.forward_add.defines.Add("SHADE_CUBEDPARADOXFLT 1");
@@ -74,58 +76,57 @@ namespace Kawashirov.KawaShade {
 			shader.properties.Add(new PropertyFloat() { name = "_Sh_KwshrvSngl_TngntLo", defualt = 0.7f, range = new Vector2(0, 1), power = 1.5f });
 		}
 
-	}
-
-	public partial class KawaShadeGeneratorEditor {
-		private void ShadingGUI() {
-			var shading = serializedObject.FindProperty("shading");
-			KawaGUIUtility.PropertyEnumPopupCustomLabels(shading, "Shading Method", KawaShadeCommons.shadingModeNames);
+		public override void GeneratorEditorGUI(KawaShadeGeneratorEditor editor) {
+			var shading = editor.serializedObject.FindProperty("shading");
+			KawaGUIUtility.PropertyEnumPopupCustomLabels(shading, "Shading Method", shadingModeNames);
 		}
-	}
 
-	internal partial class KawaShadeGUI {
-		protected void OnGUI_Shading() {
+		public override void ShaderEditorGUI(KawaShadeGUI editor) {
 			ShadingMode shading = default;
-			if (shaderTags[KawaShadeCommons.F_Shading].GetEnumValueSafe(ref shading)) {
+			if (editor.shaderTags[F_Shading].GetEnumValueSafe(ref shading)) {
 				EditorGUILayout.LabelField("Shading", Enum.GetName(typeof(ShadingMode), shading));
 				using (new EditorGUI.IndentLevelScope()) {
-					EditorGUILayout.HelpBox(KawaShadeCommons.shadingModeDesc[shading], MessageType.Info);
+					EditorGUILayout.HelpBox(shadingModeDesc[shading], MessageType.Info);
 					if (shading == ShadingMode.CubedParadoxFLT) {
-						ShaderPropertyDisabled(FindProperty("_Sh_Cbdprdx_Shadow"), "Shadow");
+						editor.ShaderPropertyDisabled(editor.FindProperty("_Sh_Cbdprdx_Shadow"), "Shadow");
 					} else if (shading == ShadingMode.KawashirovFLTSingle) {
-						ShaderPropertyDisabled(FindProperty("_Sh_Kwshrv_ShdBlnd"), "RT Shadows blending");
-						ShaderPropertyDisabled(FindProperty("_Sh_Kwshrv_ShdAmbnt"), "Ambient Shadows Contrast");
+						editor.ShaderPropertyDisabled(editor.FindProperty("_Sh_Kwshrv_ShdBlnd"), "RT Shadows blending");
+						editor.ShaderPropertyDisabled(editor.FindProperty("_Sh_Kwshrv_ShdAmbnt"), "Ambient Shadows Contrast");
 
 						EditorGUILayout.LabelField("Sides threshold");
 						using (new EditorGUI.IndentLevelScope()) {
-							ShaderPropertyDisabled(FindProperty("_Sh_KwshrvSngl_TngntLo"), "Low");
-							ShaderPropertyDisabled(FindProperty("_Sh_KwshrvSngl_TngntHi"), "High");
+							editor.ShaderPropertyDisabled(editor.FindProperty("_Sh_KwshrvSngl_TngntLo"), "Low");
+							editor.ShaderPropertyDisabled(editor.FindProperty("_Sh_KwshrvSngl_TngntHi"), "High");
 						}
 
 						EditorGUILayout.LabelField("Brightness");
 						using (new EditorGUI.IndentLevelScope()) {
-							ShaderPropertyDisabled(FindProperty("_Sh_KwshrvSngl_ShdLo"), "Back side (Shaded)");
-							ShaderPropertyDisabled(FindProperty("_Sh_KwshrvSngl_ShdHi"), "Front side (Lit)");
+							editor.ShaderPropertyDisabled(editor.FindProperty("_Sh_KwshrvSngl_ShdLo"), "Back side (Shaded)");
+							editor.ShaderPropertyDisabled(editor.FindProperty("_Sh_KwshrvSngl_ShdHi"), "Front side (Lit)");
 						}
 					} else if (shading == ShadingMode.KawashirovFLTRamp) {
-						var rampTex = FindProperty("_Sh_KwshrvRmp_Tex");
-						ShaderPropertyDisabled(FindProperty("_Sh_Kwshrv_ShdBlnd"), "RT Shadows Blending");
-						ShaderPropertyDisabled(FindProperty("_Sh_Kwshrv_ShdAmbnt"), "Ambient Shadows Contrast");
-						materialEditor.TexturePropertySingleLine(new GUIContent("Ramp Texture", "Ramp Texture (RGB)"), rampTex);
-						materialEditor.TextureCompatibilityWarning(rampTex);
+						var rampTex = editor.FindProperty("_Sh_KwshrvRmp_Tex");
+						editor.ShaderPropertyDisabled(editor.FindProperty("_Sh_Kwshrv_ShdBlnd"), "RT Shadows Blending");
+						editor.ShaderPropertyDisabled(editor.FindProperty("_Sh_Kwshrv_ShdAmbnt"), "Ambient Shadows Contrast");
+						editor.materialEditor.TexturePropertySingleLine(new GUIContent("Ramp Texture", "Ramp Texture (RGB)"), rampTex);
+						editor.materialEditor.TextureCompatibilityWarning(rampTex);
 						if (rampTex.textureValue == null) {
 							EditorGUILayout.HelpBox(
 								"Ramp texture is not set! This shading model will not work well unless proper ramp texture is set!",
 								MessageType.Error
 							);
 						}
-						ShaderPropertyDisabled(FindProperty("_Sh_KwshrvRmp_Pwr"), "Power");
-						ShaderPropertyDisabled(FindProperty("_Sh_KwshrvRmp_NdrctClr"), "Indirect Tint");
+						editor.ShaderPropertyDisabled(editor.FindProperty("_Sh_KwshrvRmp_Pwr"), "Power");
+						editor.ShaderPropertyDisabled(editor.FindProperty("_Sh_KwshrvRmp_NdrctClr"), "Indirect Tint");
 					}
 				}
 			} else {
 				EditorGUILayout.LabelField("Shading", "Mixed Values or Unknown");
 			}
 		}
+	}
+
+	public partial class KawaShadeGenerator {
+		public FeatureShading.ShadingMode shading = FeatureShading.ShadingMode.KawashirovFLTSingle;
 	}
 }

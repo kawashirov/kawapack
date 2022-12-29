@@ -8,19 +8,6 @@
 // #include "UnityInstancing.cginc"
 // #include "UnityStandardUtils.cginc"
 
-#include ".\kawa_frag_shared.cginc"
-
-#include ".\kawa_feature_distance_fade.cginc"
-#include ".\kawa_feature_matcap.cginc"
-#include ".\kawa_feature_white_noise.cginc"
-#include ".\kawa_feature_glitter.cginc"
-
-#include ".\kawa_shading_cubedparadox.cginc"
-#include ".\kawa_shading_kawaflt_log.cginc"
-#include ".\kawa_shading_kawaflt_ramp.cginc"
-#include ".\kawa_shading_kawaflt_single.cginc"
-
-
 /* ForwardBase only utils */
 
 inline half3 frag_forward_get_emission_color(inout FRAGMENT_IN i, half3 baseColor, float2 texST, inout uint rnd) {

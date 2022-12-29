@@ -4,22 +4,22 @@ using UnityEngine;
 using UnityEditor;
 using Kawashirov;
 using Kawashirov.ShaderBaking;
+using System.Collections.Generic;
 
 // Имя файла длжно совпадать с именем типа.
 // https://forum.unity.com/threads/solved-blank-scriptableobject-on-import.511527/
 
-namespace Kawashirov.KawaShade  
-{
+namespace Kawashirov.KawaShade {
 	[CanEditMultipleObjects]
 	[CustomEditor(typeof(KawaShadeGenerator))]
 	public partial class KawaShadeGeneratorEditor : BaseGenerator.Editor<KawaShadeGenerator> {
 
-		private bool error = false;
-		private bool complexity_VGF = false;
-		private bool complexity_VHDGF = false;
+		internal bool error = false;
+		internal bool complexity_VGF = false;
+		internal bool complexity_VHDGF = false;
+		internal Dictionary<Type, bool> folds = new Dictionary<Type, bool>();
 
-		public override void OnInspectorGUI()
-		{
+		public override void OnInspectorGUI() {
 			base.OnInspectorGUI();
 
 			error = false;
@@ -42,54 +42,10 @@ namespace Kawashirov.KawaShade
 				);
 			}
 
-			EditorGUILayout.Space();
-			EditorGUILayout.LabelField("General Shader Options");
-			using (new EditorGUI.IndentLevelScope()) {
-				PipelineGUI();
-				
-
-				BlendingGUI();
-
+			foreach (var feature in AbstractFeature.Features.Value) {
+				EditorGUILayout.Space();
+				feature.GeneratorEditorGUI(this);
 			}
-
-			EditorGUILayout.Space();
-			TexturesGUI();
-			
-			EditorGUILayout.Space();
-			RandomGUI();
-
-			EditorGUILayout.Space();
-			ShadingGUI();
-
-			EditorGUILayout.Space();
-			MatcapGUI();
-
-			EditorGUILayout.Space();
-			DistanceFadeGUI();
-
-			EditorGUILayout.Space();
-			WhiteNoise();
-
-			EditorGUILayout.Space();
-			GlitterGUI();
-
-			EditorGUILayout.Space();
-			PenetrationSystemGUI();
-
-			EditorGUILayout.Space();
-			FPSGUI();
-
-			EditorGUILayout.Space();
-			PSXGUI();
-
-			EditorGUILayout.Space();
-			OutlineGUI();
-
-			EditorGUILayout.Space();
-			IWDGUI();
-			
-			EditorGUILayout.Space();
-			PolyColorWaveGUI();
 
 			EditorGUILayout.Space();
 			using (new EditorGUI.DisabledScope(error)) {
@@ -102,7 +58,7 @@ namespace Kawashirov.KawaShade
 							generator.Refresh();
 					}
 					Repaint();
-				}	
+				}
 			}
 
 			serializedObject.ApplyModifiedProperties();

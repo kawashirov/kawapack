@@ -1,20 +1,7 @@
 #ifndef KAWA_PREFRAG_VF_INCLUDED
 #define KAWA_PREFRAG_VF_INCLUDED
 
-#include ".\kawa_struct_vf.cginc"
-
-#include ".\kawa_rnd.cginc"
 #include "UnityInstancing.cginc"
-
-#include ".\kawa_prefrag_shared.cginc"
-
-#include ".\kawa_feature_dps.cginc"
-#include ".\kawa_feature_distance_fade.cginc"
-#include ".\kawa_feature_fps.cginc"
-#include ".\kawa_feature_matcap.cginc"
-#include ".\kawa_feature_psx.cginc"
-
-#include ".\kawa_shading_kawaflt_fragment_in.cginc"
 
 VERTEX_OUT vert(VERTEX_IN v_in) {
 	UNITY_SETUP_INSTANCE_ID(v_in);

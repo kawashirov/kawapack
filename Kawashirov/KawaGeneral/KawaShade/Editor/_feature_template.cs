@@ -14,7 +14,7 @@ namespace Kawashirov.KawaShade {
 
 	}
 
-	internal partial class KawaShadeGUI {
+	public partial class KawaShadeGUI {
 
 	}
 }

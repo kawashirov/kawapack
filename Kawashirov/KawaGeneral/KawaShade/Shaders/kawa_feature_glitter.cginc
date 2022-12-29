@@ -1,8 +1,6 @@
 #ifndef KAWAFLT_FEATURE_GLITTER_INCLUDED
 #define KAWAFLT_FEATURE_GLITTER_INCLUDED
 
-#include ".\kawa_rnd.cginc"
-
 /*
 	Glitter features
 */

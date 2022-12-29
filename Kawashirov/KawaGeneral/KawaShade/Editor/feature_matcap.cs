@@ -3,40 +3,45 @@ using UnityEngine.Rendering;
 using UnityEditor;
 using Kawashirov;
 using Kawashirov.ShaderBaking;
+using System.Collections.Generic;
 
 namespace Kawashirov.KawaShade {
-	public enum MatcapMode { Replace, Multiply, Add }
 
-	internal static partial class KawaShadeCommons {
-		internal static readonly string F_Matcap = "KawaShade_Feature_Matcap";
-		internal static readonly string F_MatcapMode = "KawaShade_Feature_MatcapMode";
-		internal static readonly string F_MatcapKeepUp = "KawaShade_Feature_MatcapKeepUp";
-	}
+	public class FeatureMatcap : AbstractFeature {
+		internal static readonly string ShaderTag_Matcap = "KawaShade_Feature_Matcap";
+		internal static readonly string ShaderTag_MatcapMode = "KawaShade_Feature_MatcapMode";
+		internal static readonly string ShaderTag_MatcapKeepUp = "KawaShade_Feature_MatcapKeepUp";
 
-	public partial class KawaShadeGenerator {
-		public bool matcap = false;
-		public MatcapMode matcapMode = MatcapMode.Multiply;
-		public bool matcapKeepUp = true;
+		internal static readonly GUIContent gui_feature_matcap = new GUIContent("Matcap Feature");
 
-		private void ConfigureFeatureMatcap(ShaderSetup shader) {
-			shader.TagBool(KawaShadeCommons.F_Matcap, matcap);
-			if (matcap) {
+		public enum Mode { Replace, Multiply, Add }
+
+		public override void PopulateShaderTags(List<string> tags) {
+			tags.Add(ShaderTag_Matcap);
+			tags.Add(ShaderTag_MatcapMode);
+			tags.Add(ShaderTag_MatcapKeepUp);
+		}
+
+		public override void ConfigureShader(KawaShadeGenerator gen, ShaderSetup shader) {
+			IncludeFeatureDirect(shader, "kawa_feature_matcap.cginc");
+
+			shader.TagBool(ShaderTag_Matcap, gen.matcap);
+			if (gen.matcap) {
 				shader.Define("MATCAP_ON 1");
-				// needRandomFrag = true;
-				shader.TagEnum(KawaShadeCommons.F_MatcapMode, matcapMode);
-				switch (matcapMode) {
-					case MatcapMode.Replace:
+				shader.TagEnum(ShaderTag_MatcapMode, gen.matcapMode);
+				switch (gen.matcapMode) {
+					case Mode.Replace:
 						shader.Define("MATCAP_REPLACE 1");
 						break;
-					case MatcapMode.Multiply:
+					case Mode.Multiply:
 						shader.Define("MATCAP_MULTIPLY 1");
 						break;
-					case MatcapMode.Add:
+					case Mode.Add:
 						shader.Define("MATCAP_ADD 1");
 						break;
 				}
-				shader.TagBool(KawaShadeCommons.F_MatcapKeepUp, matcapKeepUp);
-				if (matcapKeepUp) {
+				shader.TagBool(ShaderTag_MatcapKeepUp, gen.matcapKeepUp);
+				if (gen.matcapKeepUp) {
 					shader.Define("MATCAP_KEEPUP 1");
 				}
 				shader.properties.Add(new Property2D() { name = "_MatCap", defualt = "white" });
@@ -45,39 +50,40 @@ namespace Kawashirov.KawaShade {
 				shader.Define("MATCAP_OFF 1");
 			}
 		}
-	}
 
-	public partial class KawaShadeGeneratorEditor {
-		private static readonly GUIContent gui_feature_matcap = new GUIContent("Matcap Feature");
-
-		private void MatcapGUI() {
-			var matcap = serializedObject.FindProperty("matcap");
+		public override void GeneratorEditorGUI(KawaShadeGeneratorEditor editor) {
+			var matcap = editor.serializedObject.FindProperty("matcap");
 			KawaGUIUtility.ToggleLeft(matcap, gui_feature_matcap);
 			using (new EditorGUI.DisabledScope(matcap.hasMultipleDifferentValues || !matcap.boolValue)) {
 				using (new EditorGUI.IndentLevelScope()) {
-					KawaGUIUtility.DefaultPrpertyField(this, "matcapMode", "Mode");
-					KawaGUIUtility.DefaultPrpertyField(this, "matcapKeepUp", "Keep Upward Direction");
+					KawaGUIUtility.DefaultPrpertyField(editor, "matcapMode", "Mode");
+					KawaGUIUtility.DefaultPrpertyField(editor, "matcapKeepUp", "Keep Upward Direction");
 				}
 			}
 		}
-	}
 
-	internal partial class KawaShadeGUI {
-		protected void OnGUI_MatCap() {
-			var _MatCap = FindProperty("_MatCap");
-			var _MatCap_Scale = FindProperty("_MatCap_Scale");
+		public override void ShaderEditorGUI(KawaShadeGUI editor) {
+			var _MatCap = editor.FindProperty("_MatCap");
+			var _MatCap_Scale = editor.FindProperty("_MatCap_Scale");
+
 			var f_matCap = KawaUtilities.AnyNotNull(_MatCap, _MatCap_Scale);
 			using (new EditorGUI.DisabledScope(!f_matCap)) {
 				EditorGUILayout.LabelField("MatCap Feature", f_matCap ? "Enabled" : "Disabled");
 				using (new EditorGUI.IndentLevelScope()) {
 					if (f_matCap) {
-						LabelEnumDisabledFromTagMixed<DistanceFadeMode>("Mode", KawaShadeCommons.F_MatcapMode);
+						editor.LabelEnumDisabledFromTagMixed<Mode>("Mode", ShaderTag_MatcapMode);
 						// TODO KeepUp bool label
-						ShaderPropertyDisabled(_MatCap, "MatCap Texture");
-						ShaderPropertyDisabled(_MatCap_Scale, "MatCap Power");
+						editor.ShaderPropertyDisabled(_MatCap, "MatCap Texture");
+						editor.ShaderPropertyDisabled(_MatCap_Scale, "MatCap Power");
 					}
 				}
 			}
 		}
+	}
+
+	public partial class KawaShadeGenerator {
+		public bool matcap = false;
+		public FeatureMatcap.Mode matcapMode = FeatureMatcap.Mode.Multiply;
+		public bool matcapKeepUp = true;
 	}
 }

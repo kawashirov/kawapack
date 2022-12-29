@@ -9,30 +9,29 @@ using Kawashirov.ShaderBaking;
 #if UNITY_EDITOR
 using UnityEditor;
 using static UnityEditor.EditorGUI;
-using static Kawashirov.MaterialsCommons;
 
 // Имя файла длжно совпадать с именем типа.
 // https://forum.unity.com/threads/solved-blank-scriptableobject-on-import.511527/
 
 namespace Kawashirov {
 	public class KawaShaderGUI : UnityEditor.ShaderGUI {
-		protected readonly static MaterialProperty[] EmptyMaterialProperty = new MaterialProperty[0];
-		protected readonly static Material[] EmptyMaterials = new Material[0];
-		protected readonly static string[] EmptyStrings = new string[0];
+		public readonly static MaterialProperty[] EmptyMaterialProperty = new MaterialProperty[0];
+		public readonly static Material[] EmptyMaterials = new Material[0];
+		public readonly static string[] EmptyStrings = new string[0];
 
-		protected MaterialEditor materialEditor;
-		protected MaterialProperty[] materialPropertiesArray;
-		protected Material targetMaterial;
-		protected Material[] targetMaterials;
-		protected Shader[] targetShaders;
+		public MaterialEditor materialEditor;
+		public MaterialProperty[] materialPropertiesArray;
+		public Material targetMaterial;
+		public Material[] targetMaterials;
+		public Shader[] targetShaders;
 		// Использовать только для чтения!
 		// Для записи использовать serializedObject
-		protected IDictionary<string, MaterialProperty> materialProperties;
-		protected IDictionary<string, ShaderTag> shaderTags;
+		public IDictionary<string, MaterialProperty> materialProperties;
+		public IDictionary<string, ShaderTag> shaderTags;
 
 		public virtual IEnumerable<string> GetShaderTagsOfIntrest() => EmptyStrings;
 
-		private void UpdateMaterialEditorFields() {
+		public void UpdateMaterialEditorFields() {
 			targetMaterial = materialEditor?.target as Material;
 			var targets = materialEditor?.targets;
 			targetMaterials = targets == null || targets.Length == 0 ? EmptyMaterials : targets.OfType<Material>().ToArray();
@@ -43,13 +42,13 @@ namespace Kawashirov {
 
 		}
 
-		protected MaterialProperty FindProperty(string name) {
+		public MaterialProperty FindProperty(string name) {
 			materialProperties.TryGetValue(name, out var mp);
 			// Юнити иногда возвращает какие-то сломанные объекты почему-то
 			return mp != null && !string.IsNullOrEmpty(mp.name) && mp.targets != null && mp.targets.Length > 0 ? mp : null;
 		}
 
-		protected void LabelShaderTagEnumValue<E>(string name, string label, string invalid) where E : Enum {
+		public void LabelShaderTagEnumValue<E>(string name, string label, string invalid) where E : Enum {
 			E domain = default;
 			if (shaderTags[name].GetEnumValueSafe(ref domain)) {
 				EditorGUILayout.LabelField(label, Enum.GetName(typeof(E), domain));
@@ -58,7 +57,7 @@ namespace Kawashirov {
 			}
 		}
 
-		protected void TexturePropertySmolDisabled(GUIContent label, MaterialProperty prop, bool compatibility = true) {
+		public void TexturePropertySmolDisabled(GUIContent label, MaterialProperty prop, bool compatibility = true) {
 			// TODO FIXME
 			using (new DisabledScope(prop == null)) {
 				if (prop != null) {
@@ -69,7 +68,7 @@ namespace Kawashirov {
 			}
 		}
 
-		protected void TexturePropertySingleLineDisabled(GUIContent label, MaterialProperty prop, 
+		public void TexturePropertySingleLineDisabled(GUIContent label, MaterialProperty prop, 
 			bool compatibility = true, bool emptyWarning = true) {
 			using (new DisabledScope(prop == null)) {
 				if (prop != null) {
@@ -89,12 +88,12 @@ namespace Kawashirov {
 			}
 		}
 
-		protected void ShaderPropertyDisabled(MaterialProperty property, string label = null) {
+		public void ShaderPropertyDisabled(MaterialProperty property, string label = null) {
 			var gui_label = new GUIContent(label); // null label is ok
 			ShaderPropertyDisabled(property, gui_label);
 		}
 
-		protected void ShaderPropertyDisabled(MaterialProperty property, GUIContent label = null) {
+		public void ShaderPropertyDisabled(MaterialProperty property, GUIContent label = null) {
 			if (property != null) {
 				materialEditor.ShaderProperty(property, label);
 			} else {
@@ -104,7 +103,7 @@ namespace Kawashirov {
 			}
 		}
 
-		protected static void LabelEnum<E>(string label, E value, Dictionary<E, string> display = null) where E : struct {
+		public static void LabelEnum<E>(string label, E value, Dictionary<E, string> display = null) where E : struct {
 			string label2 = null;
 			if (display != null && display.Count > 0) {
 				display.TryGetValue(value, out label2);
@@ -116,7 +115,7 @@ namespace Kawashirov {
 		}
 
 
-		protected void LabelEnumDisabledFromTagMixed<E>(string label, string tag, Dictionary<E, string> display = null) where E : Enum {
+		public void LabelEnumDisabledFromTagMixed<E>(string label, string tag, Dictionary<E, string> display = null) where E : Enum {
 			var values = shaderTags[tag].GetMultipleValues().ToList();
 			if (values.Count < 1) {
 				using (new DisabledScope(true)) {

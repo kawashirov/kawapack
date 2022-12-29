@@ -1,3 +1,4 @@
+using Kawashirov.KawaShade;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -47,7 +48,7 @@ namespace Kawashirov.ShaderBaking {
 			shadowcaster.defines.Add(define);
 		}
 
-		public void Include(string include) {
+		public void Include(ShaderInclude include) {
 			forward.includes.Add(include);
 			forward_add.includes.Add(include);
 			shadowcaster.includes.Add(include);
@@ -69,7 +70,9 @@ namespace Kawashirov.ShaderBaking {
 		}
 
 		public void Bake(StringBuilder sb) {
-			sb.AppendFormat("Shader \"{0}\" {{\n", name);
+			var ic = CultureInfo.InvariantCulture;
+
+			sb.AppendFormat(ic, "Shader \"{0}\"{{\n", name);
 
 			sb.BakeProperties(properties);
 
@@ -80,11 +83,11 @@ namespace Kawashirov.ShaderBaking {
 			forward_add.Bake(sb);
 			shadowcaster.Bake(sb);
 
-			sb.Append("}\n");
+			sb.Append("} // End of SubShader\n");
 			sb.Append("FallBack \"Mobile/Diffuse\"\n");
 			if (!string.IsNullOrWhiteSpace(custom_editor))
-				sb.AppendFormat("CustomEditor \"{0}\"\n", custom_editor);
-			sb.Append("}\n");
+				sb.AppendFormat(ic, "CustomEditor \"{0}\"\n", custom_editor);
+			sb.Append("} // End of Shader\n");
 		}
 
 	}

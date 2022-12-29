@@ -4,14 +4,6 @@
 #include "UnityLightingCommon.cginc"
 #include "UnityStandardUtils.cginc"
 
-#include ".\kawa_feature_fps.cginc"
-#include ".\kawa_feature_white_noise.cginc"
-
-#include ".\kawa_feature_poly_color_wave.cginc"
-#include ".\kawa_feature_outline.cginc"
-
-#include ".\kawa_feature_infinity_war.cginc"
-
 inline float2 frag_pixelcoords(FRAGMENT_IN i) {
 	float2 pxc = float2(1, 1);
 	#if defined(RANDOM_MIX_COORD) || defined(RANDOM_SEED_TEX)
@@ -46,23 +38,29 @@ inline float2 frag_applyst(float2 uv) {
 }
 
 inline void frag_alphatest(FRAGMENT_IN i, inout uint rnd, inout half alpha) {
-	#if defined(CUTOFF_FADE)
-		// Первичное преобразование
-		alpha = (alpha - _Cutoff) / (1.0 - _Cutoff);
-		clip(alpha);
-	#endif
-	#if defined(CUTOFF_CLASSIC) 
-		#if defined(CUTOFF_FADE)
-			#error "CUTOFF_CLASSIC defined (with) CUTOFF_FADE"
+	half cutoff = 0;
+
+	#if defined(CUTOFF_CLASSIC)
+		cutoff = _Cutoff;
+	#elif defined(CUTOFF_RANGE)
+		half spread = 0.5h;
+		#if defined(CUTOFF_RANDOM)
+			spread = rnd_next_float_01(rnd);
+		#elif
+			// half spread = // TODO BAYER
 		#endif
-		clip(alpha - _Cutoff);
-	#elif defined(CUTOFF_RANDOM)
-		float spread = rnd_next_float_01(rnd);
-		#if defined(CUTOFF_RANDOM_H01)
+		#if defined(CUTOFF_H01)
 			spread = smoothstep(0, 1, spread);
 		#endif
-			float rnd_cutoff = lerp(_CutoffMin, _CutoffMax, spread);
-		clip(alpha - rnd_cutoff);
+		cutoff = lerp(_CutoffMin, _CutoffMax, spread);
+	#endif
+	
+	#if defined(CUTOFF_ON)
+		if (alpha < cutoff)
+			discard;
+		#if defined(CUTOFF_REMAP)
+			alpha = (alpha - _Cutoff) / (1.0 - _Cutoff);
+		#endif
 	#endif
 }
 

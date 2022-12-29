@@ -4,10 +4,6 @@
 #include "UnityLightingCommon.cginc"
 #include "UnityStandardUtils.cginc"
 
-#include ".\kawa_shading_kawaflt_log.cginc"
-#include ".\kawa_shading_kawaflt_ramp.cginc"
-#include ".\kawa_shading_kawaflt_single.cginc"
-
 // Общаяя функа для pre-frag, записывает vertexlight и ambient
 
 #if defined(FRAGMENT_IN)

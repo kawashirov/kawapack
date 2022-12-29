@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -16,6 +18,14 @@ namespace Kawashirov {
 		public static Vector2 YZ(this Vector3 v) => new Vector2(v.y, v.z);
 
 		public static Color Alpha(this Color c, float a) => new Color(c.r, c.g, c.b, a);
+
+		public static Type[] GetTypesSafe(this Assembly asm) {
+			try {
+				return asm.GetTypes();
+			} catch (ReflectionTypeLoadException exc) {
+				return exc.Types;
+			}
+		}
 
 		public static T GetOrAddComponent<T>(this GameObject gobj) where T : Component {
 			var c = gobj.GetComponent<T>();
@@ -130,7 +140,7 @@ namespace Kawashirov {
 			}
 		}
 
-		public static IEnumerable<GameObject> TraverseParents(this GameObject root, bool excludeSelf = true) 
+		public static IEnumerable<GameObject> TraverseParents(this GameObject root, bool excludeSelf = true)
 			=> root.transform.TraverseParents(excludeSelf).Select(t => t.gameObject);
 
 		public static IEnumerable<Transform> TraverseParents(this Transform transform, bool excludeSelf = true) {
@@ -169,13 +179,6 @@ namespace Kawashirov {
 			return false;
 		}
 
-		public static bool AnyEq(int value, params int[] values) {
-			foreach (var v in values) {
-				if (value == v)
-					return true;
-			}
-			return false;
-		}
 
 #if UNITY_EDITOR
 

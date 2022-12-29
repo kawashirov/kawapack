@@ -3,30 +3,36 @@ using UnityEngine.Rendering;
 using UnityEditor;
 using Kawashirov;
 using Kawashirov.ShaderBaking;
+using System.Collections.Generic;
 
 namespace Kawashirov.KawaShade {
-	public enum DistanceFadeMode { Range, Infinity }
-
-	internal static partial class KawaShadeCommons {
+	public class FeatureDistanceFade : AbstractFeature {
 		internal static readonly string F_DistanceFade = "KawaShade_Feature_DistanceFade";
 		internal static readonly string F_DistanceFadeMode = "KawaShade_Feature_DistanceFadeMode";
-	}
 
-	public partial class KawaShadeGenerator {
-		public bool distanceFade = false;
-		public DistanceFadeMode distanceFadeMode = DistanceFadeMode.Range;
+		internal static readonly GUIContent gui_feature_dstfd = new GUIContent("Distance Dithering Fade Feature");
 
-		private void ConfigureFeatureDistanceFade(ShaderSetup shader) {
-			shader.TagBool(KawaShadeCommons.F_DistanceFade, distanceFade);
-			if (distanceFade) {
+		public enum Mode { Range, Infinity }
+
+		public override void PopulateShaderTags(List<string> tags) {
+			tags.Add(F_DistanceFade);
+			tags.Add(F_DistanceFadeMode);
+		}
+
+		public override void ConfigureShader(KawaShadeGenerator gen, ShaderSetup shader) {
+			IncludeFeatureDirect(shader, "kawa_feature_distance_fade.cginc");
+
+
+			shader.TagBool(F_DistanceFade, gen.distanceFade);
+			if (gen.distanceFade) {
 				shader.Define("DSTFD_ON 1");
-				needRandomFrag = true;
-				shader.TagEnum(KawaShadeCommons.F_DistanceFadeMode, distanceFadeMode);
-				switch (distanceFadeMode) {
-					case DistanceFadeMode.Range:
+				gen.needRandomFrag = true;
+				shader.TagEnum(F_DistanceFadeMode, gen.distanceFadeMode);
+				switch (gen.distanceFadeMode) {
+					case Mode.Range:
 						shader.Define("DSTFD_RANGE 1");
 						break;
-					case DistanceFadeMode.Infinity:
+					case Mode.Infinity:
 						shader.Define("DSTFD_INFINITY 1");
 						break;
 				}
@@ -40,44 +46,42 @@ namespace Kawashirov.KawaShade {
 			}
 		}
 
-	}
-
-	public partial class KawaShadeGeneratorEditor {
-		private static readonly GUIContent gui_feature_dstfd = new GUIContent("Distance Dithering Fade Feature");
-
-		private void DistanceFadeGUI() {
-			var distanceFade = serializedObject.FindProperty("distanceFade");
+		public override void GeneratorEditorGUI(KawaShadeGeneratorEditor editor) {
+			var distanceFade = editor.serializedObject.FindProperty("distanceFade");
 			KawaGUIUtility.ToggleLeft(distanceFade, gui_feature_dstfd);
 			using (new EditorGUI.DisabledScope(distanceFade.hasMultipleDifferentValues || !distanceFade.boolValue)) {
 				using (new EditorGUI.IndentLevelScope()) {
-					KawaGUIUtility.DefaultPrpertyField(this, "distanceFadeMode", "Mode");
+					KawaGUIUtility.DefaultPrpertyField(editor, "distanceFadeMode", "Mode");
 				}
 			}
 		}
-	}
 
-	internal partial class KawaShadeGUI {
-		protected void OnGUI_DistanceFade() {
-			var _DstFd_Axis = FindProperty("_DstFd_Axis");
-			var _DstFd_Near = FindProperty("_DstFd_Near");
-			var _DstFd_Far = FindProperty("_DstFd_Far");
-			var _DstFd_AdjustPower = FindProperty("_DstFd_AdjustPower");
-			var _DstFd_AdjustScale = FindProperty("_DstFd_AdjustScale");
+		public override void ShaderEditorGUI(KawaShadeGUI editor) {
+			var _DstFd_Axis = editor.FindProperty("_DstFd_Axis");
+			var _DstFd_Near = editor.FindProperty("_DstFd_Near");
+			var _DstFd_Far = editor.FindProperty("_DstFd_Far");
+			var _DstFd_AdjustPower = editor.FindProperty("_DstFd_AdjustPower");
+			var _DstFd_AdjustScale = editor.FindProperty("_DstFd_AdjustScale");
 			var f_distanceFade = KawaUtilities.AnyNotNull(_DstFd_Axis, _DstFd_Near, _DstFd_Far, _DstFd_AdjustPower, _DstFd_AdjustScale);
 			using (new EditorGUI.DisabledScope(!f_distanceFade)) {
 				EditorGUILayout.LabelField("Distance Fade Feature", f_distanceFade ? "Enabled" : "Disabled");
 				using (new EditorGUI.IndentLevelScope()) {
 					if (f_distanceFade) {
-						LabelEnumDisabledFromTagMixed<DistanceFadeMode>("Mode", KawaShadeCommons.F_DistanceFadeMode);
-						ShaderPropertyDisabled(_DstFd_Axis, "Axis weights");
-						ShaderPropertyDisabled(_DstFd_Near, "Near Distance");
-						ShaderPropertyDisabled(_DstFd_Far, "Far Distance");
-						ShaderPropertyDisabled(_DstFd_AdjustPower, "Power Adjust");
-						ShaderPropertyDisabled(_DstFd_AdjustScale, "Scale Adjust");
+						editor.LabelEnumDisabledFromTagMixed<Mode>("Mode", F_DistanceFadeMode);
+						editor.ShaderPropertyDisabled(_DstFd_Axis, "Axis weights");
+						editor.ShaderPropertyDisabled(_DstFd_Near, "Near Distance");
+						editor.ShaderPropertyDisabled(_DstFd_Far, "Far Distance");
+						editor.ShaderPropertyDisabled(_DstFd_AdjustPower, "Power Adjust");
+						editor.ShaderPropertyDisabled(_DstFd_AdjustScale, "Scale Adjust");
 					}
 				}
 			}
 		}
+	}
+
+	public partial class KawaShadeGenerator {
+		public bool distanceFade = false;
+		public FeatureDistanceFade.Mode distanceFadeMode = FeatureDistanceFade.Mode.Range;
 	}
 }
 

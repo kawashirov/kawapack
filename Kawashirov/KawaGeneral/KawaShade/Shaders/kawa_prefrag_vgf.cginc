@@ -1,25 +1,8 @@
 #ifndef KAWAFLT_VERT_GEOMETRY_INCLUDED
 #define KAWAFLT_VERT_GEOMETRY_INCLUDED
 
-#include ".\kawa_struct_vgf.cginc"
-
 #include "Tessellation.cginc"
 #include "UnityInstancing.cginc"
-#include ".\kawa_rnd.cginc"
-
-#include ".\kawa_prefrag_shared.cginc"
-
-#include ".\kawa_feature_dps.cginc"
-#include ".\kawa_feature_distance_fade.cginc"
-#include ".\kawa_feature_fps.cginc"
-#include ".\kawa_feature_matcap.cginc"
-#include ".\kawa_feature_psx.cginc"
-
-#include ".\kawa_feature_infinity_war.cginc"
-#include ".\kawa_feature_poly_color_wave.cginc"
-#include ".\kawa_feature_outline.cginc"
-
-#include ".\kawa_shading_kawaflt_fragment_in.cginc"
 
 /* General */
 

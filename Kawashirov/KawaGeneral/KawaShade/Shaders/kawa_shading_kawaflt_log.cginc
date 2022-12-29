@@ -4,11 +4,7 @@
 #include "UnityLightingCommon.cginc"
 #include "UnityStandardUtils.cginc"
 
-#include ".\kawa_shading_kawaflt_common.cginc"
-
-/*
-	KawaShade Log Diffuse-based
-*/
+// KawaShade Log Diffuse-based
 
 uniform float _Sh_Kwshrv_ShdBlnd;
 

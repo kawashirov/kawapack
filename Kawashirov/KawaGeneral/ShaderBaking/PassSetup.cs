@@ -1,6 +1,8 @@
+using Kawashirov.KawaShade;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -34,7 +36,7 @@ namespace Kawashirov.ShaderBaking {
 		public bool multi_compile_instancing = true;
 		public HashSet<string> skip_variants = new HashSet<string>();
 
-		public List<string> includes = new List<string>();
+		public SortedSet<ShaderInclude> includes = new SortedSet<ShaderInclude>();
 
 		public string vertex = null;
 		public string hull = null;
@@ -86,51 +88,49 @@ namespace Kawashirov.ShaderBaking {
 
 			var ic = CultureInfo.InvariantCulture;
 
-			sb.Append("Pass {\n");
+			sb.AppendFormat(ic, "Pass {{ // {0}\n", name);
 			sb.AppendFormat(ic, "Name \"{0}\"\n", name);
 
 			sb.BakeTags(tags);
 			sb.Append("\n");
 
 			if (cullMode.HasValue)
-				sb.AppendFormat("Cull {0} \n", Enum.GetName(typeof(CullMode), cullMode.Value));
+				sb.AppendFormat(ic, "Cull {0}\n", Enum.GetName(typeof(CullMode), cullMode.Value));
 			if (srcBlend.HasValue && dstBlend.HasValue) {
-				sb.AppendFormat(
-						"Blend {0} {1} \n",
-						Enum.GetName(typeof(BlendMode), srcBlend.Value),
-						Enum.GetName(typeof(BlendMode), dstBlend.Value)
-				);
+				var srcName = Enum.GetName(typeof(BlendMode), srcBlend.Value);
+				var dstName = Enum.GetName(typeof(BlendMode), dstBlend.Value);
+				sb.AppendFormat("Blend {0} {1}\n", srcName, dstName);
 			}
 			if (zWrite.HasValue)
-				sb.AppendFormat("ZWrite {0} \n", zWrite.Value ? "On" : "Off");
+				sb.AppendFormat(ic, "ZWrite {0}\n", zWrite.Value ? "On" : "Off");
 
 			if (stencilRef.HasValue || stencilComp.HasValue || stencilPass.HasValue || stencilZFail.HasValue) {
-				sb.Append("Stencil { \n");
+				sb.Append("Stencil {\n");
 
 				if (stencilRef.HasValue)
-					sb.AppendFormat("ZWrite {0} \n", stencilRef.Value);
+					sb.AppendFormat(ic, "ZWrite {0}\n", stencilRef.Value);
 				if (stencilComp.HasValue)
-					sb.AppendFormat("Comp {0} \n", Enum.GetName(typeof(CompareFunction), stencilComp.Value));
+					sb.AppendFormat(ic, "Comp {0}\n", Enum.GetName(typeof(CompareFunction), stencilComp.Value));
 				if (stencilPass.HasValue)
-					sb.AppendFormat("Pass {0} \n", Enum.GetName(typeof(StencilOp), stencilPass.Value));
+					sb.AppendFormat(ic, "Pass {0}\n", Enum.GetName(typeof(StencilOp), stencilPass.Value));
 				if (stencilZFail.HasValue)
-					sb.AppendFormat("ZFail {0} \n", Enum.GetName(typeof(StencilOp), stencilZFail.Value));
+					sb.AppendFormat(ic, "ZFail {0}\n", Enum.GetName(typeof(StencilOp), stencilZFail.Value));
 
-				sb.Append("}\n");
+				sb.Append("} // End of Stencil\n");
 			}
 
-			sb.Append("\nCGPROGRAM\n");
+			sb.Append("\nHLSLPROGRAM\n");
 
 			foreach (var define in defines)
-				sb.Append("#define ").Append(define).Append('\n');
+				sb.AppendFormat(ic, "#define {0}\n", define);
 			if (!string.IsNullOrEmpty(target))
-				sb.Append("#pragma target ").Append(target).Append('\n');
+				sb.AppendFormat(ic, "#pragma target {0}\n", target);
 
 			if (only_renderers.Count > 0) {
 				sb.Append("#pragma only_renderers ");
 				foreach (var renderer in only_renderers)
 					sb.Append(renderer).Append(' ');
-				sb.Append('\n');
+				sb.Append("\n");
 			}
 			if (enable_d3d11_debug_symbols)
 				sb.Append("#pragma enable_d3d11_debug_symbols\n");
@@ -150,25 +150,25 @@ namespace Kawashirov.ShaderBaking {
 				sb.Append("#pragma skip_variants ");
 				foreach (var skip_variant in skip_variants)
 					sb.Append(skip_variant).Append(' ');
-				sb.Append('\n');
+				sb.Append("\n");
 			}
 
 			foreach (var include in includes)
-				sb.Append("#include \"").Append(include).Append("\"\n");
+				include.Bake(sb);
 
 			if (!string.IsNullOrEmpty(vertex))
-				sb.Append("#pragma vertex ").Append(vertex).Append('\n');
+				sb.AppendFormat(ic, "#pragma vertex {0}\n", vertex);
 			if (!string.IsNullOrEmpty(hull))
-				sb.Append("#pragma hull ").Append(hull).Append('\n');
+				sb.AppendFormat(ic, "#pragma hull {0}\n", hull);
 			if (!string.IsNullOrEmpty(domain))
-				sb.Append("#pragma domain ").Append(domain).Append('\n');
+				sb.AppendFormat(ic, "#pragma domain {0}\n", domain);
 			if (!string.IsNullOrEmpty(geometry))
-				sb.Append("#pragma geometry ").Append(geometry).Append('\n');
+				sb.AppendFormat(ic, "#pragma geometry {0}\n", geometry);
 			if (!string.IsNullOrEmpty(fragment))
-				sb.Append("#pragma fragment ").Append(fragment).Append('\n');
+				sb.AppendFormat(ic, "#pragma fragment {0}\n", fragment);
 
-			sb.Append("\nENDCG\n");
-			sb.Append("}\n");
+			sb.Append("\nENDHLSL\n");
+			sb.Append("} // End of Pass \n");
 			return;
 		}
 	}

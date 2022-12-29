@@ -5,17 +5,6 @@
 	#error KAWAFLT_PASS_FORWARDADD not defined, but KAWAFLT_STAGE_FRAGMENT_FORWARD_ADD included. 
 #endif
 
-#include ".\kawa_frag_shared.cginc"
-
-#include ".\kawa_feature_distance_fade.cginc"
-#include ".\kawa_feature_matcap.cginc"
-#include ".\kawa_feature_glitter.cginc"
-
-#include ".\kawa_shading_cubedparadox.cginc"
-#include ".\kawa_shading_kawaflt_log.cginc"
-#include ".\kawa_shading_kawaflt_ramp.cginc"
-#include ".\kawa_shading_kawaflt_single.cginc"
-
 /* General fragment function */
 half4 frag_forwardadd(FRAGMENT_IN i) : COLOR {
 	UNITY_SETUP_INSTANCE_ID(i);

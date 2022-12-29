@@ -21,7 +21,6 @@ namespace Kawashirov.ShaderBaking {
 	public class BaseGenerator : ScriptableObject, IRefreshable {
 
 		public string shaderName = "";
-		public bool debug = false;
 
 		public Shader result = null;
 

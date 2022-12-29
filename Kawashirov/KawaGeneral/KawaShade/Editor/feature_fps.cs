@@ -3,31 +3,36 @@ using UnityEngine.Rendering;
 using UnityEditor;
 using Kawashirov;
 using Kawashirov.ShaderBaking;
+using System.Collections.Generic;
 
 namespace Kawashirov.KawaShade {
-	public enum FPSMode { ColorTint, DigitsTexture, DigitsMesh }
-
-	internal static partial class KawaShadeCommons {
+	public class FeatureFPS : AbstractFeature {
 		internal static readonly string F_FPS = "KawaShade_Feature_FPS";
 		internal static readonly string F_FPSMode = "KawaShade_Feature_FPSMode";
-	}
 
-	public partial class KawaShadeGenerator {
-		public bool FPS = false;
-		public FPSMode FPSMode = FPSMode.ColorTint;
+		internal static readonly GUIContent gui_feature_fps = new GUIContent("FPS Feature");
 
-		private void ConfigureFeatureFPS(ShaderSetup shader) {
-			shader.TagBool(KawaShadeCommons.F_FPS, FPS);
-			if (FPS) {
-				shader.TagEnum(KawaShadeCommons.F_FPSMode, FPSMode);
-				switch (FPSMode) {
-					case FPSMode.ColorTint:
+		public enum Mode { ColorTint, DigitsTexture, DigitsMesh }
+
+		public override void PopulateShaderTags(List<string> tags) {
+			tags.Add(F_FPS);
+			tags.Add(F_FPSMode);
+		}
+
+		public override void ConfigureShader(KawaShadeGenerator gen, ShaderSetup shader) {
+			IncludeFeatureDirect(shader, "kawa_feature_fps.cginc");
+
+			shader.TagBool(F_FPS, gen.FPS);
+			if (gen.FPS) {
+				shader.TagEnum(F_FPSMode, gen.FPSMode);
+				switch (gen.FPSMode) {
+					case Mode.ColorTint:
 						shader.Define("FPS_COLOR 1");
 						break;
-					case FPSMode.DigitsTexture:
+					case Mode.DigitsTexture:
 						shader.Define("FPS_TEX 1");
 						break;
-					case FPSMode.DigitsMesh:
+					case Mode.DigitsMesh:
 						shader.Define("FPS_MESH 1");
 						break;
 				}
@@ -37,39 +42,37 @@ namespace Kawashirov.KawaShade {
 				shader.Define("FPS_OFF 1");
 			}
 		}
-	}
 
-	public partial class KawaShadeGeneratorEditor {
-		private static readonly GUIContent gui_feature_fps = new GUIContent("FPS Feature");
-
-		private void FPSGUI() {
-			var FPS = serializedObject.FindProperty("FPS");
+		public override void GeneratorEditorGUI(KawaShadeGeneratorEditor editor) {
+			var FPS = editor.serializedObject.FindProperty("FPS");
 			KawaGUIUtility.ToggleLeft(FPS, gui_feature_fps);
 			using (new EditorGUI.DisabledScope(FPS.hasMultipleDifferentValues || !FPS.boolValue)) {
 				using (new EditorGUI.IndentLevelScope()) {
-					KawaGUIUtility.DefaultPrpertyField(this, "FPSMode", "Mode");
+					KawaGUIUtility.DefaultPrpertyField(editor, "FPSMode", "Mode");
 				}
 			}
 		}
 
-	}
-
-	internal partial class KawaShadeGUI {
-		protected void OnGUI_FPS() {
-			// KawaShadeCommons.MaterialTagBoolCheck(this.target, KawaShadeCommons.KawaFLT_Feature_FPS);
-			var _FPS_TLo = FindProperty("_FPS_TLo");
-			var _FPS_THi = FindProperty("_FPS_THi");
+		public override void ShaderEditorGUI(KawaShadeGUI editor) {
+			var _FPS_TLo = editor.FindProperty("_FPS_TLo");
+			var _FPS_THi = editor.FindProperty("_FPS_THi");
 			var f_FPS = KawaUtilities.AnyNotNull(_FPS_TLo, _FPS_THi);
 			using (new EditorGUI.DisabledScope(!f_FPS)) {
 				EditorGUILayout.LabelField("FPS Indication Feature", f_FPS ? "Enabled" : "Disabled");
 				using (new EditorGUI.IndentLevelScope()) {
 					if (f_FPS) {
-						LabelEnumDisabledFromTagMixed<FPSMode>("Mode", KawaShadeCommons.F_FPSMode);
-						ShaderPropertyDisabled(_FPS_TLo, "Low FPS tint");
-						ShaderPropertyDisabled(_FPS_THi, "High FPS tint");
+						editor.LabelEnumDisabledFromTagMixed<Mode>("Mode", F_FPSMode);
+						editor.ShaderPropertyDisabled(_FPS_TLo, "Low FPS tint");
+						editor.ShaderPropertyDisabled(_FPS_THi, "High FPS tint");
 					}
 				}
 			}
 		}
 	}
+
+	public partial class KawaShadeGenerator {
+		public bool FPS = false;
+		public FeatureFPS.Mode FPSMode = FeatureFPS.Mode.ColorTint;
+	}
+
 }

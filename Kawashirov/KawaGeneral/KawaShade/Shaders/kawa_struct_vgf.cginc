@@ -1,8 +1,6 @@
 #ifndef KAWA_STRUCT_VGF_INCLUDED
 #define KAWA_STRUCT_VGF_INCLUDED
 
-#include ".\kawa_struct_shared.cginc"
-
 #include "AutoLight.cginc"
 #include "UnityInstancing.cginc"
 
