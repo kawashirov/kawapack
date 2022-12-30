@@ -31,7 +31,7 @@ namespace Kawashirov.KawaShade {
 		public enum ShadingMode { CubedParadoxFLT, KawashirovFLTSingle, KawashirovFLTRamp }
 
 		public override void PopulateShaderTags(List<string> tags) {
-
+			tags.Add(F_Shading);
 		}
 
 		public override void ConfigureShader(KawaShadeGenerator gen, ShaderSetup shader) {

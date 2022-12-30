@@ -30,10 +30,12 @@ namespace Kawashirov.KawaShade {
 		public override int GetOrder() => (int)Order.GENERAL;
 
 		public override void PopulateShaderTags(List<string> tags) {
+			tags.Add(F_Debug);
 			tags.Add(F_Geometry);
 			tags.Add(F_Tessellation);
 			tags.Add(F_Partitioning);
 			tags.Add(F_Domain);
+			tags.Add(F_Instancing);
 		}
 
 		public override void ConfigureShaderEarly(KawaShadeGenerator gen, ShaderSetup shader) {
