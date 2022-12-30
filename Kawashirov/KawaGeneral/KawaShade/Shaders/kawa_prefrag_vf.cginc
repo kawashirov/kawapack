@@ -41,14 +41,16 @@ VERTEX_OUT vert(VERTEX_IN v_in) {
 		v_out.tangent_world = normalize(UnityObjectToWorldDir(tangent_obj));
 		v_out.bitangent_world = normalize(cross(v_out.normal_world, v_out.tangent_world) * tangent_w);
 		
+		float3 wsvd = UnityWorldSpaceViewDir(v_out.pos_world.xyz);
+		half3 wsvd_norm = normalize(wsvd);
+		
 		// (v_out.world_normal) -> (v_out.matcap_uv)
-		matcap_calc_uv(v_out);
+		matcap_calc_uv(v_out, wsvd_norm);
 
 		bool vertexlight = false;
 		#if defined(VERTEXLIGHT_ON)
 			vertexlight = true;
 		#endif
-		float3 wsvd = KawaWorldSpaceViewDir(v_out.pos_world.xyz);
 		kawaflt_fragment_in(v_out, /* compile-time */ vertexlight, wsvd);
 
 		// (vertex_obj, v_out.pos) -> (v_out._ShadowCoord)

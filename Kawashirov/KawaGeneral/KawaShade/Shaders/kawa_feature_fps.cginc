@@ -8,9 +8,6 @@
 #if defined(FPS_ON)
 	uniform float4 _FPS_TLo;
 	uniform float4 _FPS_THi;
-	#if defined(FPS_MESH)
-		#define NEED_CULL
-	#endif
 #endif
 
 #if defined(VERTEX_IN) && defined(VERTEX_OUT)
@@ -33,23 +30,22 @@
 					// по этому сжимаем в 0 что бы минимизировать растризацию
 				#endif
 			}
-			#if defined(NEED_CULL)
+			#if defined(NEED_VERT_CULL)
 				v_out.cull = fps_digit != v_digit;
 			#endif
 		#endif
 	}
 #endif // defined(VERTEX_IN) && defined(VERTEX_OUT)
 
-// (i.uv0) -> (i.uv0)
-inline void fps_frag(inout FRAGMENT_IN i) {
+inline void fps_apply_uv(inout half2 uv0) {
 	#if defined(FPS_TEX)
-		uint fps = clamp( (uint) round(unity_DeltaTime.w), 0, 99);
-		uint digit = (i.uv0.x > 0.5 ? fps : (fps / 10)) % 10;
-		i.uv0.x = frac(i.uv0.x * 2) / 10 + half(digit) / 10;
+		uint fps = clamp((uint) round(unity_DeltaTime.w), 0, 99);
+		uint digit = (uv0.x > 0.5 ? fps : (fps / 10)) % 10;
+		uv0.x = frac(uv0.x * 2) / 10 + half(digit) / 10;
 	#endif
 }
 
-inline void fps_apply_frag(inout half3 albedo, inout half3 emissive) {
+inline void fps_apply_colors(inout half3 albedo, inout half3 emissive) {
 	#if defined(FPS_ON)
 		// TODO
 		albedo *= lerp(_FPS_TLo, _FPS_THi, unity_DeltaTime.w / 91.0h);

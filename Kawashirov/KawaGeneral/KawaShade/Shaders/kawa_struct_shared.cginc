@@ -108,14 +108,6 @@ uniform float4 _Color;
 	#endif
 #endif
 
-/* FPS features */
-#if defined(FPS_ON)
-	#if defined(FPS_MESH)
-		#define NEED_CULL
-		// TODO
-	#endif
-#endif
-
 #if defined(PCW_ON)
 	#define NEED_UV1
 	// TODO UVS
@@ -137,7 +129,7 @@ struct appdata_full_extended {
 
 /* Helper functions */
 
-inline float3 KawaWorldSpaceCamPos() {
+inline float3 KawaStereoWorldSpaceCamPos() {
 	#if defined(USING_STEREO_MATRICES)
 		return (unity_StereoWorldSpaceCameraPos[0] + unity_StereoWorldSpaceCameraPos[1]) * 0.5;
 	#else
@@ -145,12 +137,12 @@ inline float3 KawaWorldSpaceCamPos() {
 	#endif
 }
 
-inline float3 KawaWorldSpaceViewDir(float3 worldPos) {
+inline float3 KawaStereoWorldSpaceViewDir(float3 worldPos) {
 	float3 dir;
 	UNITY_BRANCH if (unity_OrthoParams.w > 0.5) {
 		dir = normalize(unity_CameraWorldClipPlanes[4].xyz) * dot(float4(worldPos, 1.0), unity_CameraWorldClipPlanes[4]);
 	} else {
-		dir = KawaWorldSpaceCamPos() - worldPos;
+		dir = KawaStereoWorldSpaceCamPos() - worldPos;
 	}
 	return dir;
 }

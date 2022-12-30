@@ -27,7 +27,7 @@ struct v2g {
 		#endif
 	#endif
 
-	#if defined(NEED_CULL)
+	#if defined(NEED_VERT_CULL)
 		nointerpolation bool cull : KAWASMNT_CULL;
 	#endif
 };

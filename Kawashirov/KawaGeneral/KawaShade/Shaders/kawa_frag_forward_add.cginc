@@ -11,11 +11,14 @@ half4 frag_forwardadd(FRAGMENT_IN i) : COLOR {
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 
 	frag_cull(i);
-	fps_frag(i);
 
-	float2 texST = frag_applyst(i.uv0);
+	half2 texST = frag_applyst(i.uv0);
+	fps_apply_uv(texST);
 	
 	uint rnd = frag_rnd_init(i);
+	
+	float3 wsvd = UnityWorldSpaceViewDir(i.pos_world.xyz);
+	half3 wsvd_norm = normalize(wsvd);
 	
 	dstfd_frag_clip(i, rnd);
 	
@@ -28,10 +31,10 @@ half4 frag_forwardadd(FRAGMENT_IN i) : COLOR {
 	// Заменяюще-аддетивные эффекты
 	matcap_apply(i, albedo.rgb);
 	pcw_apply(i, albedo.rgb, emissive_dummy);
-	glitter_apply(texST, rnd, albedo.rgb, emissive_dummy);
+	glitter_apply_color(i, texST, rnd, normal3, wsvd_norm, albedo.rgb, emissive_dummy);
 	
 	// Заменяюще-затеняющие эффекты
-	fps_apply_frag(albedo.rgb, emissive_dummy);
+	fps_apply_colors(albedo.rgb, emissive_dummy);
 	wnoise_apply(i, rnd, albedo.rgb, emissive_dummy);
 	outline_apply_frag(albedo.rgb, emissive_dummy);
 	

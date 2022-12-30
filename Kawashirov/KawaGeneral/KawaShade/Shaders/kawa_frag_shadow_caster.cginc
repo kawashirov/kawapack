@@ -10,9 +10,9 @@ half4 frag_shadowcaster(FRAGMENT_IN i) : SV_Target {
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
  
 	frag_cull(i);
-	fps_frag(i);
 	
 	float2 texST = frag_applyst(i.uv0);
+	fps_apply_uv(texST);
 
 	uint rnd = frag_rnd_init(i);
 	

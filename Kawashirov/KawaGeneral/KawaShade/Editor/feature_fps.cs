@@ -34,6 +34,7 @@ namespace Kawashirov.KawaShade {
 						break;
 					case Mode.DigitsMesh:
 						shader.Define("FPS_MESH 1");
+						shader.Define("NEED_VERT_CULL 1");
 						break;
 				}
 				shader.properties.Add(new PropertyColor() { name = "_FPS_TLo", defualt = new Color(1, 0.5f, 0.5f, 1) });

@@ -87,7 +87,7 @@ inline half frag_shade_kawaflt_log_steps_color(half color) {
 
 	#ifdef KAWAFLT_PASS_FORWARDBASE
 		inline half3 frag_shade_kawaflt_log_forward_base(FRAGMENT_IN i, half3 albedo, half3 normal3, half3 emission) {
-			float3 view_dir = normalize(KawaWorldSpaceViewDir(i.pos_world));
+			float3 view_dir = normalize(UnityWorldSpaceViewDir(i.pos_world));
 			float view_tangency = dot(normal3, view_dir);
 			half rim_factor = frag_shade_kawaflt_log_rim_factor(view_tangency);
 
@@ -110,7 +110,7 @@ inline half frag_shade_kawaflt_log_steps_color(half color) {
 	
 	#ifdef KAWAFLT_PASS_FORWARDADD
 		inline half3 frag_shade_kawaflt_log_forward_add(FRAGMENT_IN i, half3 albedo, half3 normal) {
-			float3 view_dir = normalize(KawaWorldSpaceViewDir(i.pos_world));
+			float3 view_dir = normalize(UnityWorldSpaceViewDir(i.pos_world));
 			float view_tangency = dot(normal, view_dir);
 			half rim_factor = frag_shade_kawaflt_log_rim_factor(view_tangency);
 

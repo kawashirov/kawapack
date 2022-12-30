@@ -24,9 +24,6 @@ inline uint frag_rnd_init(FRAGMENT_IN i) {
 	#if defined(RANDOM_MIX_COORD)
 		rnd = rnd_apply_uint2(rnd, asuint(sc_floor));
 	#endif
-	#if defined(RANDOM_MIX_TIME)
-		rnd = rnd_apply_time(rnd);
-	#endif
 	return rnd;
 }
 
@@ -69,7 +66,7 @@ inline void frag_alphatest(FRAGMENT_IN i, uint rnd, inout half alpha) {
 }
 
 inline void frag_cull(FRAGMENT_IN i) {
-	#if defined(NEED_CULL) && defined(KAWAFLT_PIPELINE_VF)
+	#if defined(NEED_VERT_CULL) && defined(KAWAFLT_PIPELINE_VF)
 		// Без геометри стейджа у нас нет возможность сбрасывать примитивы, по этому сбрасываем фрагменты
 		if (i.cull) discard;
 	#endif

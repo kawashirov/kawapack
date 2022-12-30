@@ -12,7 +12,7 @@
 
 #if defined(FRAGMENT_IN)
 	// (world_normal) -> (matcap_uv)
-	inline void matcap_calc_uv(inout FRAGMENT_IN i) {
+	inline void matcap_calc_uv(inout FRAGMENT_IN i, half3 wsvd_norm) {
 		#if defined(MATCAP_ON) && defined(KAWAFLT_PASS_FORWARD)
 			// half3 normal_view = mul((float3x3)UNITY_MATRIX_V, i.normal_world);
 			// i.matcap_uv = normal_view.xy * 0.5h + 0.5h;
@@ -22,10 +22,9 @@
 
 			#if defined(MATCAP_KEEPUP)
 				// Также как и в маткапе VRChat, сохраняет верхнее направление в мире.
-				half3 view_dir = normalize(KawaWorldSpaceViewDir(i.pos_world.xyz));
 				half3 world_up = float3(0,1,0);
-				world_view_up = normalize(world_up - view_dir * dot(view_dir, world_up));
-				world_view_right = normalize(cross(view_dir, world_view_up));
+				world_view_up = normalize(world_up - wsvd_norm * dot(wsvd_norm, world_up));
+				world_view_right = normalize(cross(wsvd_norm, world_view_up));
 			#else
 				// Классический маткап, используем векторы камеры
 				world_view_up = normalize(mul((float3x3)unity_CameraToWorld, float3(0,1,0))).xyz;

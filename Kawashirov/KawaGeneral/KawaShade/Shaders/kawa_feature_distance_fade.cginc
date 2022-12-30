@@ -27,7 +27,7 @@
 	// (o.pos_world) -> (o.dstfd_distance)
 	inline void dstfade_frament_in(inout FRAGMENT_IN o) {
 		#if defined(DSTFD_ON)
-			o.dstfd_distance = length(KawaWorldSpaceViewDir(o.pos_world.xyz) * _DstFd_Axis.xyz);
+			o.dstfd_distance = length(KawaStereoWorldSpaceViewDir(o.pos_world.xyz) * _DstFd_Axis.xyz);
 		#endif
 	}
 	

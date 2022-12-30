@@ -63,7 +63,7 @@ void geom(triangle GEOMETRY_IN v_in[3], in uint p_id : SV_PrimitiveID, uint g_id
 
 	bool is_outline = g_id == 1;
 
-	#if defined(NEED_CULL)
+	#if defined(NEED_VERT_CULL)
 		// Удаление треугольника, если все вертексы к удалению
 		if (v_in[0].cull && v_in[1].cull && v_in[2].cull) return;
 	#endif
@@ -105,14 +105,16 @@ void geom(triangle GEOMETRY_IN v_in[3], in uint p_id : SV_PrimitiveID, uint g_id
 			v_out[i2].tangent_world = normalize(UnityObjectToWorldDir(v_in[i2].tangent_obj));
 			v_out[i2].bitangent_world = normalize(UnityObjectToWorldDir(v_in[i2].bitangent_obj));
 			
+			float3 wsvd = UnityWorldSpaceViewDir(v_out[i2].pos_world.xyz);
+			half3 wsvd_norm = normalize(wsvd);
+			
 			// (v_out.world_normal) -> (v_out.matcap_uv)
-			matcap_calc_uv(v_out[i2]);
+			matcap_calc_uv(v_out[i2], wsvd_norm);
 
 			bool vertexlight_on = false;
 			#if defined(KAWAFLT_PASS_FORWARDBASE) && defined(SHADE_KAWAFLT)
 				vertexlight_on = v_in[i2].vertexlight_on;
 			#endif
-			float3 wsvd = KawaWorldSpaceViewDir(v_out[i2].pos_world.xyz);
 			kawaflt_fragment_in(v_out[i2], vertexlight_on, wsvd);
 
 			// (vertex_obj, v_out.pos) -> (v_out._ShadowCoord)

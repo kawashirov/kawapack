@@ -52,7 +52,7 @@ struct TessellationFactors {
 
 TessellationFactors hullconst(InputPatch<HULL_IN,3> v_in) {
 	bool cull = false;
-	#if defined(NEED_CULL)
+	#if defined(NEED_VERT_CULL)
 		cull = v_in[0].cull && v_in[1].cull && v_in[2].cull;
 	#endif
 
@@ -149,8 +149,7 @@ DOMAIN_OUT domain (TessellationFactors tessFactors, const OutputPatch<DOMAIN_IN,
 	// v_out.vertex.xyz = normalize(v_out.vertex.xyz) * ( length(v_in[0].vertex.xyz) * bary.x + length(v_in[1].vertex.xyz) * bary.y + length(v_in[2].vertex.xyz) * bary.z );
 	// // v_out.vertex.xyz = normalize(v_out.vertex.xyz)* ( length(v_in[0].vertex.xyz) + length(v_in[1].vertex.xyz) + length(v_in[2].vertex.xyz) ) / 3.0;
 
-
-	#if defined(NEED_CULL)
+	#if defined(NEED_VERT_CULL)
 		v_out.cull = v_in[0].cull && v_in[1].cull && v_in[2].cull;
 	#endif
 
@@ -178,7 +177,7 @@ void geom(triangle GEOMETRY_IN v_in[3], uint p_id : SV_PrimitiveID, uint g_id : 
 
 	bool is_outline = g_id == 1;
 
-	#if defined(NEED_CULL)
+	#if defined(NEED_VERT_CULL)
 		// Удаление треугольника, если все вертексы к удалению
 		if (v_in[0].cull && v_in[1].cull && v_in[2].cull) return;
 	#endif
@@ -224,14 +223,16 @@ void geom(triangle GEOMETRY_IN v_in[3], uint p_id : SV_PrimitiveID, uint g_id : 
 			v_out[i2].tangent_world = normalize(UnityObjectToWorldDir(v_in[i2].tangent_obj));
 			v_out[i2].bitangent_world = normalize(UnityObjectToWorldDir(v_in[i2].bitangent_obj));
 			
+			float3 wsvd = UnityWorldSpaceViewDir(v_out[i2].pos_world.xyz);
+			half3 wsvd_norm = normalize(wsvd);
+			
 			// (v_out.world_normal) -> (v_out.matcap_uv)
-			matcap_calc_uv(v_out[i2]);
+			matcap_calc_uv(v_out[i2], wsvd_norm);
 
 			bool vertexlight_on = false;
 			#if defined(KAWAFLT_PASS_FORWARDBASE) && defined(SHADE_KAWAFLT)
 				vertexlight_on = v_in[i2].vertexlight_on;
 			#endif
-			float3 wsvd = KawaWorldSpaceViewDir(v_out[i2].pos_world.xyz);
 			kawaflt_fragment_in(v_out[i2], vertexlight_on, wsvd);
 
 			// (vertex_obj, v_out.pos) -> (v_out._ShadowCoord)
