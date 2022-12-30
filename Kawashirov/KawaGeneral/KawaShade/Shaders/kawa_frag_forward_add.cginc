@@ -15,20 +15,28 @@ half4 frag_forwardadd(FRAGMENT_IN i) : COLOR {
 
 	float2 texST = frag_applyst(i.uv0);
 	
-	uint rnd4_sc = frag_rnd_init(i);
-	uint rnd = rnd4_sc;
+	uint rnd = frag_rnd_init(i);
 	
-	dstfd_frag_clip(i, rnd4_sc);
+	dstfd_frag_clip(i, rnd);
 	
+	half4 albedo = frag_forward_get_albedo(i, texST);
+	half3 emissive_dummy = half3(0,0,0); // Оптимизируется компилятором.
 	half3 normal3 = frag_forward_get_normal(i, texST);
-	half4 albedo = frag_forward_get_albedo(i, texST, rnd4_sc);
-	half3 emissive = half3(0,0,0);
 	
-	frag_alphatest(i, rnd4_sc, albedo.a);
-
-	albedo.rgb = matcap_apply(i, albedo.rgb);
+	frag_alphatest(i, rnd, albedo.a);
 	
-	apply_glitter(albedo.rgb, emissive, texST, rnd);
+	// Заменяюще-аддетивные эффекты
+	matcap_apply(i, albedo.rgb);
+	pcw_apply(i, albedo.rgb, emissive_dummy);
+	glitter_apply(texST, rnd, albedo.rgb, emissive_dummy);
+	
+	// Заменяюще-затеняющие эффекты
+	fps_apply_frag(albedo.rgb, emissive_dummy);
+	wnoise_apply(i, rnd, albedo.rgb, emissive_dummy);
+	outline_apply_frag(albedo.rgb, emissive_dummy);
+	
+	// Последний, т.к. должен затенить все предыдущие эффекты.
+	iwd_apply(i, albedo.rgb, emissive_dummy);
 	
 	half4 finalColor;
 	finalColor.a = albedo.a;

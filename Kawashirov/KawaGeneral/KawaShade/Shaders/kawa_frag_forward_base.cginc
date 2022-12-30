@@ -10,7 +10,7 @@
 
 /* ForwardBase only utils */
 
-inline half3 frag_forward_get_emission_color(inout FRAGMENT_IN i, half3 baseColor, float2 texST, inout uint rnd) {
+inline half3 frag_forward_get_emission_color(inout FRAGMENT_IN i, half3 baseColor, float2 texST) {
 	half3 em = half3(0,0,0);
 	#if defined(EMISSION_ALBEDO_NOMASK)
 		em = baseColor;
@@ -23,10 +23,6 @@ inline half3 frag_forward_get_emission_color(inout FRAGMENT_IN i, half3 baseColo
 		em = em * _EmissionColor.rgb * _EmissionColor.a;
 		em = em * em; // TODO FIXME Gamma fix?
 	#endif
-	em = wnoise_mix(em, i, true, rnd);
-	em = fps_mix(half4(em, 0)).rgb;
-	em = pcw_mix(em, i, true); // Mix-in Poly Color Wave
-	em = iwd_mix_emission(em, i);
 	return em;
 }
 
@@ -41,20 +37,28 @@ half4 frag_forwardbase(FRAGMENT_IN i) : COLOR {
 
 	float2 texST = frag_applyst(i.uv0);
 
-	uint rnd4_sc = frag_rnd_init(i);
-	uint rnd = rnd4_sc;
+	uint rnd = frag_rnd_init(i);
 	
-	dstfd_frag_clip(i, rnd4_sc);
+	dstfd_frag_clip(i, rnd);
 
+	half4 albedo = frag_forward_get_albedo(i, texST);
 	half3 normal3 = frag_forward_get_normal(i, texST);
-	half4 albedo = frag_forward_get_albedo(i, texST, rnd4_sc);
-	half3 emissive = frag_forward_get_emission_color(i, albedo, texST, rnd4_sc);
+	half3 emissive = frag_forward_get_emission_color(i, albedo, texST);
 	
-	frag_alphatest(i, rnd4_sc, albedo.a);
+	frag_alphatest(i, rnd, albedo.a);
 
-	albedo.rgb = matcap_apply(i, albedo.rgb);
+	// Заменяюще-аддетивные эффекты
+	matcap_apply(i, albedo.rgb);
+	pcw_apply(i, albedo.rgb, emissive);
+	glitter_apply(texST, rnd, albedo.rgb, emissive);
 	
-	apply_glitter(albedo.rgb, emissive, texST, rnd);
+	// Заменяюще-затеняющие эффекты
+	fps_apply_frag(albedo.rgb, emissive);
+	wnoise_apply(i, rnd, albedo.rgb, emissive);
+	outline_apply_frag(albedo.rgb, emissive);
+	
+	// Последний, т.к. должен затенить все предыдущие эффекты.
+	iwd_apply(i, albedo.rgb, emissive);
 	
 	half4 finalColor;
 	finalColor.a = albedo.a;

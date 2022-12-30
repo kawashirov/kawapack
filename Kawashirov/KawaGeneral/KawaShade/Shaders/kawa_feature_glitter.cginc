@@ -19,30 +19,29 @@
 	uniform float _Gltr_Em;
 #endif
 
-#if defined(FRAGMENT_IN)
-	inline void apply_glitter(inout half3 albedo, inout half3 emissive, float2 texST, uint rnd) {
-		#if defined(GLITTER_ON)
-			rnd = rnd * GLITTER_RND_M + GLITTER_RND_C;
-			float glitter_rnd = rnd_next_float_01(rnd);
-			float density = _Gltr_Dnst;
-			#if defined(GLITTER_MASK_ON)
-				density *= UNITY_SAMPLE_TEX2D(_Gltr_Mask, texST).r;
-			#endif
-			if (glitter_rnd < density) {
-				half3 glitter_color = half3(0,0,0);
-				#if defined(GLITTER_MODE_SOLID_COLOR)
-					glitter_color = _Gltr_Color.rgb;
-				#elif defined(GLITTER_MODE_SOLID_ALBEDO)
-					glitter_color = albedo;
-				#endif
-				glitter_color *= _Gltr_Brght;
-				albedo = glitter_color;
-				emissive += glitter_color * _Gltr_Em;
-			}
-			//albedo = half3(0,0,0); 
-			//emissive = glitter_rnd < _Gltr_Dnst ? half3(1,1,1) : half3(0,0,0);
+inline void glitter_apply(float2 texST, uint rnd, inout half3 albedo, inout half3 emissive) {
+	#if defined(GLITTER_ON)
+		rnd = rnd_apply_time(rnd * GLITTER_RND_M + GLITTER_RND_C);
+		float glitter_rnd = rnd_next_float_01(rnd);
+		
+		float density = _Gltr_Dnst;
+		#if defined(GLITTER_MASK_ON)
+			density *= UNITY_SAMPLE_TEX2D(_Gltr_Mask, texST).r;
 		#endif
-	}
-#endif // defined(FRAGMENT_IN)
+		if (glitter_rnd < density) {
+			half3 glitter_color = half3(0,0,0);
+			#if defined(GLITTER_MODE_SOLID_COLOR)
+				glitter_color = _Gltr_Color.rgb;
+			#elif defined(GLITTER_MODE_SOLID_ALBEDO)
+				glitter_color = albedo;
+			#endif
+			glitter_color *= _Gltr_Brght;
+			albedo = glitter_color;
+			emissive += glitter_color * _Gltr_Em;
+		}
+		//albedo = half3(0,0,0); 
+		//emissive = glitter_rnd < _Gltr_Dnst ? half3(1,1,1) : half3(0,0,0);
+	#endif
+}
 
 #endif // KAWAFLT_FEATURE_GLITTER_INCLUDED

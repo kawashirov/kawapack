@@ -14,12 +14,12 @@ half4 frag_shadowcaster(FRAGMENT_IN i) : SV_Target {
 	
 	float2 texST = frag_applyst(i.uv0);
 
-	uint rnd4_sc = frag_rnd_init(i);
+	uint rnd = frag_rnd_init(i);
 	
-	dstfd_frag_clip(i, rnd4_sc);
+	dstfd_frag_clip(i, rnd);
 
-	half alpha = frag_forward_get_albedo(i, texST, rnd4_sc).a;
-	frag_alphatest(i, rnd4_sc, alpha);
+	half alpha = frag_forward_get_albedo(i, texST).a;
+	frag_alphatest(i, rnd, alpha);
 
 	SHADOW_CASTER_FRAGMENT(i)
 }

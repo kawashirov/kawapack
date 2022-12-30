@@ -29,29 +29,18 @@
 	}
 #endif // defined(GEOMETRY_OUT)
 
-#if defined(FRAGMENT_IN)
-
-	inline bool is_outline_colored(FRAGMENT_IN i) {
-		// Возвращает true, если фейс будет покрашен в кастомный цвет в outline_mix, позволяет избежать лишних операций.
-		#if defined(KAWAFLT_PASS_FORWARD) && defined(OUTLINE_ON) && defined(OUTLINE_COLORED)
-			return i.is_outline
-		#else
-			return false;
-		#endif
-	}
-
-	inline half3 outline_mix(half3 color, FRAGMENT_IN i) {
-		#if defined(KAWAFLT_PASS_FORWARD) && defined(OUTLINE_ON)
-			UNITY_FLATTEN if(i.is_outline) {
-				#if defined(OUTLINE_COLORED)
-					color.rgb = _outline_color.rgb;
-				#else
-					color.rgb *= _outline_color.rgb;
-				#endif
-			}
-		#endif
-		return color;
-	}
-#endif // defined(FRAGMENT_IN)
+inline void outline_apply_frag(inout half3 albedo, inout half3 emissive) {
+	#if defined(KAWAFLT_PASS_FORWARD) && defined(OUTLINE_ON)
+		UNITY_FLATTEN if(i.is_outline) {
+			#if defined(OUTLINE_COLORED)
+				albedo.rgb = _outline_color.rgb;
+				emissive.rgb = half3(0,0,0); // TODO
+			#else
+				albedo *= _outline_color.rgb;
+				emissive *= _outline_color.rgb;
+			#endif
+		}
+	#endif
+}
 
 #endif // KAWA_FEATURE_OUTLINE_INCLUDED

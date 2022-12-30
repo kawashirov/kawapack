@@ -144,19 +144,12 @@
 #endif // HULL_IN
 
 #ifdef FRAGMENT_IN
-	inline half4 iwd_mix_albedo(half4 color, FRAGMENT_IN i) {
+	inline void iwd_apply(FRAGMENT_IN i, inout half3 albedo, inout half3 emissive) {
 		#if defined(IWD_ON)
-			color.rgb = lerp(color.rgb, _IWD_TintColor.rgb, _IWD_TintColor.a * i.iwd_tint);
-		#endif
-		return color;
-	}
-
-	inline half3 iwd_mix_emission(half3 color, FRAGMENT_IN i) {
-		#if defined(IWD_ON)
+			albedo = lerp(albedo, _IWD_TintColor.rgb, _IWD_TintColor.a * i.iwd_tint);
 			// Затенение эмишона.
-			color = color * saturate(1.0 - _IWD_TintColor.a * i.iwd_tint);
+			emissive *= saturate(1.0 - _IWD_TintColor.a * i.iwd_tint);
 		#endif
-		return color;
 	}
 #endif // FRAGMENT_IN
 

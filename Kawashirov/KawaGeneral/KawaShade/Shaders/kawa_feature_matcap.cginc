@@ -39,20 +39,19 @@
 		#endif
 	}
 
-	inline half3 matcap_apply(FRAGMENT_IN i, half3 color) {
+	inline void matcap_apply(FRAGMENT_IN i, inout half3 albedo) {
 		#if defined(MATCAP_ON) && defined(KAWAFLT_PASS_FORWARD)
 			float4 matcap = UNITY_SAMPLE_TEX2D(_MatCap, i.matcap_uv);
 			#if defined(MATCAP_REPLACE)
-				color = lerp(color, matcap.rgb, _MatCap_Scale * matcap.a);
+				albedo = lerp(albedo, matcap.rgb, _MatCap_Scale * matcap.a);
 			#endif
 			#if defined(MATCAP_MULTIPLY)
-				color *= lerp(1, matcap.rgb, _MatCap_Scale * matcap.a);
+				albedo *= lerp(1, matcap.rgb, _MatCap_Scale * matcap.a);
 			#endif
 			#if defined(MATCAP_ADD)
-				color += matcap.rgb * _MatCap_Scale * matcap.a;
+				albedo += matcap.rgb * _MatCap_Scale * matcap.a;
 			#endif
 		#endif
-		return color;
 	}
 #endif // defined(FRAGMENT_IN)
 

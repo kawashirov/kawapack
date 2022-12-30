@@ -63,17 +63,7 @@ inline uint rnd_apply_uint4(uint rnd, uint4 salt) {
 }
 
 inline uint rnd_apply_time(uint rnd) {
-	// 2 инструкции
-	rnd = rnd * (asuint(_SinTime.w) + 134775813) + 134775813;
-
-	/*
-	// 5 инструкций, добротный шум
-	uint2 salt = uint2(asuint(_SinTime.w), asuint(_CosTime.w));
-	salt = salt * 134775813 + 134775813; // (salt + 1) * 134775813, устойчивость к занулению
-	rnd = rnd * salt.x + salt.y;
-	rnd = rnd * salt.y + salt.x;
-	*/
-
+	rnd = rnd * asuint(_SinTime.x) + asuint(_CosTime.x);
 	return rnd;
 }
 

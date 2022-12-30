@@ -5,7 +5,9 @@
 	White Noise features
 */
 
-#define WNOISE_RND_SEED 43178
+#define WNOISE_RND_M 53534
+#define WNOISE_RND_C 43178
+
 #if defined(WNOISE_ON)
 	uniform float _WNoise_Albedo;
 	#if defined(EMISSION_ON)
@@ -14,17 +16,18 @@
 #endif
 
 #if defined(FRAGMENT_IN)
-	inline half3 wnoise_mix(half3 color, FRAGMENT_IN i, bool is_emission, inout uint rnd) {
+	inline void wnoise_apply(FRAGMENT_IN i, uint rnd, half3 albedo, half3 emissive) {
 		#if defined(WNOISE_ON)
+			rnd = rnd * WNOISE_RND_M + WNOISE_RND_C;
+			rnd = rnd_apply_time(rnd);
 			float wnoise = rnd_next_float_01(rnd);
 			float factor_em = 0;
 			#if defined(EMISSION_ON)
 				factor_em = _WNoise_Em;
 			#endif
-			float factor = is_emission ? factor_em : _WNoise_Albedo;
-			color.rgb = lerp(color.rgb, wnoise.rrr, factor);
+			albedo = lerp(albedo, wnoise.rrr, _WNoise_Albedo);
+			emissive = lerp(emissive, wnoise.rrr, factor_em);
 		#endif
-		return color;
 	}
 #endif // defined(FRAGMENT_IN)
 

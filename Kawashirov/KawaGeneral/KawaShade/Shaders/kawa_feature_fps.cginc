@@ -49,11 +49,12 @@ inline void fps_frag(inout FRAGMENT_IN i) {
 	#endif
 }
 
-inline half3 fps_mix(half3 color) {
+inline void fps_apply_frag(inout half3 albedo, inout half3 emissive) {
 	#if defined(FPS_ON)
-		color *= lerp(_FPS_TLo, _FPS_THi, unity_DeltaTime.w / 91.0h);
+		// TODO
+		albedo *= lerp(_FPS_TLo, _FPS_THi, unity_DeltaTime.w / 91.0h);
+		emissive *= lerp(_FPS_TLo, _FPS_THi, unity_DeltaTime.w / 91.0h);
 	#endif
-	return color;
 }
 
 #endif // KAWAFLT_FEATURE_FPS_INCLUDED

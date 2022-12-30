@@ -69,12 +69,11 @@
 
 
 #if defined(FRAGMENT_IN)
-	inline half3 pcw_mix(half3 color, FRAGMENT_IN i, bool is_emission) {
-		// Mix-in Poly Color Wave but only in BASE pass
+	inline void pcw_apply(FRAGMENT_IN i, inout half3 albedo, inout half3 emissive) {
 		#if defined(PCW_ON) && defined(KAWAFLT_PASS_FORWARDBASE)
-			color = lerp(color, i.pcw_color.rgb, i.pcw_color.a * (is_emission ? _PCW_Em : (1.0 - _PCW_Em)));
+			albedo = lerp(albedo, i.pcw_color.rgb, i.pcw_color.a);
+			emissive += i.pcw_color.rgb * i.pcw_color.a * _PCW_Em;
 		#endif
-		return color;
 	}
 #endif // defined(FRAGMENT_IN)
 

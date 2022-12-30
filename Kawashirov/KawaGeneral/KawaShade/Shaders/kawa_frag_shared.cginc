@@ -37,7 +37,10 @@ inline float2 frag_applyst(float2 uv) {
 	return uv;
 }
 
-inline void frag_alphatest(FRAGMENT_IN i, inout uint rnd, inout half alpha) {
+#define ALPHATEST_RND_M 25598
+#define ALPHATEST_RND_C 11497
+
+inline void frag_alphatest(FRAGMENT_IN i, uint rnd, inout half alpha) {
 	half cutoff = 0;
 
 	#if defined(CUTOFF_CLASSIC)
@@ -45,6 +48,7 @@ inline void frag_alphatest(FRAGMENT_IN i, inout uint rnd, inout half alpha) {
 	#elif defined(CUTOFF_RANGE)
 		half spread = 0.5h;
 		#if defined(CUTOFF_RANDOM)
+			rnd = rnd_apply_time(rnd * ALPHATEST_RND_M + ALPHATEST_RND_C);
 			spread = rnd_next_float_01(rnd);
 		#elif
 			// half spread = // TODO BAYER
@@ -71,34 +75,27 @@ inline void frag_cull(FRAGMENT_IN i) {
 	#endif
 }
 
-inline half4 frag_forward_get_albedo(FRAGMENT_IN i, float2 texST, inout uint rnd) {
-	half4 color;
-	if (!is_outline_colored(i)) {
-		// Пропуск, если всёравно будет перекрашено.
-		#if defined(AVAILABLE_MAINTEX)
-			#if defined(MAINTEX_SEPARATE_ALPHA)
-				color.rgb = UNITY_SAMPLE_TEX2D(_MainTex, texST).rgb;
-				color.a = UNITY_SAMPLE_TEX2D_SAMPLER(_MainTexAlpha, _MainTex, texST).r;
-			#else
-				color = UNITY_SAMPLE_TEX2D(_MainTex, texST);
-			#endif
-			#if defined(AVAILABLE_COLORMASK)
-				half mask = UNITY_SAMPLE_TEX2D_SAMPLER(_ColorMask, _MainTex, texST).r;
-				color = lerp(color, color * _Color, mask);
-			#else
-				color *= _Color;
-			#endif
+inline half4 frag_forward_get_albedo(FRAGMENT_IN i, float2 texST) {
+	half4 albedo;
+	
+	// Пропуск, если всёравно будет перекрашено.
+	#if defined(AVAILABLE_MAINTEX)
+		#if defined(MAINTEX_SEPARATE_ALPHA)
+			albedo.rgb = UNITY_SAMPLE_TEX2D(_MainTex, texST).rgb;
+			albedo.a = UNITY_SAMPLE_TEX2D_SAMPLER(_MainTexAlpha, _MainTex, texST).r;
 		#else
-			color = _Color;
+			albedo = UNITY_SAMPLE_TEX2D(_MainTex, texST);
 		#endif
-
-		color.rgb = wnoise_mix(color.rgb, i, false, rnd);
-		color.rgb = fps_mix(color.rgb);
-		color.rgb = pcw_mix(color.rgb, i, false);
-		color = iwd_mix_albedo(color, i);
-	}
-	color.rgb = outline_mix(color.rgb, i);
-	return color;
+		#if defined(AVAILABLE_COLORMASK)
+			half mask = UNITY_SAMPLE_TEX2D_SAMPLER(_ColorMask, _MainTex, texST).r;
+			albedo = lerp(albedo, albedo * _Color, mask);
+		#else
+			albedo *= _Color;
+		#endif
+	#else
+		albedo = _Color;
+	#endif
+	return albedo;
 }
 
 #if defined(KAWAFLT_PASS_FORWARD)
