@@ -33,12 +33,6 @@ namespace Kawashirov.KawaShade {
 			var _BumpMap = editor.FindProperty("_BumpMap");
 			var label = new GUIContent("Normal Map", "Normal (Bump) Map Texture (RGB)");
 			editor.TexturePropertySingleLineDisabled(label, _BumpMap);
-			if (_BumpMap != null && _BumpMap.textureValue == null) {
-				EditorGUILayout.HelpBox(
-					"Normal map texture is not set! Disable normal feature in shader generator, if you don't need this.",
-					MessageType.Warning
-				);
-			}
 			using (new EditorGUI.IndentLevelScope()) {
 				var _BumpScale = editor.FindProperty("_BumpScale");
 				editor.ShaderPropertyDisabled(_BumpScale, "Normal Map Scale");
