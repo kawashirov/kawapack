@@ -12,7 +12,7 @@ inline half grayscaleSH9(half3 normalDirection) {
 uniform float _Sh_Cbdprdx_Shadow;
 
 #if defined(KAWAFLT_PASS_FORWARDBASE)
-	inline half3 frag_shade_cbdprdx_forward_base(FRAGMENT_IN i, half3 baseColor, float3 normalDirection, half3 emissive) {
+	inline half3 frag_shade_cbdprdx_forward_base(FRAGMENT_IN i, float3 normalDirection) {
 		
 		half3 lightDirection = normalize(_WorldSpaceLightPos0.xyz);
 		UNITY_LIGHT_ATTENUATION(attenuation, i, i.pos_world.xyz);
@@ -29,13 +29,12 @@ uniform float _Sh_Cbdprdx_Shadow;
 		half3 directLighting = saturate((ShadeSH9(half4(0, 1, 0, 1)) + _LightColor0.rgb));
 		half3 directContribution = saturate((1.0h - _Sh_Cbdprdx_Shadow) + floor(saturate(remappedLight) * 2.0h));
 
-		half3 finalColor = (baseColor * lerp(indirectLighting, directLighting, directContribution)) + emissive;
-		return finalColor;
+		return lerp(indirectLighting, directLighting, directContribution);
 	}
 #endif // defined(KAWAFLT_PASS_FORWARDBASE)
 
 #if defined(KAWAFLT_PASS_FORWARDADD)
-	inline half3 frag_shade_cbdprdx_forward_add(FRAGMENT_IN i, half3 baseColor, half3 normal) {
+	inline half3 frag_shade_cbdprdx_forward_add(FRAGMENT_IN i, half3 normal) {
 		// float4 objPos = mul(unity_ObjectToWorld, float4(0,0,0,1));
 		//float3 lightDirection = normalize(_WorldSpaceLightPos0.xyz);
 		//float3 lightColor = _LightColor0.rgb;
@@ -43,7 +42,7 @@ uniform float _Sh_Cbdprdx_Shadow;
 		half lightContribution = dot(normalize(_WorldSpaceLightPos0.xyz - i.pos_world.xyz),normal)*attenuation;
 		half3 directContribution = floor(saturate(lightContribution) * 2.0h);
 		half lerp_v = saturate(directContribution + ((1.0h - _Sh_Cbdprdx_Shadow) * attenuation));
-		return baseColor * lerp(0.0h, _LightColor0.rgb, lerp_v);
+		return lerp(0.0h, _LightColor0.rgb, lerp_v);
 	}
 #endif // defined(KAWAFLT_PASS_FORWARDADD)
 

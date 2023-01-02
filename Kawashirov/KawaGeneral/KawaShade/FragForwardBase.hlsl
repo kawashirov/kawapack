@@ -29,9 +29,9 @@ half4 frag_forwardbase(FRAGMENT_IN i) : COLOR {
 
 	frag_cull(i);
 
-	float2 texST = frag_applyst(i.uv0);
-	fps_apply_uv(texST);
-	apply_bitloss(texST);
+	float2 uv = frag_applyst(i.uv0);
+	fps_apply_uv(uv);
+	apply_bitloss(uv);
 
 	uint rnd = frag_rnd_init(i);
 	
@@ -40,9 +40,9 @@ half4 frag_forwardbase(FRAGMENT_IN i) : COLOR {
 	
 	dstfd_frag_clip(i, rnd);
 
-	half4 albedo = frag_forward_get_albedo(i, texST);
-	half3 normal3 = frag_forward_get_normal(i, texST);
-	half3 emissive = frag_forward_get_emission_color(i, albedo, texST);
+	half4 albedo = frag_forward_get_albedo(i, uv);
+	half3 normal3 = frag_forward_get_normal(i, uv);
+	half3 emissive = frag_forward_get_emission_color(i, albedo, uv);
 	
 	apply_bitloss(albedo);
 	apply_bitloss(normal3);
@@ -53,7 +53,7 @@ half4 frag_forwardbase(FRAGMENT_IN i) : COLOR {
 	// Заменяюще-аддетивные эффекты
 	matcap_apply(i, albedo.rgb);
 	pcw_apply(i, albedo.rgb, emissive);
-	glitter_apply_color(i, texST, rnd, normal3, wsvd_norm, albedo.rgb, emissive);
+	glitter_apply_color(i, uv, rnd, normal3, wsvd_norm, albedo.rgb, emissive);
 	
 	// Заменяюще-затеняющие эффекты
 	fps_apply_colors(albedo.rgb, emissive);
@@ -67,20 +67,27 @@ half4 frag_forwardbase(FRAGMENT_IN i) : COLOR {
 	apply_bitloss(normal3);
 	apply_bitloss(emissive);
 	
+	half3 glossy = half3(0,0,0);
+	half3 diffuse = half3(0,0,0);
+	gloss_apply(i, uv, /*out*/ albedo, /*out*/ glossy, wsvd_norm, normal3);
+	
+	apply_bitloss(albedo.rgb);
+	apply_bitloss(glossy);
+	
+	half3 shading = half3(0,0,0);
+	#if defined(SHADE_CUBEDPARADOXFLT)
+		shading = frag_shade_cbdprdx_forward_base(i, normal3);
+	#elif defined(SHADE_KAWAFLT_LOG)
+		shading = frag_shade_kawaflt_log_forward_base(i, normal3);
+	#elif defined(SHADE_KAWAFLT_RAMP)
+		shading = frag_shade_kawaflt_ramp_forward_base(i, normal3);
+	#elif defined(SHADE_KAWAFLT_SINGLE)
+		shading = frag_shade_kawaflt_single_forward_base(i, normal3);
+	#endif
+	
 	half4 finalColor;
 	finalColor.a = albedo.a;
-	#if defined(SHADE_CUBEDPARADOXFLT)
-		finalColor.rgb = frag_shade_cbdprdx_forward_base(i, albedo.rgb, normal3, emissive);
-	#endif
-	#if defined(SHADE_KAWAFLT_LOG)
-		finalColor.rgb = frag_shade_kawaflt_log_forward_base(i, albedo.rgb, normal3, emissive);
-	#endif
-	#if defined(SHADE_KAWAFLT_RAMP)
-		finalColor.rgb = frag_shade_kawaflt_ramp_forward_base(i, albedo.rgb, normal3, emissive);
-	#endif
-	#if defined(SHADE_KAWAFLT_SINGLE)
-		finalColor.rgb = frag_shade_kawaflt_single_forward_base(i, albedo.rgb, normal3, emissive);
-	#endif
+	finalColor.rgb = albedo.rgb * shading + glossy + emissive;
 	
 	UNITY_APPLY_FOG(i.fogCoord, finalColor);
 	apply_bitloss(finalColor);

@@ -43,7 +43,7 @@ inline float shade_kawaflt_single(float tangency, float shadow_atten) {
 	}
 	
 	#ifdef KAWAFLT_PASS_FORWARDBASE
-		inline half3 frag_shade_kawaflt_single_forward_base(FRAGMENT_IN i, half3 albedo, half3 normal3, half3 emission) {
+		inline half3 frag_shade_kawaflt_single_forward_base(FRAGMENT_IN i, half3 normal3) {
 			half3 ambient = half3(0,0,0);
 			#if defined(UNITY_SHOULD_SAMPLE_SH)
 				half3 ambient_sh9 = ShadeSH9(half4(normal3, 1));
@@ -56,14 +56,14 @@ inline float shade_kawaflt_single(float tangency, float shadow_atten) {
 			half3 main = frag_shade_kawaflt_single_forward_main(i, normal3);
 
 			apply_bitloss(i.vertexlight);
-			return albedo * (main + i.vertexlight + ambient) + emission;
+			return (main + i.vertexlight + ambient);
 		}
 	#endif
 	
 	#ifdef KAWAFLT_PASS_FORWARDADD
-		inline half3 frag_shade_kawaflt_single_forward_add(FRAGMENT_IN i, half3 albedo, half3 normal) {
+		inline half3 frag_shade_kawaflt_single_forward_add(FRAGMENT_IN i, half3 normal) {
 			half3 main = frag_shade_kawaflt_single_forward_main(i, normal);
-			return max(half3(0,0,0), albedo * main);
+			return max(half3(0,0,0), main);
 		}
 	#endif
 #endif // defined(FRAGMENT_IN)

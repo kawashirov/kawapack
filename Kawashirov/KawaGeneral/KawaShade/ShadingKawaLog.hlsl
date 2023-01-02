@@ -83,7 +83,7 @@ inline half frag_shade_kawaflt_log_steps_color(half color) {
 	}
 
 	#ifdef KAWAFLT_PASS_FORWARDBASE
-		inline half3 frag_shade_kawaflt_log_forward_base(FRAGMENT_IN i, half3 albedo, half3 normal3, half3 emission) {
+		inline half3 frag_shade_kawaflt_log_forward_base(FRAGMENT_IN i, half3 normal3) {
 			float3 view_dir = normalize(UnityWorldSpaceViewDir(i.pos_world));
 			float view_tangency = dot(normal3, view_dir);
 			half rim_factor = frag_shade_kawaflt_log_rim_factor(view_tangency);
@@ -101,18 +101,18 @@ inline half frag_shade_kawaflt_log_steps_color(half color) {
 
 			half3 main = frag_shade_kawaflt_log_forward_main(i, normal3, rim_factor);
 
-			return albedo * (main + vertexlight + ambient) + emission;
+			return main + vertexlight + ambient;
 		}
 	#endif
 	
 	#ifdef KAWAFLT_PASS_FORWARDADD
-		inline half3 frag_shade_kawaflt_log_forward_add(FRAGMENT_IN i, half3 albedo, half3 normal) {
+		inline half3 frag_shade_kawaflt_log_forward_add(FRAGMENT_IN i, half3 normal) {
 			float3 view_dir = normalize(UnityWorldSpaceViewDir(i.pos_world));
 			float view_tangency = dot(normal, view_dir);
 			half rim_factor = frag_shade_kawaflt_log_rim_factor(view_tangency);
 
 			half3 main = frag_shade_kawaflt_log_forward_main(i, normal, rim_factor);
-			return max(half3(0,0,0), albedo * main);
+			return max(half3(0,0,0), main);
 		}
 	#endif
 #endif // defined(FRAGMENT_IN)
