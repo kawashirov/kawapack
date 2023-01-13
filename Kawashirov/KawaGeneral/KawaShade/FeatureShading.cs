@@ -62,8 +62,8 @@ namespace Kawashirov.KawaShade {
 		}
 
 		private void ConfigureFeatureShadingKawashirovFLTSingle(ShaderSetup shader) {
-			shader.properties.Add(new PropertyFloat() { name = "_Sh_Kwshrv_ShdBlnd", defualt = 0.7f, range = new Vector2(0, 1), power = 2 });
-			shader.properties.Add(new PropertyFloat() { name = "_Sh_Kwshrv_ShdAmbnt", defualt = 0.5f, range = new Vector2(0, 1) });
+			shader.properties.Add(new PropertyFloat() { name = "_Sh_Kwshrv_ShdScl", defualt = 1, range = new Vector2(0, 10), power = 2 });
+			shader.properties.Add(new PropertyFloat() { name = "_Sh_Kwshrv_ShdFlt", defualt = 0.1f, range = new Vector2(0, 1) });
 			shader.properties.Add(new PropertyFloat() { name = "_Sh_KwshrvSngl_TngntLo", defualt = 0.7f, range = new Vector2(0, 1), power = 1.5f });
 			shader.properties.Add(new PropertyFloat() { name = "_Sh_KwshrvSngl_TngntHi", defualt = 0.8f, range = new Vector2(0, 1), power = 1.5f });
 			shader.properties.Add(new PropertyFloat() { name = "_Sh_KwshrvSngl_ShdLo", defualt = 0.4f, range = new Vector2(0, 1) });
@@ -71,8 +71,8 @@ namespace Kawashirov.KawaShade {
 		}
 
 		private void ConfigureFeatureShadingKawashirovFLTRamp(ShaderSetup shader) {
-			shader.properties.Add(new PropertyFloat() { name = "_Sh_Kwshrv_ShdBlnd", defualt = 0.7f, range = new Vector2(0, 1), power = 2 });
-			shader.properties.Add(new PropertyFloat() { name = "_Sh_Kwshrv_ShdAmbnt", defualt = 0.5f, range = new Vector2(0, 1) });
+			shader.properties.Add(new PropertyFloat() { name = "_Sh_Kwshrv_ShdScl", defualt = 1, range = new Vector2(0, 10), power = 2 });
+			shader.properties.Add(new PropertyFloat() { name = "_Sh_Kwshrv_ShdFlt", defualt = 0.1f, range = new Vector2(0, 1) });
 			shader.properties.Add(new Property2D() { name = "_Sh_KwshrvRmp_Tex", defualt = "gray" });
 			shader.properties.Add(new PropertyColor() { name = "_Sh_KwshrvRmp_NdrctClr", defualt = Color.white });
 			shader.properties.Add(new PropertyFloat() { name = "_Sh_KwshrvSngl_TngntLo", defualt = 0.7f, range = new Vector2(0, 1), power = 1.5f });
@@ -92,8 +92,8 @@ namespace Kawashirov.KawaShade {
 					if (shading == ShadingMode.CubedParadoxFLT) {
 						editor.ShaderPropertyDisabled(editor.FindProperty("_Sh_Cbdprdx_Shadow"), "Shadow");
 					} else if (shading == ShadingMode.KawashirovFLTSingle) {
-						editor.ShaderPropertyDisabled(editor.FindProperty("_Sh_Kwshrv_ShdBlnd"), "RT Shadows blending");
-						editor.ShaderPropertyDisabled(editor.FindProperty("_Sh_Kwshrv_ShdAmbnt"), "Ambient Shadows Contrast");
+						editor.ShaderPropertyDisabled(editor.FindProperty("_Sh_Kwshrv_ShdScl"), "Overall Brightness");
+						editor.ShaderPropertyDisabled(editor.FindProperty("_Sh_Kwshrv_ShdFlt"), "Shadows Flatness");
 
 						EditorGUILayout.LabelField("Sides threshold");
 						using (new EditorGUI.IndentLevelScope()) {
@@ -108,8 +108,8 @@ namespace Kawashirov.KawaShade {
 						}
 					} else if (shading == ShadingMode.KawashirovFLTRamp) {
 						var rampTex = editor.FindProperty("_Sh_KwshrvRmp_Tex");
-						editor.ShaderPropertyDisabled(editor.FindProperty("_Sh_Kwshrv_ShdBlnd"), "RT Shadows Blending");
-						editor.ShaderPropertyDisabled(editor.FindProperty("_Sh_Kwshrv_ShdAmbnt"), "Ambient Shadows Contrast");
+						editor.ShaderPropertyDisabled(editor.FindProperty("_Sh_Kwshrv_ShdScl"), "Overall Brightness");
+						editor.ShaderPropertyDisabled(editor.FindProperty("_Sh_Kwshrv_ShdFlt"), "Shadows Flatness");
 						editor.materialEditor.TexturePropertySingleLine(new GUIContent("Ramp Texture", "Ramp Texture (RGB)"), rampTex);
 						editor.materialEditor.TextureCompatibilityWarning(rampTex);
 						if (rampTex.textureValue == null) {
