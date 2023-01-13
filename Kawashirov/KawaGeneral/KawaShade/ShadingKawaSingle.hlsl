@@ -11,15 +11,15 @@ uniform float _Sh_KwshrvSngl_ShdLo;
 uniform float _Sh_KwshrvSngl_ShdHi;
 
 inline float shade_kawaflt_single(float tangency, float shadow_atten) {
-	half shade = tangency * shadow_atten;
-	
 	half2 t;
 	t.x = min(_Sh_KwshrvSngl_TngntLo, _Sh_KwshrvSngl_TngntHi);
 	t.y = max(_Sh_KwshrvSngl_TngntLo, _Sh_KwshrvSngl_TngntHi);
 	t = 2.0 * t - 1.0;
-	shade = saturate( (shade - t.x) / (t.y - t.x) );
-	shade = shade * shade * (3.0 - 2.0 * shade); // Cubic Hermite H01 interpolation
 	
+	half shade_t = saturate( (tangency - t.x) / (t.y - t.x) );
+	shade_t = shade_t * shade_t * (3.0 - 2.0 * shade_t); // Cubic Hermite H01 interpolation
+	
+	half shade = shade_t * shadow_atten;
 	shade = lerp(shade, 0.5, _Sh_Kwshrv_ShdFlt);
 	
 	half shade_low = min(_Sh_KwshrvSngl_ShdLo, _Sh_KwshrvSngl_ShdHi);
@@ -27,7 +27,7 @@ inline float shade_kawaflt_single(float tangency, float shadow_atten) {
 	shade = lerp(shade_low, shade_high, shade);
 	
 	apply_bitloss(shade);
-	return shade;
+	return shade; // shadow_atten; // max(0, shadow_atten); // shade;
 }
 
 
