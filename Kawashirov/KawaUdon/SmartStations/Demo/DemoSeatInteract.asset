@@ -12,16 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f11136daadff0b44ac2278a314682ab, type: 3}
   m_Name: DemoSeatInteract
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 58c9ba0cae8a58a42a38da9dd8eaf3da,
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 00aa3f862e66f0a43af9c9ed6a7bc626,
     type: 2}
-  udonAssembly: ".data_start\r\n\r\n    .export Station\r\n    \r\n    instance_0:
-    %VRCSDK3ComponentsVRCStation, null\r\n    player_0: %VRCSDKBaseVRCPlayerApi, null\r\n
-    \   Station: %VRCSDK3ComponentsVRCStation, null\r\n\r\n.data_end\r\n\r\n.code_start\r\n\r\n
-    \   .export _interact\r\n    \r\n    _interact:\r\n    \r\n        PUSH, Station\r\n
-    \       PUSH, instance_0\r\n        COPY\r\n        PUSH, player_0\r\n        EXTERN,
-    \"VRCSDKBaseNetworking.__get_LocalPlayer__VRCSDKBaseVRCPlayerApi\"\r\n        PUSH,
-    instance_0\r\n        PUSH, player_0\r\n        EXTERN, \"VRCSDK3ComponentsVRCStation.__UseStation__VRCSDKBaseVRCPlayerApi__SystemVoid\"\r\n
-    \       JUMP, 0xFFFFFFFC\r\n    \r\n\r\n.code_end\r\n"
+  udonAssembly: ".data_start\r\n\r\n    .export Station\r\n    \r\n    __instance_0:
+    %VRCSDK3ComponentsVRCStation, null\r\n    __player_0: %VRCSDKBaseVRCPlayerApi,
+    null\r\n    Station: %VRCSDK3ComponentsVRCStation, null\r\n\r\n.data_end\r\n\r\n.code_start\r\n\r\n   
+    .export _interact\r\n    \r\n    _interact:\r\n    \r\n        PUSH, Station\r\n       
+    PUSH, __instance_0\r\n        COPY\r\n        PUSH, __player_0\r\n        EXTERN,
+    \"VRCSDKBaseNetworking.__get_LocalPlayer__VRCSDKBaseVRCPlayerApi\"\r\n       
+    PUSH, __instance_0\r\n        PUSH, __player_0\r\n        EXTERN, \"VRCSDK3ComponentsVRCStation.__UseStation__VRCSDKBaseVRCPlayerApi__SystemVoid\"\r\n       
+    JUMP, 0xFFFFFFFC\r\n    \r\n\r\n.code_end\r\n"
   assemblyError: 
   graphData:
     name: 
@@ -50,9 +50,11 @@ MonoBehaviour:
       - unityObjectValue: {fileID: 0}
         stringValue: System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089|Station
       - unityObjectValue: {fileID: 0}
-        stringValue: System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089|True
+        stringValue: System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089|True
       - unityObjectValue: {fileID: 0}
-        stringValue: System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089|False
+        stringValue: System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089|False
       - unityObjectValue: {fileID: 0}
         stringValue: 
     - fullName: VRCSDK3ComponentsVRCStation.__UseStation__VRCSDKBaseVRCPlayerApi__SystemVoid
@@ -82,4 +84,7 @@ MonoBehaviour:
       nodeUIDs: []
       flowUIDs: []
       nodeValues: []
+    updateOrder: 0
+  graphElementData: []
+  version: 1.0.0
   showAssembly: 0

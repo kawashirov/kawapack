@@ -12,4 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45c5d84693de5aa4abdae00257b192b6, type: 3}
   m_Name: LightProbesToolPanelDebugSampler
   m_EditorClassIdentifier: KawaCommons:Kawashirov.LightProbesTools:LightProbesToolPanelDebugSampler
-
+  displayFancy: 0
+  displaySize: 0.1
+  displayTetrahedron: 1
