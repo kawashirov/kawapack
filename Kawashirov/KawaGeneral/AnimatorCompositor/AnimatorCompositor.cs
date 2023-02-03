@@ -14,7 +14,7 @@ using EU = UnityEditor.EditorUtility;
 
 using Kawashirov.Refreshables;
 
-#if VRC_SDK_VRCSDK3
+#if VRC_SDK_VRCSDK3 && !UDON
 using VRC.SDK3.Avatars.Components;
 using VRC.SDKBase;
 #endif
@@ -22,7 +22,7 @@ using VRC.SDKBase;
 namespace Kawashirov {
 	[Serializable]
 	public class AnimatorCompositor : ScriptableObject, IRefreshable {
-#if UNITY_EDITOR && VRC_SDK_VRCSDK3
+#if UNITY_EDITOR
 		public AnimatorController[] sources;
 		public AnimatorController destination;
 
@@ -204,6 +204,8 @@ namespace Kawashirov {
 				throw new ArgumentException("2 state machine behaviours that should be of the same type are not.");
 			}
 			switch (n) {
+
+#if VRC_SDK_VRCSDK3 && !UDON
 				case VRCAnimatorLayerControl l: {
 					var o = old as VRCAnimatorLayerControl;
 					l.ApplySettings = o.ApplySettings;
@@ -283,6 +285,7 @@ namespace Kawashirov {
 					l.outputParamHash = o.outputParamHash;
 					break;
 				}
+#endif // VRC_SDK_VRCSDK3 && !UDON
 			}
 		}
 
@@ -590,7 +593,7 @@ namespace Kawashirov {
 		public string RefreshablePath()
 			=> AssetDatabase.GetAssetPath(this);
 
-#endif // UNITY_EDITOR && VRC_SDK_VRCSDK3
+#endif // UNITY_EDITOR
 	}
 }
 
