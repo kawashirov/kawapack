@@ -92,7 +92,8 @@ public class TouchButton : UdonSharpBehaviour
 		}
 	}
 
-	private bool Validate_eventReceivers() => KawaUdonUtilities.ValidateComponentsArrayOfUdonSharpBehaviours(ref eventReceivers);
+	private bool Validate_eventReceivers() => 
+		KawaUdonUtilities.ValidateComponentsArrayOfUdonSharpBehaviours(this, nameof(eventReceivers), ref eventReceivers);
 
 	public void Refresh() {
 		KawaUdonUtilities.ValidateSafe(Validate_eventReceivers, this, nameof(eventReceivers));

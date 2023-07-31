@@ -1,13 +1,12 @@
 ﻿using System;
-using UdonSharp;
+using System.Linq;
 using UnityEngine;
 using VRC.SDKBase;
 using VRC.Udon;
+using UdonSharp;
 using Kawashirov;
 using Kawashirov.Udon;
-using System.Linq;
 using Kawashirov.Refreshables;
-using System.Collections.Generic;
 
 #if !COMPILER_UDONSHARP && UNITY_EDITOR
 using UnityEditor;
@@ -42,24 +41,6 @@ public class MaterialQueueFix : UdonSharpBehaviour
 
 	[CustomEditor(typeof(MaterialQueueFix))]
 	public class Editor : UnityEditor.Editor {
-
-		/*
-		public bool ResizeList<T>(List<T> list, int length) {
-			if (list.Count == length)
-				return false;
-
-			while (list.Count < length)
-				list.Add(default(T));
-
-			if (list.Count > length)
-				list.RemoveRange(length, list.Count - length);
-
-			return true;
-		}
-
-		private List<Material> materials = new List<Material>();
-		private List<int> queues = new List<int>();
-		*/
 
 		public override void OnInspectorGUI() {
 			if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(this.target))
@@ -138,7 +119,7 @@ public class MaterialQueueFix : UdonSharpBehaviour
 						EditorGUILayout.PropertyField(material, GUIContent.none);
 						GUILayout.Label(ref_material ? $"{int_queue}" : "null");
 						GUILayout.Label(ref_material ? $"{ref_material.renderQueue}" : "null");
-						if (GUILayout.Button("Del")) 
+						if (GUILayout.Button("Del"))
 							delete_element = i; // don't delete while iterating
 					}
 					GUI.color = color;
@@ -162,19 +143,11 @@ public class MaterialQueueFix : UdonSharpBehaviour
 	}
 
 	public void Refresh() {
-		var size = Math.Min(materials.Length, queues.Length);
+		KawaUdonUtilities.DistinctArray(this, nameof(materials), ref materials);
 
-		var changed = false;
-		for (var i = 0; i < size; ++i) {
-			if (queues[i] == materials[i].renderQueue)
-				continue;
-			queues[i] = materials[i].renderQueue;
-			changed = true;
-		}
-
-		if (changed) {
-			this.ApplyProxyModificationsAndSetDirty();
-		}
+		var new_queues = materials.Select(m => m.renderQueue).ToArray();
+		var cmp = new KawaUtilities.EquatableComparer<int>();
+		KawaUdonUtilities.ModifyArray(this, nameof(queues), ref queues, new_queues, cmp);
 	}
 
 	public UnityEngine.Object AsUnityObject() => this;

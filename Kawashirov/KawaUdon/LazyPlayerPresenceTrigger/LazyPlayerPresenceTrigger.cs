@@ -1,11 +1,11 @@
 using System;
+using System.Linq;
 using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
 using VRC.Udon;
 using Kawashirov;
 using Kawashirov.Udon;
-using System.Linq;
 using Kawashirov.Refreshables;
 
 #if !COMPILER_UDONSHARP && UNITY_EDITOR
@@ -206,11 +206,20 @@ public class LazyPlayerPresenceTrigger : UdonSharpBehaviour
 		}
 	}
 
-	private bool Validate_Triggers() => KawaUdonUtilities.DistinctArray(ref Triggers);
-	private bool Validate_ActiveWhenPresent() => KawaUdonUtilities.DistinctArray(ref ActiveWhenPresent);
-	private bool Validate_ActiveWhenAbsent() => KawaUdonUtilities.DistinctArray(ref ActiveWhenAbsent);
-	private bool Validate_AnimatorsSetBool() => KawaUdonUtilities.DistinctArray(ref AnimatorsSetBool);
-	private bool Validate_EventReceivers() => KawaUdonUtilities.ValidateComponentsArrayOfUdonSharpBehaviours(ref EventReceivers);
+	private bool Validate_Triggers() =>
+		KawaUdonUtilities.DistinctArray(this, nameof(Triggers), ref Triggers);
+
+	private bool Validate_ActiveWhenPresent() =>
+		KawaUdonUtilities.DistinctArray(this, nameof(ActiveWhenPresent), ref ActiveWhenPresent);
+
+	private bool Validate_ActiveWhenAbsent() =>
+		KawaUdonUtilities.DistinctArray(this, nameof(ActiveWhenAbsent), ref ActiveWhenAbsent);
+
+	private bool Validate_AnimatorsSetBool() =>
+		KawaUdonUtilities.DistinctArray(this, nameof(AnimatorsSetBool), ref AnimatorsSetBool);
+
+	private bool Validate_EventReceivers() =>
+		KawaUdonUtilities.ValidateComponentsArrayOfUdonSharpBehaviours(this, nameof(EventReceivers), ref EventReceivers);
 
 	private void Validate_Trigger(Collider collider) {
 		if (!collider.enabled)
@@ -237,24 +246,28 @@ public class LazyPlayerPresenceTrigger : UdonSharpBehaviour
 		var self_pos = transform.position;
 
 		Gizmos.color = Color.blue.Alpha(KawaGizmos.GizmosAplha);
-		foreach (var gobj in ActiveWhenPresent)
-			if (Utilities.IsValid(gobj))
-				Gizmos.DrawLine(self_pos, gobj.transform.position);
+		if (Utilities.IsValid(ActiveWhenPresent))
+			foreach (var gobj in ActiveWhenPresent)
+				if (Utilities.IsValid(gobj))
+					Gizmos.DrawLine(self_pos, gobj.transform.position);
 
 		Gizmos.color = Color.red.Alpha(KawaGizmos.GizmosAplha);
-		foreach (var gobj in ActiveWhenAbsent)
-			if (Utilities.IsValid(gobj))
-				Gizmos.DrawLine(self_pos, gobj.transform.position);
+		if (Utilities.IsValid(ActiveWhenAbsent))
+			foreach (var gobj in ActiveWhenAbsent)
+				if (Utilities.IsValid(gobj))
+					Gizmos.DrawLine(self_pos, gobj.transform.position);
 
 		Gizmos.color = Color.yellow.Alpha(KawaGizmos.GizmosAplha);
-		foreach (var animator in AnimatorsSetBool)
-			if (Utilities.IsValid(animator))
-				Gizmos.DrawLine(self_pos, animator.transform.position);
+		if (Utilities.IsValid(AnimatorsSetBool))
+			foreach (var animator in AnimatorsSetBool)
+				if (Utilities.IsValid(animator))
+					Gizmos.DrawLine(self_pos, animator.transform.position);
 
 		Gizmos.color = Color.green.Alpha(KawaGizmos.GizmosAplha);
-		foreach (var component in EventReceivers)
-			if (Utilities.IsValid(component))
-				Gizmos.DrawLine(self_pos, component.transform.position);
+		if (Utilities.IsValid(EventReceivers))
+			foreach (var component in EventReceivers)
+				if (Utilities.IsValid(component))
+					Gizmos.DrawLine(self_pos, component.transform.position);
 	}
 
 #endif

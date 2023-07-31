@@ -19,6 +19,22 @@ namespace Kawashirov {
 
 		public static Color Alpha(this Color c, float a) => new Color(c.r, c.g, c.b, a);
 
+		public class UnityEquality_ : IEqualityComparer<UnityEngine.Object> {
+			// UnityEngine.Object.CompareBaseObjects(x, y)
+			bool IEqualityComparer<UnityEngine.Object>.Equals(UnityEngine.Object x, UnityEngine.Object y) => x == y;
+			int IEqualityComparer<UnityEngine.Object>.GetHashCode(UnityEngine.Object obj) => obj.GetHashCode();
+		}
+		public static readonly UnityEquality_ UnityEquality = new UnityEquality_();
+
+		public class EquatableComparer<T> : IEqualityComparer<T> where T : IEquatable<T> {
+			// UnityEngine.Object.CompareBaseObjects(x, y)
+			bool IEqualityComparer<T>.Equals(T x, T y) => x.Equals(y);
+			int IEqualityComparer<T>.GetHashCode(T obj) => obj.GetHashCode();
+		}
+
+		public static IEnumerable<T> UnityNotNull<T>(this IEnumerable<T> iter) where T : class
+			=> iter.Where(obj => (obj as UnityEngine.Object) != null);
+
 		public static Type[] GetTypesSafe(this Assembly asm) {
 			try {
 				return asm.GetTypes();

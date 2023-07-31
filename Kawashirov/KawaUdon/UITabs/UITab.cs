@@ -62,7 +62,7 @@ public class UITab : UdonSharpBehaviour
 
 	private void Validate_tabObject() => KawaUdonUtilities.EnsureIsValid(tabObject, nameof(tabObject));
 
-	private void Validate_tabs() => KawaUdonUtilities.EnsureAppended(tabs, ref tabs.tabs, this);
+	private void Validate_tabs() => KawaUdonUtilities.EnsureAppended(tabs, nameof(tabs.tabs), ref tabs.tabs, this);
 	
 	public void Refresh() {
 		KawaUdonUtilities.ValidateSafe(Validate_tabObject, this, nameof(tabObject));

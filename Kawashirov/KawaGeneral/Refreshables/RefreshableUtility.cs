@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
@@ -64,46 +62,49 @@ namespace Kawashirov.Refreshables {
 		}
 
 		public static bool RefreshSafe(this IRefreshable refreshable) {
-			UnityEngine.Object context = null;
-			var state = false;
+			var unityObj = refreshable as UnityEngine.Object;
+			var refreshSucess = false;
+			var undoGroup = Undo.GetCurrentGroup();
 			try {
-				context = refreshable.AsUnityObject();
+				var undoName = $"Refresh {unityObj.name} ({unityObj.GetType().Name})";
+				Undo.SetCurrentGroupName(undoName);
+				Undo.RegisterCompleteObjectUndo(unityObj, undoName);
+				// Debug.Log($"Refreshing <b>{refreshable}</b>...", unityObj); // DEBUG
 				refreshable.Refresh();
-				state = true;
+				refreshSucess = true;
 			} catch (Exception exc) {
-				Debug.LogErrorFormat(
-					context,
-					"[KawaEditor] Failed to Refresh: \"<b>{1}</b>\"\n@ <i>{0}</i>\n{2}",
-					refreshable, exc.Message, exc.StackTrace
-				);
-				Debug.LogException(exc, context);
+				var errMsg = $"Failed to Refresh: \"<b>{exc.Message}</b>\"\n@ <i>{refreshable}</i>\n{exc.StackTrace}";
+				Debug.LogError(errMsg, unityObj);
+				Debug.LogException(exc, unityObj);
+			} finally {
+				if (unityObj != null)
+					Undo.CollapseUndoOperations(undoGroup);
 			}
-			return state;
+			return refreshSucess;
 		}
 
 		public static void RefreshMultiple<T>(this IEnumerable<T> refreshables) where T : class, IRefreshable {
 			var array = refreshables.ToList();
 			var errors = 0;
 			try {
-				Debug.LogFormat("[KawaEditor] Refreshing <b>{0}</b> objects...", array.Count);
+				Debug.Log($"Refreshing <b>{array.Count}</b> objects...");
 				for (var i = 0; i < array.Count; ++i) {
-					var r = array[i];
-					var ctx = r.AsUnityObject();
-					var path = r.RefreshablePath();
-					var info = string.Format("Refreshing {0}/{1}: {2}", i + 1, array.Count, ctx);
-					var progress = 1.0f * i / array.Count;
+					var refreshable = array[i];
+					var path = refreshable.RefreshablePath();
+					var info = string.Format($"Refreshing {i + 1}/{array.Count}: {path}");
+					var progress = 1.0f * (i + 1) / (array.Count + 1);
 					if (EditorUtility.DisplayCancelableProgressBar(info, info, progress))
 						break;
-					Debug.LogFormat(ctx, "[KawaEditor] Refreshing <b>{1}</b>...\n@ <i>{0}</i>", path, r);
-					r.RefreshSafe();
+					if (!refreshable.RefreshSafe())
+						++errors;
 				}
 			} finally {
 				EditorUtility.ClearProgressBar();
 			}
 			if (errors < 1) {
-				Debug.LogFormat("[KawaEditor] Refreshed <b>{0}</b> objects. No errors.", array.Count);
+				Debug.Log($"Refreshed <b>{array.Count}</b> objects. No errors.");
 			} else {
-				Debug.LogWarningFormat("[KawaEditor] Refreshed <b>{0}</b> objects: <b>{1}</b> errors!", array.Count, errors);
+				Debug.LogWarning($"Refreshed <b>{array.Count}</b> objects: <b>{errors}</b> errors!");
 			}
 		}
 

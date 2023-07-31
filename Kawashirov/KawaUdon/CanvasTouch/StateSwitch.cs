@@ -81,8 +81,11 @@ public class StateSwitch : UdonSharpBehaviour
 		}
 	}
 
-	private bool Validate_states() => KawaUdonUtilities.DistinctArray(ref states);
-	private bool Validate_eventReceivers() => KawaUdonUtilities.ValidateComponentsArrayOfUdonSharpBehaviours(ref eventReceivers);
+	private bool Validate_states() =>
+		KawaUdonUtilities.DistinctArray(this, nameof(states), ref states);
+
+	private bool Validate_eventReceivers() => 
+		KawaUdonUtilities.ValidateComponentsArrayOfUdonSharpBehaviours(this, nameof(eventReceivers), ref eventReceivers);
 
 	public void Refresh() {
 		KawaUdonUtilities.ValidateSafe(Validate_states, this, nameof(states));

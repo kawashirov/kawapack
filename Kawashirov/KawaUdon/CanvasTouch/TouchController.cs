@@ -68,7 +68,6 @@ public class TouchController : UdonSharpBehaviour
 		}
 	}
 
-
 	private bool Validate_buttons() {
 		var all_buttons = gameObject.scene.GetRootGameObjects()
 			.SelectMany(g => g.GetComponentsInChildren<UdonBehaviour>())
@@ -76,7 +75,7 @@ public class TouchController : UdonSharpBehaviour
 			.RuntimeOnly()
 			.Select(UdonSharpEditorUtility.GetProxyBehaviour).OfType<TouchButton>()
 			.Distinct().ToArray();
-		return KawaUdonUtilities.ModifyArray(ref buttons, all_buttons, KawaUdonUtilities.UnityInequality);
+		return KawaUdonUtilities.ModifyArray(this, nameof(buttons), ref buttons, all_buttons);
 	}
 
 	public void Refresh() {
@@ -84,6 +83,7 @@ public class TouchController : UdonSharpBehaviour
 	}
 
 	public UnityEngine.Object AsUnityObject() => this;
+
 	public string RefreshablePath() => gameObject.KawaGetFullPath();
 
 	public void OnDrawGizmosSelected() {

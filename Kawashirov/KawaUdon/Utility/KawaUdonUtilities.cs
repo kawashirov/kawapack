@@ -1,16 +1,14 @@
-﻿using Kawashirov;
-using Kawashirov.Refreshables;
+﻿using System;
 using System.Linq;
-using UdonSharp;
+using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using VRC.Udon;
-using System;
 using VRC.SDKBase;
 using VRC.Udon.Common.Interfaces;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
-using UnityEngine.SceneManagement;
+using UdonSharp;
+using Kawashirov.Refreshables;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -21,14 +19,12 @@ namespace Kawashirov.Udon {
 	public static partial class KawaUdonUtilities {
 #if UNITY_EDITOR
 
-		public static bool IsUdonic(object obj) => obj is UdonBehaviour || obj is UdonSharpBehaviour;
-		public static bool IsNotUdonic(object obj) => !IsUdonic(obj);
-
-		public static void ApplyProxyModificationsAndSetDirty(this UdonSharpBehaviour usharp) {
-			usharp.ApplyProxyModifications();
+		public static void ApplyProxyModificationsAndSetDirty(this UdonSharpBehaviour proxy) {
+			// proxy.ApplyProxyModifications();
+			EditorUtility.SetDirty(proxy);
 			// Почему-то юнити не видит изменений, внесенных в UdonBehaviour, по этому метим его.
-			EditorUtility.SetDirty(UdonSharpEditorUtility.GetBackingUdonBehaviour(usharp));
-			Debug.LogFormat(usharp, "Modified {0} @ {1}", usharp, usharp.gameObject.KawaGetFullPath());
+			// EditorUtility.SetDirty(UdonSharpEditorUtility.GetBackingUdonBehaviour(proxy));
+			Debug.Log($"Modified <b>{proxy.name}</b> @ <i>{proxy.gameObject.KawaGetFullPath()}</i>", proxy);
 		}
 
 		public static void EnsureIsValid(System.Object obj, string paramName = null) {
@@ -39,12 +35,12 @@ namespace Kawashirov.Udon {
 		private static string ExtraLogDescResolver(Func<string> extraLogDesc) {
 			var extra_desc = extraLogDesc?.Invoke();
 			if (string.IsNullOrWhiteSpace(extra_desc))
-				extra_desc = "(no extra log desxription)";
+				extra_desc = "(no extra log description)";
 			return extra_desc;
 		}
 
 		private static string IndexedExtraLogDescResolver(int index, Func<string> extraLogDesc) {
-			return string.Format("#{0}: {1}", index, ExtraLogDescResolver(extraLogDesc));
+			return $"#{index}: {ExtraLogDescResolver(extraLogDesc)}";
 		}
 
 		public static void ValidateSafeForEach<T>(T[] array, Action<T> validation, Component source, string propName, Func<string> extraLogDesc = null) {
@@ -65,13 +61,12 @@ namespace Kawashirov.Udon {
 
 		public static bool ValidateSafe(Func<bool> validation, Component source, string propName, Func<string> extraLogDesc = null) {
 			var usharp = source as UdonSharpBehaviour;
-			usharp?.UpdateProxy();
 			var modified = false;
 			try {
 				modified = validation.Invoke(); // return is modified
 			} catch (Exception exc) {
-				var source_msg = string.Format("{0}.{1} @ {2}", source.GetType(), propName, source.gameObject.KawaGetFullPath());
-				Debug.LogErrorFormat(source, "Error validating {0}\n{1}\n{2}: {3}\n{4}", source_msg, ExtraLogDescResolver(extraLogDesc), exc.GetType(), exc.Message, exc.StackTrace);
+				var source_msg = $"{source.GetType()}.{propName} @ <i>{source.gameObject.KawaGetFullPath()}</i>";
+				Debug.LogError($"Error validating {source_msg}\n{ExtraLogDescResolver(extraLogDesc)}\n{exc.GetType()}: {exc.Message}\n{exc.StackTrace}", source);
 				Debug.LogException(exc, source);
 			}
 			if (modified)
@@ -79,37 +74,54 @@ namespace Kawashirov.Udon {
 			return modified;
 		}
 
-		private static void EnsureValidUdonSharpProxy(UdonSharpBehaviour proxy, string paramName = null) {
+		public static bool EnsureAppendedAsUdonBehaviour(UdonSharpBehaviour proxy, string name, ref Component[] array, UdonSharpBehaviour item) {
+			var items = UdonSharpEditorUtility.GetBackingUdonBehaviour(item).ToEnumerable();
+			return EnsureAppended(proxy, name, ref array, items, KawaUtilities.UnityEquality);
+		}
+
+		public static bool EnsureAppended<T>(UdonSharpBehaviour proxy, string name, ref T[] array, T item) where T : UnityEngine.Object {
+			// Убеждается, что массив array который proxy.name содержит в себе item.
+			// Если item нету в array, добавляет его помечая изменения.
+			return EnsureAppended(proxy, name, ref array, item.ToEnumerable(), KawaUtilities.UnityEquality);
+		}
+
+		public static bool EnsureAppended<T>(UdonSharpBehaviour proxy, string name, ref T[] array, T item, IEqualityComparer<T> cmp) {
+			// Убеждается, что массив array который proxy.name содержит в себе item.
+			// Если item нету в array, добавляет его помечая изменения.
+			return EnsureAppended(proxy, name, ref array, item.ToEnumerable(), cmp);
+		}
+
+		public static bool EnsureAppended<T>(UdonSharpBehaviour proxy, string name, ref T[] array, IEnumerable<T> items) where T : UnityEngine.Object {
+			return EnsureAppended(proxy, name, ref array, items, KawaUtilities.UnityEquality);
+		}
+
+		public static bool EnsureAppended<T>(UdonSharpBehaviour proxy, string name, ref T[] array, IEnumerable<T> items, IEqualityComparer<T> cmp) {
+			// Убеждается, что массив array который proxy.name содержит в себе все объекты из items.
+			// Если каких-то объектов нету в array, добавляет их помечая изменения.
+			// Порядок не гарантируется.
+
 			if (!Utilities.IsValid(proxy))
-				throw new ArgumentException("U# proxy behaviour is not valid!", paramName);
+				throw new ArgumentException("U# proxy behaviour is not valid!", nameof(proxy));
+
 			if (!UdonSharpEditorUtility.IsProxyBehaviour(proxy))
-				throw new ArgumentException(string.Format("U# behaviour {0} ({1}) is not a proxy!", proxy, proxy.gameObject.KawaGetFullPath()), paramName);
-		}
+				throw new ArgumentException($"U# behaviour {proxy} ({proxy.gameObject.KawaGetFullPath()}) is not a proxy!", nameof(proxy));
 
-		public static bool EnsureAppendedAsUdonBehaviour(UdonSharpBehaviour proxy, ref Component[] array, UdonSharpBehaviour item, string paramName = null) {
-			return EnsureAppended(proxy, ref array, UdonSharpEditorUtility.GetBackingUdonBehaviour(item).ToEnumerable(), paramName);
-		}
-
-		public static bool EnsureAppended<T>(UdonSharpBehaviour proxy, ref T[] array, T item, string paramName = null) where T : UnityEngine.Object {
-			return EnsureAppended(proxy, ref array, item.ToEnumerable(), paramName);
-		}
-
-		public static bool EnsureAppended<T>(UdonSharpBehaviour proxy, ref T[] array, IEnumerable<T> items, string paramName = null) where T : UnityEngine.Object {
-			EnsureValidUdonSharpProxy(proxy, nameof(proxy));
 			if (!Utilities.IsValid(array)) {
-				var message = string.Format("Array from U# proxy behaviour {0} ({1}) is not valid!", proxy, proxy.gameObject.KawaGetFullPath());
-				if (string.IsNullOrWhiteSpace(paramName))
-					paramName = nameof(array);
-				throw new ArgumentNullException(paramName, message);
+				var message = $"Array from U# proxy behaviour {proxy} ({proxy.gameObject.KawaGetFullPath()}) is not valid!";
+				throw new ArgumentNullException(name, message);
 			}
 
-			proxy.UpdateProxy();
-
-			var new_array = array.Concat(items).Distinct().ToArray();
-			if (!ModifyArray(ref array, new_array, UnityInequality))
+			// Берем все объекты, которые нужно добавить, кроме тех, что уже добавлены.
+			var items_to_add = items.Where(x => x != null).Distinct().Except(array).ToList();
+			if (items_to_add.Count < 1)
+				// Если их нету, то похую.
 				return false;
 
-			proxy.ApplyProxyModificationsAndSetDirty();
+			var new_array = array.Concat(items_to_add).ToArray();
+			if (!ModifyArray(proxy, name, ref array, new_array, cmp))
+				// По идее такого не должно быть, но ладно.
+				return false;
+
 			return true;
 		}
 
@@ -130,101 +142,72 @@ namespace Kawashirov.Udon {
 			yield break;
 		}
 
-		public static bool ValidateComponentsArrayOfUdonSharpBehaviours(ref Component[] array, string paramName = null) {
-			if (!Utilities.IsValid(array))
-				throw new ArgumentNullException(string.IsNullOrWhiteSpace(paramName) ? nameof(array) : paramName, "Array of Components is not valid!");
-			return ModifyArray(ref array, array.SelectMany(ConvertToUdonBehaviour).Distinct().ToArray(), UnityInequality);
+		public static bool ValidateComponentsArrayOfUdonSharpBehaviours(UdonSharpBehaviour usb, string name, ref Component[] array) {
+			if (array == null)
+				throw new ArgumentNullException(nameof(array));
+			var new_array = array.SelectMany(ConvertToUdonBehaviour).Distinct().ToArray();
+			return ModifyArray(usb, name, ref array, new_array, KawaUtilities.UnityEquality);
 		}
 
-		public static bool DistinctArray<T>(ref T[] array, string paramName = null) where T : UnityEngine.Object {
-			if (!Utilities.IsValid(array))
-				throw new ArgumentNullException(string.IsNullOrWhiteSpace(paramName) ? nameof(array) : paramName, "Array is not valid!");
-
-			var resized = array.Where(x => x != null).Distinct().ToArray();
-
-			if (array.Length == resized.Length)
-				return false;
-
-			array = resized;
-			return true;
+		public static bool DistinctArray<T>(UdonSharpBehaviour usb, string name, ref T[] array, IEqualityComparer<T> cmp) {
+			var new_array = array.Where(x => x != null).Distinct().ToArray();
+			return ModifyArray(usb, name, ref array, new_array, cmp);
 		}
 
-		public static bool UnityInequality(UnityEngine.Object a, UnityEngine.Object b) => a != b;
+		public static bool DistinctArray<T>(UdonSharpBehaviour usb, string name, ref T[] array) where T : UnityEngine.Object {
+			var new_array = array.Where(Utilities.IsValid).Distinct().ToArray();
+			return ModifyArray(usb, name, ref array, new_array, KawaUtilities.UnityEquality);
+		}
 
-		public static bool ModifyArray<T>(ref T[] array, T[] new_array, Func<T, T, bool> noteq) {
-			if (array.Length != new_array.Length) {
-				array = new_array;
+		public static bool ModifyArray<T>(ref T[] target_array, T[] new_array, IEqualityComparer<T> cmp) {
+			// Модифицирует target_array, значениями из new_array, если они различаются согласно cmp.
+			// Если массивы одинаковой длины, то меняет различающиеся элементы.
+			// Если разные, то в target_array сохраняется копия new_array.
+			// Возвращает true, если target_array был изменен.
+			// Смысл данного метода в том, что бы увидеть реальные изменения в массиве,
+			// что бы потом при необходимости вызвать EditorUtility.SetDirty(...);
+
+			if (target_array == null)
+				throw new ArgumentNullException(nameof(target_array));
+			if (new_array == null)
+				throw new ArgumentNullException(nameof(new_array));
+			if (cmp == null)
+				throw new ArgumentNullException(nameof(cmp));
+
+			if (target_array.Length != new_array.Length) {
+				target_array = (T[])new_array.Clone();
 				return true;
 			}
+
 			var modified = false;
-			for (var i = 0; i < array.Length; ++i) {
-				if (noteq.Invoke(array[i], new_array[i])) {
+			for (var i = 0; i < target_array.Length; ++i) {
+				if (!cmp.Equals(target_array[i], new_array[i])) {
 					modified = true;
-					array[i] = new_array[i];
+					target_array[i] = new_array[i];
 				}
 			}
+
 			return modified;
 		}
 
-		private static readonly object[] DUMMY_OBJECT_ARRAY = new object[0];
-
-		private static readonly MethodInfo UdonBehaviour_SerializePublicVariables = typeof(UdonBehaviour)
-			.GetMethod("SerializePublicVariables", BindingFlags.Instance | BindingFlags.NonPublic);
-
-		public static void KawaForceSerialize(this UdonBehaviour udon) {
-			// Уебки из врчата не сделали что бы при изменении publicVariables он сериализовался.
-			if (udon != null) {
-				UdonBehaviour_SerializePublicVariables.Invoke(udon, DUMMY_OBJECT_ARRAY);
-				EditorUtility.SetDirty(udon);
-			}
+		public static bool ModifyArray<T>(UdonSharpBehaviour usb, string name, ref T[] array, T[] new_array) where T : UnityEngine.Object {
+			return ModifyArray(usb, name, ref array, new_array, KawaUtilities.UnityEquality);
 		}
 
-		public static void SendCustomEvent(this IEnumerable<UdonBehaviour> udons, string event_name, UnityEngine.Object context = null) {
-			// LINQ-like SendCustomEvent
-			Debug.LogFormat(context, "[KawaEditor] Sending event <b>{0}</b> to multiple udons...", event_name);
-			var count = 0;
-			foreach (var u in udons) {
-				// TODO: try/catch
-				var local_context = context != null ? context : u;
-				Debug.LogFormat(context, "[KawaEditor] Sending event <b>{0}</b> to <b>{1}</b> (<b>{2}</b>)", event_name, u, u.programSource);
-				u.SendCustomEvent(event_name);
-				++count;
+		public static bool ModifyArray<T>(UdonSharpBehaviour usb, string name, ref T[] array, T[] new_array, IEqualityComparer<T> cmp) {
+			if (!Utilities.IsValid(usb))
+				throw new ArgumentNullException(nameof(usb));
+			if (!Utilities.IsValid(name))
+				throw new ArgumentNullException(nameof(name));
+
+			if (!ModifyArray(ref array, new_array, cmp))
+				return false;
+
+			if (Utilities.IsValid(usb)) {
+				Debug.Log($"Modified array <b>{name}</b> @ <i>{usb.gameObject.KawaGetFullPath()}</i>", usb);
+				EditorUtility.SetDirty(usb);
 			}
-			Debug.LogFormat(context, "[KawaEditor] Sent event <b>{0}</b> to <b>{1}</b> Udons.", event_name, count);
-		}
-
-		public static bool SetPubVarValue<T>(this UdonBehaviour udon, string symbol, T value, bool serialize = true) {
-			var path = udon.transform.KawaGetHierarchyPath();
-			var value_type = value == null ? "null" : value.GetType().FullName + " : " + value.ToString();
-
-			bool result;
-			try {
-				if (value != null && value.GetType().IsArray) {
-					var array = value as Array;
-					value_type += string.Format(" (Length = <b>{0}</b>)", array.Length);
-				}
-
-				result = udon.publicVariables.TrySetVariableValue(symbol, value);
-
-				if (serialize && result) {
-					udon.KawaForceSerialize();
-				}
-
-				if (result) {
-					Debug.LogFormat(udon, "[KawaEditor] Sucessfully set Udon variable <b>{1}</b> = <b>{2}</b> @ <i>{0}</i>", path, symbol, value_type);
-				} else {
-					Debug.LogErrorFormat(udon, "[KawaEditor] Failed to set Udon variable<b>{1}</b> = <b>{2}</b> @ <i>{0}</i>", path, symbol, value_type);
-				}
-			} catch (Exception exc) {
-				Debug.LogErrorFormat(udon, "[KawaEditor] Failed to set Udon variable <b>{1}</b> = <b>{2}</b>: <i>{3}</i> @ <i>{0}</i>\n{4}", path, symbol, value_type, exc.Message, exc.StackTrace);
-				Debug.LogException(exc, udon);
-				result = false;
-			}
-			return result;
-		}
-
-		public static T GetPubVarValue<T>(this UdonBehaviour udon, string symbol, T def) {
-			return udon.publicVariables.TryGetVariableValue(symbol, out T value) ? value : def;
+			return true;
 		}
 
 		public static bool HasEntryPoint(this UdonBehaviour udon, string event_name)

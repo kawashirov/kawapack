@@ -97,7 +97,7 @@ public class UITabs : UdonSharpBehaviour
 		}
 	}
 
-	private bool Validate_tabs() => KawaUdonUtilities.DistinctArray(ref tabs);
+	private bool Validate_tabs() => KawaUdonUtilities.DistinctArray(this, nameof(tabs), ref tabs);
 
 	private void Validate_tab_in_tabs(UITab tab) {
 		KawaUdonUtilities.EnsureIsValid(tab);

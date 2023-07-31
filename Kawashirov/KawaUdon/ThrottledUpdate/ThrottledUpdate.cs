@@ -143,7 +143,7 @@ public class ThrottledUpdate : UdonSharpBehaviour
 
 	private bool Validate_AutoBindPrograms() {
 		var new_programs = AutoBindPrograms.OfType<AbstractUdonProgramSource>().Cast<UnityEngine.Object>().ToArray();
-		return KawaUdonUtilities.ModifyArray(ref AutoBindPrograms, new_programs, KawaUdonUtilities.UnityInequality);
+		return KawaUdonUtilities.ModifyArray(this, nameof(AutoBindPrograms), ref AutoBindPrograms, new_programs);
 	}
 
 	private bool Validate_EventReceivers() {
@@ -153,7 +153,7 @@ public class ThrottledUpdate : UdonSharpBehaviour
 		var fixed_event_recievers = EventReceivers
 			.SelectMany(KawaUdonUtilities.ConvertToUdonBehaviour);
 		var new_receivers = fixed_event_recievers.Concat(auto_event_recievers).Distinct().Cast<Component>().ToArray();
-		return KawaUdonUtilities.ModifyArray(ref EventReceivers, new_receivers, KawaUdonUtilities.UnityInequality);
+		return KawaUdonUtilities.ModifyArray(this, nameof(EventReceivers), ref EventReceivers, new_receivers);
 	}
 
 	private void Validate_EventReceiver_EntryPoint(Component component) {
