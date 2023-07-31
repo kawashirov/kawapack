@@ -130,7 +130,9 @@ namespace Kawashirov {
 			//if (lpg != null) DestroyImmediate(lpg); // Почему-то просто переписать probePositions не канает, нужно пересоздавать компонент.
 			//lpg = this.gameObject.AddComponent<LightProbeGroup>();
 			var lpg_positions = points.Select(x => transform.InverseTransformPoint(x)).ToArray();
+			Undo.RegisterCompleteObjectUndo(lpg, Undo.GetCurrentGroupName());
 			lpg.probePositions = lpg_positions;
+			EditorUtility.SetDirty(lpg);
 			gameObject.GetComponent<BoxCollider>().enabled = false;
 			Debug.LogFormat(this, "[KawaLPG] Placed <b>{0}</b> probes for <i>{1}</i>.", lpg_positions.Length, kawaHierarchyPath);
 		}
