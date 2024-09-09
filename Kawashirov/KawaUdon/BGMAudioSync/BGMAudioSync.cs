@@ -30,6 +30,8 @@ public class BGMAudioSync : UdonSharpBehaviour
 	{
 		path_ = _GetPath(transform);
 
+		source_ = GetComponent<AudioSource>();
+
 		float length = 0;
 		for (var i = 0; i < clips.Length; ++i)
 		{
