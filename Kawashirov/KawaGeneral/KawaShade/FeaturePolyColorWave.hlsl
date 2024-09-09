@@ -44,18 +44,18 @@
 #endif
 
 #if defined(GEOMETRY_OUT)
-	// (OUT[i].uv0, OUT[i].uv1, OUT[i].vertex, rnd) -> (OUT[i].pcw_color, rnd)
-	inline void pcw_geometry_out(inout GEOMETRY_OUT OUT[3], inout uint rnd) {
+	// (OUT[i].uv0, OUT[i].uv1, OUT[i].vertex) -> (OUT[i].pcw_color)
+	inline void pcw_geometry_out(inout GEOMETRY_OUT OUT[3]) {
 		#if defined(PCW_ON) && defined(KAWAFLT_PASS_FORWARDBASE)
 			// Используется только в базовом проходе
 			// assuming NEED_UV1
 			float2 uv0Mid = (OUT[0].uv0 + OUT[1].uv0 + OUT[2].uv0) / 3.0;
 			float2 uv1Mid = (OUT[0].uv1 + OUT[1].uv1 + OUT[2].uv1) / 3.0;
 			float4 vertexMid = (OUT[0].vertex + OUT[1].vertex + OUT[2].vertex) / 3.0;
-			float rnd01 = rnd_next_float_01(rnd);
-			float wave_offset =  dot(float4(uv0Mid, uv1Mid), _PCW_WvTmUV) + dot(vertexMid, _PCW_WvTmVtx) + rnd01 * _PCW_WvTmRnd;
+			float rnd_01 = rnd_float_01(54354, 56497, false);
+			float wave_offset =  dot(float4(uv0Mid, uv1Mid), _PCW_WvTmUV) + dot(vertexMid, _PCW_WvTmVtx) + rnd_01 * _PCW_WvTmRnd;
 
-			half hue = frac((_Time.y + rnd_next_float_01(rnd) * _PCW_RnbwTmRnd) / _PCW_RnbwTm);
+			half hue = frac((_Time.y + rnd_float_01(37841, 49072, false) * _PCW_RnbwTmRnd) / _PCW_RnbwTm);
 			half3 rainbow_color = hsv2rgb(half3(hue, _PCW_RnbwStrtn, _PCW_RnbwBrghtnss));
 
 			float wave = pcw_wave_intensity(wave_offset);

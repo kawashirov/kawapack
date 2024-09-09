@@ -1,24 +1,27 @@
 #ifndef KAWAFLT_VERT_GEOMETRY_INCLUDED
 #define KAWAFLT_VERT_GEOMETRY_INCLUDED
 
-VERTEX_OUT vert(VERTEX_IN v_in) {
+VERTEX_OUT vert(VERTEX_IN v_in, in uint v_id : SV_VertexID) {
 	UNITY_SETUP_INSTANCE_ID(v_in);
 	VERTEX_OUT v_out;
 	// UNITY_INITIALIZE_OUTPUT(VERTEX_OUT, v_out);
 	UNITY_TRANSFER_INSTANCE_ID(v_in, v_out);
 	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(v_out);
 	
-	apply_bitloss_vertin(v_in);
-	
+	uint rnd_tri = v_id; // rnd_init_noise_uint(v_id);
+	rnd_init(rnd_tri);
+		
 	apply_dps(v_in);
 	
 	v_out.uv0 = v_in.texcoord;
+	apply_bitloss2(v_out.uv0, uint2(39736, 51879), uint2(33058, 38227), true);
 	#if defined(NEED_UV1)
 		v_out.uv1 = v_in.texcoord1;
+		apply_bitloss2(v_out.uv1, uint2(55355, 35850), uint2(36711, 50447), true);
 	#endif
+	
 	v_out.vertex = v_in.vertex;
 	v_out.normal_obj = normalize(v_in.normal);
-	apply_bitloss(v_out.normal_obj);
 	
 	#if defined(KAWAFLT_PASS_FORWARD)
 		// С большой вероятностью на geom стейдже система изменится и нужно буде
@@ -26,9 +29,7 @@ VERTEX_OUT vert(VERTEX_IN v_in) {
 		// TODO оптимизировать
 		half tangent_w = v_in.tangent.w; // Определяет леворукость/праворукость/зеркальность?
 		v_out.tangent_obj = normalize(v_in.tangent.xyz);
-		apply_bitloss(v_out.tangent_obj);
 		v_out.bitangent_obj = normalize(cross(v_out.normal_obj, v_out.tangent_obj) * tangent_w);
-		apply_bitloss(v_out.bitangent_obj);
 
 		#if defined(KAWAFLT_PASS_FORWARDBASE) && defined(SHADE_KAWAFLT)
 			v_out.vertexlight_on = false;
@@ -69,25 +70,27 @@ void geom(triangle GEOMETRY_IN v_in[3], in uint p_id : SV_PrimitiveID, uint g_id
 	#endif
 
 	//uint p_id = 1;
-	uint rnd_tri = rnd_init_noise_uint(p_id);
-	rnd_tri = rnd_apply_uint(rnd_tri, p_id);
+	uint rnd_tri = rnd_init_noise_uint(p_id + g_id);
+	rnd_init(rnd_tri);
 
 	bool drop_face = false;
-	// (v_in.vertex, rnd) -> (v_in.vertex, v_out.iwd_tint, rnd, drop_face)
-	iwd_geometry(v_in, v_out, rnd_tri, drop_face); 
+	// (v_in.vertex) -> (v_in.vertex, v_out.iwd_tint, drop_face)
+	iwd_geometry(v_in, v_out, drop_face); 
 	if (drop_face) return;
 
 	// Модификация vertex в обджект-спейсе завершена, можно начинать работу в ворлд-спейсе
 	UNITY_UNROLL for (int i3 = 0; i3 < 3; i3++) {
 		v_out[i3].pos_world = mul(unity_ObjectToWorld, v_in[i3].vertex);
-		apply_bitloss(v_out[i3].pos_world);
+		apply_bitloss4(v_out[i3].pos_world, uint4(48666, 33763, 50100, 57693), uint4(58400, 39726, 63251, 46769), true);
 	}
 
 	// После смещающих модов можно сделать проверку на вылет за экран для оптимиации
 	if (UnityWorldViewFrustumCull(v_out[0].pos_world, v_out[1].pos_world, v_out[2].pos_world, 0.0)) return;
 
 	UNITY_UNROLL for (int i2 = 0; i2 < 3; i2++) {
-		v_out[i2].normal_world = normalize(UnityObjectToWorldNormal(v_in[i2].normal_obj));
+		v_out[i2].normal_world = UnityObjectToWorldNormal(v_in[i2].normal_obj);
+		apply_bitloss3(v_out[i2].normal_world, uint3(59947, 64539, 61205), uint3(47834, 55784, 51766), true);
+		v_out[i2].normal_world = normalize(v_out[i2].normal_world);
 
 		// Деформация для аутлайна
 		// (v_out.pos_world, v_out.normal_world) -> (v_out.pos_world, v_out.normal_world, v_out.is_outline)
@@ -96,17 +99,29 @@ void geom(triangle GEOMETRY_IN v_in[3], in uint p_id : SV_PrimitiveID, uint g_id
 		// Модификация в ворлд-спейсе завершена, можно обсчитывать клип-спейс и прочее
 
 		v_out[i2].uv0 = v_in[i2].uv0;
+		apply_bitloss2(v_out[i2].uv0, uint2(39736, 51879), uint2(33058, 38227), true);
 		#if defined(NEED_UV1)
 			v_out[i2].uv1 = v_in[i2].uv1;
+			apply_bitloss2(v_out[i2].uv1, uint2(55355, 35850), uint2(36711, 50447), true);
 		#endif
+		
 		v_out[i2].pos = UnityWorldToClipPos(v_out[i2].pos_world);
+		// apply_bitloss4(v_out[i2].pos, uint4(58839, 57528, 40864, 38292), uint4(60970, 56821, 47165, 54475), true);
+		apply_bitloss3(v_out[i2].pos.xyz, uint3(58839, 57528, 40864), uint3(60970, 56821, 47165), true);
 
 		#if defined(KAWAFLT_PASS_FORWARD)
 			v_out[i2].vertex = v_in[i2].vertex;
-			v_out[i2].tangent_world = normalize(UnityObjectToWorldDir(v_in[i2].tangent_obj));
-			v_out[i2].bitangent_world = normalize(UnityObjectToWorldDir(v_in[i2].bitangent_obj));
+			
+			v_out[i2].tangent_world = UnityObjectToWorldDir(v_in[i2].tangent_obj);
+			apply_bitloss3(v_out[i2].tangent_world, uint3(44466, 40896, 52619), uint3(62055, 45194, 52148), true);
+			v_out[i2].tangent_world = normalize(v_out[i2].tangent_world);
+			
+			v_out[i2].bitangent_world = UnityObjectToWorldDir(v_in[i2].bitangent_obj);
+			apply_bitloss3(v_out[i2].bitangent_world, uint3(61661, 51423, 43258), uint3(43410, 42253, 40283), true);
+			v_out[i2].bitangent_world = normalize(v_out[i2].bitangent_world);
 			
 			float3 wsvd = UnityWorldSpaceViewDir(v_out[i2].pos_world.xyz);
+			apply_bitloss3(wsvd, uint3(44380, 44971, 50874), uint3(65110, 35381, 38937), true);
 			half3 wsvd_norm = normalize(wsvd);
 			
 			// (v_out.world_normal) -> (v_out.matcap_uv)
@@ -131,11 +146,9 @@ void geom(triangle GEOMETRY_IN v_in[3], in uint p_id : SV_PrimitiveID, uint g_id
 		dstfade_frament_in(v_out[i2]);
 
 		prefrag_shadowcaster_pos(v_in[i2].vertex, v_in[i2].normal_obj, v_out[i2].pos);
-		
-		apply_bitloss_frag(v_out[i2]);
 	}
 
-	pcw_geometry_out(v_out, rnd_tri);
+	pcw_geometry_out(v_out);
 
 	if (is_outline) {
 		// Обратный порядок

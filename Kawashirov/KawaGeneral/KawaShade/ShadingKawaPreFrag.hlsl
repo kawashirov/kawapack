@@ -64,7 +64,7 @@ inline void kawaflt_fragment_in(inout FRAGMENT_IN v, bool vertexlight_on, float3
 					v.vertexlight += unity_LightColor[i].rgb * shade[i];
 				}
 			#endif
-			apply_bitloss(v.vertexlight);
+			apply_bitloss3(v.vertexlight.rgb, uint3(61639, 64471, 38137), uint3(37491, 34426, 54018), true);
 		}
 		// ShadeSH9 во фрагментном
 	#endif

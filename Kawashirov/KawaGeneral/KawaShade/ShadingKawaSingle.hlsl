@@ -26,7 +26,7 @@ inline float shade_kawaflt_single(float tangency, float shadow_atten) {
 	half shade_high = max(_Sh_KwshrvSngl_ShdLo, _Sh_KwshrvSngl_ShdHi);
 	shade = lerp(shade_low, shade_high, shade);
 	
-	apply_bitloss(shade);
+	apply_bitloss(shade, 57893, 34434, true);
 	return shade; // shadow_atten; // max(0, shadow_atten); // shade;
 }
 
@@ -37,13 +37,14 @@ inline float shade_kawaflt_single(float tangency, float shadow_atten) {
 
 		half shadow_atten = UNITY_SHADOW_ATTENUATION(i, i.pos_world.xyz);
 		float3 dir = normalize(UnityWorldSpaceLightDir(i.pos_world.xyz));
-		apply_bitloss(dir);
+		
+		apply_bitloss3(dir, uint3(61909, 40056, 59452), uint3(49176, 44246, 39924), true);
 		half tangency = dot(normal, dir);
-		apply_bitloss(tangency);
+		apply_bitloss(tangency, 54998, 51730, true);
 		half shade_single = shade_kawaflt_single(tangency, shadow_atten);
 		
 		half3 shade = _LightColor0.rgb * max(0.0h, light_atten * shade_single);
-		apply_bitloss(shade);
+		apply_bitloss3(shade, uint3(45272, 50533, 56004), uint3(36768, 54605, 64743), true);
 		shade = max(half3(0,0,0), shade);
 		return shade;
 	}
@@ -56,12 +57,12 @@ inline float shade_kawaflt_single(float tangency, float shadow_atten) {
 				half3 ambient_flat = ShadeSH9(half4(0,0,0,1));
 				ambient = lerp(ambient_sh9, ambient_flat, _Sh_Kwshrv_ShdFlt);
 				ambient = max(half3(0,0,0), ambient);
-				apply_bitloss(ambient);
+				apply_bitloss3(ambient, uint3(40935, 42665, 41008), uint3(60085, 32902, 50218), true);
 			#endif
 
 			half3 main = frag_shade_kawaflt_single_forward_main(i, normal3);
 
-			apply_bitloss(i.vertexlight);
+			apply_bitloss3(i.vertexlight, uint3(46754, 49739, 44693), uint3(49319, 53179, 55668), true);
 			return (main + i.vertexlight + ambient) * _Sh_Kwshrv_ShdScl;
 		}
 	#endif

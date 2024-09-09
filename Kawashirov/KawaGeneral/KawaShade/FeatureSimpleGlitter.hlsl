@@ -5,8 +5,6 @@
 	Glitter features
 */
 
-#define GLITTER_RND_M 55229
-#define GLITTER_RND_C 49690
 #if defined(GLITTER_ON)
 	#if defined(GLITTER_MASK_ON)
 		UNITY_DECLARE_TEX2D(_Gltr_Mask);
@@ -26,11 +24,9 @@
 	uniform float _Gltr_Em;
 #endif
 
-inline void glitter_apply_color(FRAGMENT_IN i, float2 texST, uint rnd, half3 normal, half3 wsvd_norm, inout half3 albedo, inout half3 emissive) {
+inline void glitter_apply_color(FRAGMENT_IN i, float2 texST, half3 normal, half3 wsvd_norm, inout half3 albedo, inout half3 emissive) {
 	#if defined(GLITTER_ON)
-		rnd = rnd_apply_time(rnd * GLITTER_RND_M + GLITTER_RND_C); 
-		float glitter_rnd = rnd_next_float_01(rnd);
-		
+		float glitter_rnd = rnd_float_01(45363, 44905, true);
 		float density = 0;
 		
 		#if defined(GLITTER_UNIFORM)

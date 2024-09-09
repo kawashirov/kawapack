@@ -14,7 +14,7 @@ inline float2 frag_pixelcoords(FRAGMENT_IN i) {
 	return pxc;
 }
 
-inline uint frag_rnd_init(FRAGMENT_IN i) {
+inline void frag_rnd_init(FRAGMENT_IN i) {
 	float2 sc_raw = frag_pixelcoords(i);
 	float2 sc_floor = floor(sc_raw);
 	#if defined(RANDOM_SCREEN_SCALE)
@@ -24,7 +24,7 @@ inline uint frag_rnd_init(FRAGMENT_IN i) {
 	#if defined(RANDOM_MIX_COORD)
 		rnd = rnd_apply_uint2(rnd, asuint(sc_floor));
 	#endif
-	return rnd;
+	rnd_init(rnd);
 }
 
 inline float2 frag_applyst(float2 uv) {
@@ -34,10 +34,7 @@ inline float2 frag_applyst(float2 uv) {
 	return uv;
 }
 
-#define ALPHATEST_RND_M 25598
-#define ALPHATEST_RND_C 11497
-
-inline void frag_alphatest(FRAGMENT_IN i, uint rnd, inout half alpha) {
+inline void frag_alphatest(FRAGMENT_IN i, inout half alpha) {
 	half cutoff = 0;
 
 	#if defined(CUTOFF_CLASSIC)
@@ -45,8 +42,7 @@ inline void frag_alphatest(FRAGMENT_IN i, uint rnd, inout half alpha) {
 	#elif defined(CUTOFF_RANGE)
 		half spread = 0.5h;
 		#if defined(CUTOFF_RANDOM)
-			rnd = rnd_apply_time(rnd * ALPHATEST_RND_M + ALPHATEST_RND_C);
-			spread = rnd_next_float_01(rnd);
+			spread = rnd_float_01(35360, 37294, true);
 		#elif
 			// half spread = // TODO BAYER
 		#endif

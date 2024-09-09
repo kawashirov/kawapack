@@ -1,6 +1,12 @@
 #ifndef KAWARND_INCLUDED
 #define KAWARND_INCLUDED
 
+uint global_kawa_rnd = 0;
+
+inline void rnd_init(uint seed) {
+	global_kawa_rnd = seed;
+}
+
 inline uint rnd_init_noise_uint(in uint value) {
 	uint rnd1 = 1;
 	#if defined(RANDOM_SEED_TEX)
@@ -31,11 +37,6 @@ inline uint rnd_next_c(uint seed, uint c) {
 	return seed * 134775813 + c;
 }
 
-
-inline void rnd_next(inout uint seed) {
-	seed = rnd_next_c(seed, 1);
-}
-
 inline uint rnd_apply_uint(uint rnd, uint salt) {
 	// Применяет соль к рандому, salt может быть 0.
 	// Тоже, что и rnd_next, но с другой константой
@@ -62,7 +63,7 @@ inline uint rnd_apply_uint4(uint rnd, uint4 salt) {
 	rnd = rnd_next_c(rnd, salt.w);
 }
 
-inline uint rnd_apply_time(uint rnd) {
+inline uint rnd_apply_time(inout uint rnd) {
 	// rnd = rnd * asuint(_SinTime.w) + asuint(_CosTime.w);
 	// rnd = rnd * 1 + asuint(_SinTime.w);
 	// rnd = rnd * 1 + asuint(_CosTime.w);
@@ -74,42 +75,59 @@ inline uint rnd_apply_time(uint rnd) {
 	return rnd;
 }
 
-inline float rnd_next_float_01(inout uint rnd) {
-	float float01 = float(rnd) * (1.0 / 0xffffffff); // 1/(2^32-1) aka 1/4294967295
-	rnd_next(rnd);
-	return float01;
+/* Generative functions */
+
+inline float rnd_uint(uint multiplier, uint constant, bool apply_time) {
+	uint rnd = global_kawa_rnd * multiplier + constant;
+	if (apply_time) // Assume static
+		rnd = rnd_apply_time(rnd);
+	return rnd;
 }
 
-inline float2 rnd_next_float2_01(inout uint rnd) {
-	return float2(rnd_next_float_01(rnd), rnd_next_float_01(rnd));
+inline float rnd_float_01(uint multiplier, uint constant, bool apply_time) {
+	uint rnd = rnd_uint(multiplier, constant, apply_time);
+	return float(rnd) * (1.0 / 0xffffffff); // 1/(2^32-1) aka 1/4294967295;
 }
 
-inline float3 rnd_next_float3_01(inout uint rnd) {
-	return float3(rnd_next_float_01(rnd), rnd_next_float_01(rnd), rnd_next_float_01(rnd));
+inline float2 rnd_float2_01(uint2 multiplier, uint2 constant, bool apply_time) {
+	return float2(
+		rnd_float_01(multiplier.x, constant.x, apply_time),
+		rnd_float_01(multiplier.y, constant.y, apply_time)
+	);
 }
 
-inline float3 rnd_next_direction3(inout uint rnd) {
+inline float3 rnd_float3_01(uint3 multiplier, uint3 constant, bool apply_time) {
+	return float3(
+		rnd_float_01(multiplier.x, constant.x, apply_time),
+		rnd_float_01(multiplier.y, constant.y, apply_time),
+		rnd_float_01(multiplier.z, constant.z, apply_time)
+	);
+}
+
+inline float3 rnd_direction3(uint3 multiplier, uint3 constant, bool apply_time) {
 	// Случайная точка на поверхности сферы
-	float3 float01 = rnd_next_float3_01(rnd) * 2.0 - 1.0;
+	float3 float01 = rnd_float3_01(multiplier, constant, apply_time) * 2.0 - 1.0;
 	float01 = float01 / cos(float01);
 	return normalize(float01);
 }
 
-inline float2 rnd_next_direction2(inout uint rnd) {
+inline float2 rnd_direction2(uint2 multiplier, uint2 constant, bool apply_time) {
 	// Случайная точка на окружности
-	float3 float01 = rnd_next_float3_01(rnd) * 2.0 - 1.0;
+	float2 float01 = rnd_float2_01(multiplier, constant, apply_time) * 2.0 - 1.0;
 	float01 = float01 / cos(float01);
 	return normalize(float01);
 }
 
-inline float2 rnd_next_disc2(inout uint rnd) {
+inline float2 rnd_disc2(uint2 multiplier, uint2 constant, bool apply_time) {
 	// Случайная точка внутри диска
-	float a = rnd_next_float_01(rnd) * UNITY_TWO_PI;
-	float r = sqrt(rnd_next_float_01(rnd));
+	float2 rnd = rnd_float2_01(multiplier, constant, apply_time);
+	float a = rnd.x * UNITY_TWO_PI;
+	float r = sqrt(rnd.y);
 	float2 sc;
 	sincos(a, sc.x, sc.y);
 	return sc * r;
 }
+
 
 /* Leagcy */
 

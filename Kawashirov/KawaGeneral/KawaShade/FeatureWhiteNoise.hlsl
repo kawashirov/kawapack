@@ -5,9 +5,6 @@
 	White Noise features
 */
 
-#define WNOISE_RND_M 53534
-#define WNOISE_RND_C 43178
-
 #if defined(WNOISE_ON)
 	uniform float _WNoise_Albedo;
 	#if defined(EMISSION_ON)
@@ -15,11 +12,9 @@
 	#endif
 #endif
 
-inline void wnoise_apply(FRAGMENT_IN i, uint rnd, half3 albedo, half3 emissive) {
+inline void wnoise_apply(FRAGMENT_IN i, half3 albedo, half3 emissive) {
 	#if defined(WNOISE_ON)
-		rnd = rnd * WNOISE_RND_M + WNOISE_RND_C;
-		rnd = rnd_apply_time(rnd);
-		float wnoise = rnd_next_float_01(rnd);
+		float wnoise = rnd_float_01(62542, 57838, true);
 		float factor_em = 0;
 		#if defined(EMISSION_ON)
 			factor_em = _WNoise_Em;

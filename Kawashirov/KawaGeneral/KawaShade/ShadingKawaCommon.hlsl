@@ -26,7 +26,7 @@ inline half frag_shade_kawaflt_attenuation_no_shadow(half3 worldPos) {
 
 inline half frag_forward_get_light_attenuation(FRAGMENT_IN i) {
 	UNITY_LIGHT_ATTENUATION(attenuation, i, i.pos_world.xyz);
-	apply_bitloss(attenuation);
+	apply_bitloss(attenuation, 41843, 45428, true);
 	return attenuation;
 }
 

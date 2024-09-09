@@ -3,7 +3,6 @@
 
 // Infinity War features (Geometry+)
 
-#define IWD_RND_SEED 26842
 #if defined(IWD_ON)
 	uniform float4 _IWD_Plane;
 	uniform float _IWD_PlaneDistRandomness;
@@ -33,8 +32,8 @@
 #endif // IWD_ON
 
 #if defined(GEOMETRY_IN) && defined(GEOMETRY_OUT)
-	// (IN[i].vertex, rnd) -> (IN[i].vertex, OUT[i].iwd_tint, rnd, drop_face)
-	inline void iwd_geometry(inout GEOMETRY_IN IN[3], inout GEOMETRY_OUT OUT[3], inout uint rnd, inout bool drop_face) {
+	// (IN[i].vertex) -> (IN[i].vertex, OUT[i].iwd_tint, drop_face)
+	inline void iwd_geometry(inout GEOMETRY_IN IN[3], inout GEOMETRY_OUT OUT[3], inout bool drop_face) {
 		// Обсчет в обджект-спейсе
 		#if defined(IWD_ON)
 			float3 pos_mid = (IN[0].vertex.xyz + IN[1].vertex.xyz + IN[2].vertex.xyz) / 3.0;
@@ -45,7 +44,8 @@
 			float plane_distance_random = 0;
 			if (use_plane) {
 				_IWD_Plane.xyz = normalize(_IWD_Plane.xyz);
-				plane_distance_random = -rnd_next_float_01(rnd) * _IWD_PlaneDistRandomness;
+				float rnd_01 = rnd_float_01(60569, 44511, false);
+				plane_distance_random = -rnd_01 * _IWD_PlaneDistRandomness;
 				plane_distance_mid = max(0, dot(float4(pos_mid, 1.0f), _IWD_Plane) + plane_distance_random);
 			} else {
 				plane_distance_mid = _IWD_Plane.w;
@@ -61,7 +61,7 @@
 				wn += _IWD_DirWorldWeight;
 				wn = 1.0 / wn;
 
-				float3 random_normal = rnd_next_direction3(rnd);
+				float3 random_normal = rnd_direction3(uint3(52442, 51033, 43938), uint3(42882, 60757, 37804), false);
 				float3 plane_normal = use_plane ? _IWD_Plane.xyz : 0;
 				float3 face_normal = normalize(IN[0].normal_obj + IN[1].normal_obj + IN[2].normal_obj);
 				float3 object_normal = normalize(_IWD_DirObjectVector.xyz);

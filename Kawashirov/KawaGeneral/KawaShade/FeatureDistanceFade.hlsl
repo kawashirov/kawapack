@@ -5,9 +5,6 @@
 	Distance Fade features
 */
 
-#define DSTFD_RND_M 36179
-#define DSTFD_RND_C 34836
-
 #if defined(DSTFD_ON)
 	uniform float _DstFd_Near;
 	uniform float _DstFd_AdjustPower;
@@ -30,12 +27,9 @@ inline void dstfade_frament_in(inout FRAGMENT_IN o) {
 	#endif
 }
 
-inline void dstfd_frag_clip(inout FRAGMENT_IN i, uint rnd) {
+inline void dstfd_frag_clip(inout FRAGMENT_IN i) {
 	#if defined(DSTFD_ON)
-		// Равномерный рандом от 0 до 1
-		rnd = rnd_apply_time(rnd * DSTFD_RND_M + DSTFD_RND_C);
-		half rnd_01 = rnd_next_float_01(rnd); 
-
+		half rnd_01 = rnd_float_01(50573, 40649, true); 
 		half clip_v;
 		#if defined(DSTFD_RANGE)
 			half rnd_nonlin = pow(rnd_01, _DstFd_AdjustPower);

@@ -12,6 +12,7 @@ namespace Kawashirov.KawaShade {
 
 		internal static readonly GUIContent gui_feature_psx = new GUIContent("PSX Feature");
 		internal static readonly GUIContent gui_feature_PrecLoss = new GUIContent("Precision Loss Feature");
+		internal static readonly GUIContent gui_feature_Randomize = new GUIContent("Randomize Precision Loss");
 
 		internal static readonly GUIContent gui_prop_PSX_SnapScale = new GUIContent("PSX Pixel Snap");
 		internal static readonly GUIContent gui_prop_PrecLoss =
@@ -39,7 +40,12 @@ namespace Kawashirov.KawaShade {
 			shader.TagBool(F_PrecLoss, generator.PrecLoss);
 			if (generator.PrecLoss) {
 				shader.Define("PRECISION_LOSS_ON 1");
-				shader.properties.Add(new PropertyFloat() { name = "_PrecLoss", defualt = 13, range = new Vector2(0, 23) });
+				shader.properties.Add(new PropertyFloat() { name = "_PrecLoss", defualt = 13, range = new Vector2(0, 31) });
+				if (generator.Randomize) {
+					shader.Define("PRECISION_LOSS_RANDOM 1");
+					generator.needRandomVert = true;
+					generator.needRandomFrag = true;
+				}
 			} else {
 				shader.Define("PRECISION_LOSS_OFF 1");
 			}
@@ -53,6 +59,10 @@ namespace Kawashirov.KawaShade {
 
 			var PrecLoss = editor.serializedObject.FindProperty("PrecLoss");
 			KawaGUIUtility.ToggleLeft(PrecLoss, gui_feature_PrecLoss);
+
+			var Randomize = editor.serializedObject.FindProperty("Randomize");
+			KawaGUIUtility.ToggleLeft(Randomize, gui_feature_Randomize);
+
 		}
 
 		public override void ShaderEditorGUI(KawaShadeGUI editor) {
@@ -75,5 +85,6 @@ namespace Kawashirov.KawaShade {
 	public partial class KawaShadeGenerator {
 		public bool PSX = false;
 		public bool PrecLoss = false;
+		public bool Randomize = true;
 	}
 }

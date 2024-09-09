@@ -13,7 +13,7 @@ uniform float4 _Sh_KwshrvRmp_NdrctClr;
 inline half3 frag_shade_kawaflt_ramp_apply(half uv) {
 	uv = pow(uv, _Sh_KwshrvRmp_Pwr);
 	uv = uv * uv * (3.0 - 2.0 * uv); // Cubic Hermite H01 interoplation
-	apply_bitloss(uv);
+	apply_bitloss(uv, 63160, 36298, true);
 	return UNITY_SAMPLE_TEX2D(_Sh_KwshrvRmp_Tex, half2(uv, uv)).rgb;
 }
 
@@ -22,14 +22,14 @@ inline half3 frag_shade_kawaflt_ramp_apply(half uv) {
 		half light_atten = frag_shade_kawaflt_attenuation_no_shadow(i.pos_world.xyz);
 
 		half shadow_atten = UNITY_SHADOW_ATTENUATION(i, i.pos_world.xyz);
-		apply_bitloss(shadow_atten);
+		apply_bitloss(shadow_atten, 38437, 56700, true);
 		float3 wsld = normalize(UnityWorldSpaceLightDir(i.pos_world.xyz));
-		apply_bitloss(wsld);
+		apply_bitloss3(wsld, uint3(47328, 49365, 61431), uint3(48009, 55427, 41889), true);
 		half ramp_uv = dot(normal, wsld) * 0.5 + 0.5;
 		
 		half3 shade_ramp = frag_shade_kawaflt_ramp_apply(ramp_uv * shadow_atten);
 		half3 shade = _LightColor0.rgb * max(0.0h, light_atten * shade_ramp);
-		apply_bitloss(shade);
+		apply_bitloss3(shade, uint3(39506, 65303, 39034), uint3(57602, 40293, 61361), true);
 		shade = max(half3(0,0,0), shade);
 		return shade;
 	}
