@@ -82,6 +82,9 @@ public class LazyPlayerPresenceTrigger : UdonSharpBehaviour
 			}
 		}
 
+		// By default assume absent
+		SetState(false);
+
 		Debug.LogFormat(gameObject, "[Kawa|LazyPlayerPresenceTrigger] Initialized. @ {0}", _path);
 	}
 
@@ -89,11 +92,15 @@ public class LazyPlayerPresenceTrigger : UdonSharpBehaviour
 		var changed = IsPlayerPresent != state;
 		IsPlayerPresent = state;
 		if (changed) {
-			foreach (var go in ActiveWhenPresent)
-				go.SetActive(IsPlayerPresent);
+			if (Utilities.IsValid(ActiveWhenPresent))
+				foreach (var go in ActiveWhenPresent)
+					if (Utilities.IsValid(go))
+						go.SetActive(IsPlayerPresent);
 
-			foreach (var go in ActiveWhenAbsent)
-				go.SetActive(!IsPlayerPresent);
+			if (Utilities.IsValid(ActiveWhenAbsent))
+				foreach (var go in ActiveWhenAbsent)
+					if (Utilities.IsValid(go))
+						go.SetActive(!IsPlayerPresent);
 
 			foreach (var component in EventReceivers) {
 				var receiver = (UdonBehaviour)component;
@@ -106,10 +113,10 @@ public class LazyPlayerPresenceTrigger : UdonSharpBehaviour
 				}
 			}
 
-			foreach (var animator in AnimatorsSetBool) {
-				if (Utilities.IsValid(animator))
-					animator.SetBool(AnimatorsSetBoolName, IsPlayerPresent);
-			}
+			if (Utilities.IsValid(AnimatorsSetBool))
+				foreach (var animator in AnimatorsSetBool) 
+					if (Utilities.IsValid(animator))
+						animator.SetBool(AnimatorsSetBoolName, IsPlayerPresent);
 		}
 	}
 
