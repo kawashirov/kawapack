@@ -1,8 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using System;
 using System.Linq;
+using UnityEngine;
 using Kawashirov.Refreshables;
 
 #if UNITY_EDITOR
@@ -13,32 +13,21 @@ namespace Kawashirov {
 	public abstract class KawaEditorBehaviour : MonoBehaviour, IRefreshable {
 #if UNITY_EDITOR
 
-		private string _hierarchy_path = null;
-		private string _full_path = null;
-
-		public string kawaHierarchyPath {
-			get {
-				if (string.IsNullOrWhiteSpace(_hierarchy_path))
-					_hierarchy_path = transform.KawaGetHierarchyPath();
-				return _hierarchy_path;
-				// Possible bug: hierarchy change may not update path
+		[CustomEditor(typeof(KawaEditorBehaviour), true)]
+		public class KawaEditorBehaviourEditor : Editor {
+			public override void OnInspectorGUI() {
+				DrawDefaultInspector();
+				this.BehaviourRefreshGUI();
 			}
 		}
 
-		public string kawaFullPath {
-			get {
-				if (string.IsNullOrWhiteSpace(_full_path))
-					_full_path = transform.gameObject.KawaGetFullPath();
-				return _full_path;
-				// Possible bug: hierarchy change may not update path
-			}
-		}
+		public string kawaHierarchyPath => transform.KawaGetHierarchyPath();
 
 		public virtual void Refresh() { }
 
 		public UnityEngine.Object AsUnityObject() => this;
 
-		public string RefreshablePath() => kawaFullPath;
+		public string RefreshablePath() => gameObject.KawaGetFullPath();
 
 #endif
 	}

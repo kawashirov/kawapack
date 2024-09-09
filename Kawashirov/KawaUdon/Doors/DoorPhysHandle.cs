@@ -5,6 +5,7 @@ using UnityEngine;
 using VRC.SDKBase;
 using VRC.Udon;
 
+[UdonBehaviourSyncMode(BehaviourSyncMode.Continuous)]
 public class DoorPhysHandle : UdonSharpBehaviour {
 	/* Config variables */
 

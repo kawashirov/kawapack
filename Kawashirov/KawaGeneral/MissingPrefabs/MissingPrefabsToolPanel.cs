@@ -37,11 +37,9 @@ namespace Kawashirov {
 				++totalObjects;
 				var status = PrefabUtility.GetPrefabInstanceStatus(gobj);
 				var badName = checkForMissingPrefabInName && gobj.name.Contains("(Missing Prefab)");
-				if (status == PrefabInstanceStatus.MissingAsset || status == PrefabInstanceStatus.Disconnected || badName) {
+				if (status == PrefabInstanceStatus.MissingAsset || badName) {
 					if (status == PrefabInstanceStatus.MissingAsset) {
 						Debug.LogWarning($"GameObject {gobj.KawaGetFullPath()} contains missing Prefab reference!", gobj);
-					} else if (status == PrefabInstanceStatus.Disconnected) {
-						Debug.LogWarning($"GameObject {gobj.KawaGetFullPath()} is disconnected from Prefab asset!", gobj);
 					} else {
 						Debug.LogWarning($"GameObject {gobj.KawaGetFullPath()} have \"(Missing Prefab)\" in it's name!", gobj);
 					}

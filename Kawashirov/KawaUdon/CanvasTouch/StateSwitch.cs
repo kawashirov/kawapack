@@ -14,7 +14,7 @@ using UnityEditor;
 using UdonSharpEditor;
 #endif
 
-[UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
+[UdonBehaviourSyncMode(BehaviourSyncMode.None)]
 public class StateSwitch : UdonSharpBehaviour
 #if !COMPILER_UDONSHARP
 	, IRefreshable

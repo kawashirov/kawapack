@@ -5,6 +5,7 @@ using UnityEngine;
 using VRC.SDKBase;
 using VRC.Udon;
 
+[UdonBehaviourSyncMode(BehaviourSyncMode.Continuous)]
 public class SmartStationUpdater : UdonSharpBehaviour {
 	public SmartStationController Controller;
 

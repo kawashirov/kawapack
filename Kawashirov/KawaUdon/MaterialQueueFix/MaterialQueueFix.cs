@@ -13,6 +13,7 @@ using UnityEditor;
 using UdonSharpEditor;
 #endif
 
+[UdonBehaviourSyncMode(BehaviourSyncMode.None)]
 public class MaterialQueueFix : UdonSharpBehaviour
 #if !COMPILER_UDONSHARP
 	, IRefreshable

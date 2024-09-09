@@ -7,6 +7,7 @@ using VRC.SDKBase;
 using VRC.Udon;
 using VRC.Udon.Common.Interfaces;
 
+[UdonBehaviourSyncMode(BehaviourSyncMode.None)]
 public class SmartStationController : UdonSharpBehaviour {
 	/* Config variables */
 

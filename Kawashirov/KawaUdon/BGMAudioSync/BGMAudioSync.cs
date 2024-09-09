@@ -93,12 +93,17 @@ public class BGMAudioSync : UdonSharpBehaviour
 		}
 		else
 		{
+			// Повторить попытку через 5 сек
 			Debug.LogFormat(gameObject, "Failed to serialize audio data. @ {0}", path_);
 			SendCustomEventDelayedSeconds("_RequestSerializationDelayed", 5);
 		}
 	}
 
 	public override void OnPlayerJoined(VRCPlayerApi player) => RequestSerialization();
+
+	public override void OnPlayerSuspendChanged(VRCPlayerApi player) => RequestSerialization();
+
+	// public override void OnPlayerRespawn(VRCPlayerApi player) => RequestSerialization();
 
 	public override void OnOwnershipTransferred(VRCPlayerApi player) => RequestSerialization();
 

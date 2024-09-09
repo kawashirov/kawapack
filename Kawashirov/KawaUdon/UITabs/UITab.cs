@@ -16,6 +16,7 @@ using UnityEditor;
 using UdonSharpEditor;
 #endif
 
+[UdonBehaviourSyncMode(BehaviourSyncMode.None)]
 public class UITab : UdonSharpBehaviour
 #if !COMPILER_UDONSHARP
 	, IRefreshable

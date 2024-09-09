@@ -53,7 +53,7 @@ namespace Kawashirov.LightProbesTools {
 			EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
 		}
 
-		[System.Obsolete("Does not work. Unity just does not want to saves changes.")]
+		// [System.Obsolete("Does not work. Unity just does not want to saves changes.")]
 		public static bool SetLightProbes(LightProbes newProbes) {
 			var oldProbes = LightmapSettings.lightProbes;
 			if (oldProbes == newProbes)

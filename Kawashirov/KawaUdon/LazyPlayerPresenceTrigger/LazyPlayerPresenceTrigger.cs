@@ -13,6 +13,7 @@ using UnityEditor;
 using UdonSharpEditor;
 #endif
 
+[UdonBehaviourSyncMode(BehaviourSyncMode.None)]
 public class LazyPlayerPresenceTrigger : UdonSharpBehaviour
 #if !COMPILER_UDONSHARP
 	, IRefreshable

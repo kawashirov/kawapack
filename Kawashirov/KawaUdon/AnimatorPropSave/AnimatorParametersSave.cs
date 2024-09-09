@@ -1,6 +1,7 @@
 using UdonSharp;
 using UnityEngine;
 
+[UdonBehaviourSyncMode(BehaviourSyncMode.None)]
 public class AnimatorParametersSave : UdonSharpBehaviour {
 	private Animator animator;
 	private string[] p_keys;
