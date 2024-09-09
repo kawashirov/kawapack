@@ -12,14 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: StateSwitch
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: c858dfb33ee5e1a4da963975f1013d97,
-    type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: c858dfb33ee5e1a4da963975f1013d97, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: d34e8aacbee021d44ae8bf4529a2c16c, type: 3}
   scriptVersion: 2
   compiledVersion: 2
-  behaviourSyncMode: 2
+  behaviourSyncMode: 1
   hasInteractEvent: 0
   scriptID: -7481457523318822388
   serializationData:

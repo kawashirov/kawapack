@@ -12,14 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: ThrottledUpdate
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 1af6bf9694afc0346a48c5cebe464a8e,
-    type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 1af6bf9694afc0346a48c5cebe464a8e, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 251477b46f5c5024da7badc4f54d0efc, type: 3}
   scriptVersion: 2
   compiledVersion: 2
-  behaviourSyncMode: 0
+  behaviourSyncMode: 1
   hasInteractEvent: 1
   scriptID: -5207043743623338586
   serializationData:

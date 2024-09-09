@@ -12,14 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: TouchController
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: fae289b1ed7683e43ae22c1481e2a3fb,
-    type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: fae289b1ed7683e43ae22c1481e2a3fb, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 631d4be199fc9344489d9ab0a652576e, type: 3}
   scriptVersion: 2
   compiledVersion: 2
-  behaviourSyncMode: 2
+  behaviourSyncMode: 1
   hasInteractEvent: 0
   scriptID: -8556215901215756008
   serializationData:

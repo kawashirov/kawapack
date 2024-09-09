@@ -12,14 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: SmartStationUpdater
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 1851b88cd600d8049bf65d94f8cdbc81,
-    type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 1851b88cd600d8049bf65d94f8cdbc81, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 18903b279dea42c4388a20e61fc8bcee, type: 3}
   scriptVersion: 2
   compiledVersion: 2
-  behaviourSyncMode: 0
+  behaviourSyncMode: 3
   hasInteractEvent: 0
   scriptID: 2547351403713258204
   serializationData:

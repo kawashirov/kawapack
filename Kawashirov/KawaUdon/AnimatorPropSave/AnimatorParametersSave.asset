@@ -12,14 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: AnimatorParametersSave
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 5639c54d58a76d8409feb21b4d72cd01,
-    type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 5639c54d58a76d8409feb21b4d72cd01, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 80f34829b9905e24db5cbc9eadafb885, type: 3}
   scriptVersion: 2
   compiledVersion: 2
-  behaviourSyncMode: 0
+  behaviourSyncMode: 1
   hasInteractEvent: 0
   scriptID: -4702990652683668757
   serializationData:

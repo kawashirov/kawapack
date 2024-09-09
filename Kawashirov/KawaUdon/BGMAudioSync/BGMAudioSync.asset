@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: BGMAudioSync
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 73bc54ffed9f9cc4e9f32aaab3e80761,
-    type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 73bc54ffed9f9cc4e9f32aaab3e80761, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 963d482e873150d43930c24d51cde666, type: 3}
