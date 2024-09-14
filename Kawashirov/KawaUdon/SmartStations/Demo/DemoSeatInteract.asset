@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f11136daadff0b44ac2278a314682ab, type: 3}
   m_Name: DemoSeatInteract
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 00aa3f862e66f0a43af9c9ed6a7bc626,
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 80a5bd4af73ea654d9fdfbc6d99c3953,
     type: 2}
   udonAssembly: ".data_start\r\n\r\n    .export Station\r\n    \r\n    __instance_0:
     %VRCSDK3ComponentsVRCStation, null\r\n    __player_0: %VRCSDKBaseVRCPlayerApi,

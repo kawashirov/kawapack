@@ -608,7 +608,8 @@ PrefabInstance:
         type: 3}
       propertyPath: serializedProgramAsset
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 11400000, guid: 1851b88cd600d8049bf65d94f8cdbc81,
+        type: 2}
     - target: {fileID: 5738490968495086380, guid: 0c7595ebb04c4234cafdde0c3a61b9ef,
         type: 3}
       propertyPath: serializedPublicVariablesBytesString
@@ -655,6 +656,12 @@ PrefabInstance:
       propertyPath: _syncMethod
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7010453914330900571, guid: 0c7595ebb04c4234cafdde0c3a61b9ef,
+        type: 3}
+      propertyPath: serializedProgramAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 6614d86e09c3971439922abf0db538ac,
+        type: 2}
     - target: {fileID: 7010453914330900571, guid: 0c7595ebb04c4234cafdde0c3a61b9ef,
         type: 3}
       propertyPath: serializedPublicVariablesBytesString
