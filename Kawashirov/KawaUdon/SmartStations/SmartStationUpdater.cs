@@ -1,9 +1,9 @@
-﻿
-using System;
+﻿using System;
 using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
 using VRC.Udon;
+using VRC.Udon.Common;
 
 [UdonBehaviourSyncMode(BehaviourSyncMode.Continuous)]
 public class SmartStationUpdater : UdonSharpBehaviour {
@@ -16,35 +16,55 @@ public class SmartStationUpdater : UdonSharpBehaviour {
 	[Tooltip("Will use this transform as reference for exit location.")]
 	public Transform ReferenceExit;
 
-
-	[Space, Tooltip("Transform used as Enter in VRCStation.\nWill be dynamically updated at run-time.")]
+	[Space]
+	[Tooltip("Transform used as Enter in VRCStation.\nWill be dynamically updated at run-time.")]
 	public Transform DynamicSeat;
 
 	[Tooltip("Transform used as Exit in VRCStation.\nWill be dynamically updated at run-time.")]
 	public Transform DynamicExit;
 
-
-	[Space, Tooltip("Should try to keep player vertical in world-space?")]
+	[Space]
+	[Tooltip("Should try to keep player vertical in world-space?")]
 	public bool KeepVertical = false;
 
-
-	[Space, Tooltip("Allow players to rotate themselves while being seat on station using Move Left-Right input (A/S keys).\nMake sure VRCStation.disableStationExit set to true.")]
+	[Space]
+	[Tooltip("Allow players to rotate themselves while being seat on station using Move Left-Right input (A/D keys).\n"
+		+ "Make sure VRCStation.disableStationExit set to true.")]
 	public bool AllowRotation = false;
 
-	[Tooltip("Maximum allowed rotation angle to left side direction in degrees.\nSet both MaxLeftRotation and MaxRightRotation to >180 or <0 to remove limits.")]
+	[Tooltip("Maximum allowed rotation angle to left side direction in degrees.\n"
+		+ "Set both MaxLeftRotation and MaxRightRotation to >180 or <0 to remove limits.")]
 	public float MaxLeftRotation = 60;
 
-	[Tooltip("Maximum allowed rotation angle to right side direction in degrees.\nSet both MaxLeftRotation and MaxRightRotation to >180 or <0 to remove limits.")]
+	[Tooltip("Maximum allowed rotation angle to right side direction in degrees.\n"
+		+ "Set both MaxLeftRotation and MaxRightRotation to >180 or <0 to remove limits.")]
 	public float MaxRightRotation = 60;
 
 	[Tooltip("Degrees per second.")]
 	public float RotationSpeed = 60; // 6 sec = full circle
 
-	[Tooltip("Current rotation of seat. Can be read or writen (by owner/occupant) from other udon scripts at run-time.")]
+	[Tooltip("Current rotation of seat. Can be read (by anyone) or writen (by owner/occupant) from other udon scripts at run-time.")]
 	[UdonSynced(UdonSyncMode.Linear)] public float CurrentRotation = 0;
 
 
-	[Space, Tooltip("If 0: No custom reference.\nIf 1: Use SingleBone as Reference.\nIf 2: Use median ReferenceBoneA and ReferenceBoneB.")]
+	[Space]
+	[Tooltip("Allow players to move themselves up and down while being seat on station using Move Forward-Back input (W/S keys).\n"
+		+ "Make sure VRCStation.disableStationExit set to true.")]
+	public bool AllowLift = false;
+
+	[Tooltip("Maximum allowed seat upwards movement distance.\nTo disable set both MaxLiftUp and MaxLiftDown to 0.")]
+	public float MaxLiftUp = 0.1f;
+	[Tooltip("Maximum allowed seat downwards movement distance.\nTo disable set both MaxLiftUp and MaxLiftDown to 0.")]
+	public float MaxLiftDown = 0.1f;
+
+	[Tooltip("Meters per second.")]
+	public float LiftSpeed = 0.2f;
+
+	[Tooltip("Current lift of seat. Can be read (by anyone) or writen (by owner/occupant) from other udon scripts at run-time.")]
+	[UdonSynced(UdonSyncMode.Linear)] public float CurrentLift = 0;
+
+	[Space]
+	[Tooltip("If 0: No custom reference.\nIf 1: Use SingleBone as Reference.\nIf 2: Use median ReferenceBoneA and ReferenceBoneB.")]
 	public int UseCustomReference = 0;
 
 	[Tooltip("If any Reference used, offset vector will be scaled by this value.\nRecomended values from 0.9 to 1.1.")]
@@ -53,13 +73,19 @@ public class SmartStationUpdater : UdonSharpBehaviour {
 	[Tooltip("Will try to put this bone of player avatar to seat Transform location.\nRecomended to use only mandatory humanoid bones.\nUsed when UseCustomReference == 1.")]
 	public HumanBodyBones SingleReferenceBone = HumanBodyBones.Hips;
 
-	[Tooltip("Recomended to use only mandatory humanoid bones.\nUsed when UseCustomReference is 2.")]
+	[Tooltip("Recomended to use only mandatory humanoid bones.\nUsed when UseCustomReference == 2.")]
 	public HumanBodyBones ReferenceBoneA = HumanBodyBones.LeftUpperLeg;
 
-	[Tooltip("Recomended to use only mandatory humanoid bones.\nUsed when UseCustomReference is 2.")]
+	[Tooltip("Recomended to use only mandatory humanoid bones.\nUsed when UseCustomReference == 2.")]
 	public HumanBodyBones ReferenceBoneB = HumanBodyBones.RightUpperLeg;
 
+	[Range(0.001f, 0.999f)]
+	public float LerpSpeed = 0.9f;
+
 	/* Internal variables */
+	[NonSerialized] private bool _should_exit = false;
+	[NonSerialized] private float _horizontal_axis = 0;
+	[NonSerialized] private float _vertical_axis = 0;
 
 	[NonSerialized] private string _path = "";
 
@@ -149,6 +175,17 @@ public class SmartStationUpdater : UdonSharpBehaviour {
 
 		var ref_seat_pos = ReferenceSeat.position;
 
+		if (AllowLift) {
+			if (Networking.IsOwner(Controller.gameObject)) {
+				var custom_lift = CurrentLift;
+				custom_lift += _vertical_axis * Time.deltaTime * LiftSpeed;
+				custom_lift = Mathf.Clamp(custom_lift, -MaxLiftDown, MaxLiftUp);
+				if (Mathf.Abs(custom_lift - CurrentLift) > 0.001f)
+					CurrentLift = custom_lift;
+			}
+			ref_seat_pos += ReferenceSeat.up * CurrentLift;
+		}
+
 		var position = DynamicSeat.position;
 		var rotation = ReferenceSeat.rotation;
 
@@ -157,7 +194,7 @@ public class SmartStationUpdater : UdonSharpBehaviour {
 			var ref_bone_pos = occupant.GetBonePosition(SingleReferenceBone);
 			var player_pos = occupant.GetPosition();
 			var target_pos = ref_seat_pos - (ref_bone_pos - player_pos) * CustomReferenceOffsetMultiplier;
-			position = Vector3.Lerp(target_pos, position, 0.9f);
+			position = Vector3.Lerp(target_pos, position, LerpSpeed);
 
 		} else if (UseCustomReference == 2) {
 			// Смещение позиции по двум костям (ReferenceBoneA и ReferenceBoneB)
@@ -166,7 +203,7 @@ public class SmartStationUpdater : UdonSharpBehaviour {
 			var ref_bone_pos = (ref_a_pos * 0.5f) + (ref_b_pos * 0.5f);
 			var player_pos = occupant.GetPosition();
 			var target_pos = ref_seat_pos - (ref_bone_pos - player_pos) * CustomReferenceOffsetMultiplier;
-			position = Vector3.Lerp(target_pos, position, 0.9f);
+			position = Vector3.Lerp(target_pos, position, LerpSpeed);
 		}
 
 		if (KeepVertical) {
@@ -179,7 +216,7 @@ public class SmartStationUpdater : UdonSharpBehaviour {
 		if (AllowRotation) {
 			if (Networking.IsOwner(Controller.gameObject)) {
 				var custom_rotation = CurrentRotation;
-				custom_rotation += Input.GetAxisRaw("Horizontal") * Time.deltaTime * RotationSpeed;
+				custom_rotation += _horizontal_axis * Time.deltaTime * RotationSpeed;
 				if (MaxLeftRotation >= 0f && MaxLeftRotation <= 180f)
 					custom_rotation = Mathf.Max(custom_rotation, -MaxLeftRotation);
 				if (MaxRightRotation >= 0f && MaxRightRotation <= 180f)
@@ -192,14 +229,40 @@ public class SmartStationUpdater : UdonSharpBehaviour {
 					CurrentRotation = custom_rotation;
 			}
 
-			// Выход 
-			if (occupant.isLocal && (Input.GetButton("Jump") || Mathf.Abs(Input.GetAxisRaw("Vertical")) > 0.5f))
-				Controller.Station.ExitStation(occupant);
-
 			rotation *= Quaternion.Euler(0f, CurrentRotation, 0f);
 		}
 
+		// Выход 
+		if (occupant.isLocal && _should_exit) {
+			Controller.Station.ExitStation(occupant);
+			_should_exit = false;
+		}
+
 		DynamicSeat.SetPositionAndRotation(position, rotation);
+	}
+
+	private bool IsLocalOccupant() => Utilities.IsValid(Controller.Occupant) && Controller.Occupant.isLocal;
+
+	public override void InputJump(bool value, UdonInputEventArgs args) {
+		if (value && !_should_exit && IsLocalOccupant())
+			_should_exit = true;
+	}
+
+	public override void InputMoveVertical(float value, UdonInputEventArgs args) {
+		if (AllowLift) {
+			_vertical_axis = value;
+		} else {
+			// Если вертикальное перемещение выключено, 
+			// то шаг вперед (более чем на 50% для защиты от дрифта) для выхода из сидушки
+			_vertical_axis = 0;
+			if (value > 0.5f && !_should_exit && IsLocalOccupant())
+				_should_exit = true;
+		}
+	}
+
+	public override void InputMoveHorizontal(float value, UdonInputEventArgs args) {
+		if (IsLocalOccupant())
+			_horizontal_axis = value;
 	}
 
 	/* Utils */
