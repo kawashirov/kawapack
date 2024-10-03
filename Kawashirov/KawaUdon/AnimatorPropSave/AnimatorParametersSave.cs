@@ -2,25 +2,20 @@ using UdonSharp;
 using UnityEngine;
 
 [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
-public class AnimatorParametersSave : UdonSharpBehaviour {
+public class AnimatorParametersSave : CommonUSharpBehaviour {
 	private Animator animator;
 	private string[] p_keys;
 	private float[] p_values;
-	private string _path = "";
 
-	public void Start() {
-		_path = GetPath(transform);
+	public override void Start() {
+		base.Start();
+		logName = "Kawa|AnimatorParametersSave";
 
 		animator = gameObject.GetComponent<Animator>();
-		if (animator == null) {
-			Debug.LogErrorFormat(gameObject, "[Kawa|AnimatorParametersSave] There is no any Animators! @ {0}", _path);
-			gameObject.SetActive(false);
-		}
+		_EnsureValid(animator, true, "There is no Animator!");
 	}
 
 	public void OnDisable() {
-		_path = GetPath(transform);
-
 		var parameters = animator.parameters; // getter
 		var parameters_l = parameters.Length; // getter
 
@@ -40,7 +35,7 @@ public class AnimatorParametersSave : UdonSharpBehaviour {
 			} else if (p_type == AnimatorControllerParameterType.Float) {
 				new_values[i] = animator.GetFloat(p_name);
 			}
-			Debug.LogFormat(gameObject, "[Kawa|AnimatorParametersSave] Saving {1}={2}... @ {0}", _path, p_name, new_values[i]);
+			_Info($"Saving {p_name}={new_values[i]}...");
 		}
 
 		p_values = new_values;
@@ -66,7 +61,7 @@ public class AnimatorParametersSave : UdonSharpBehaviour {
 				}
 			}
 
-			Debug.LogFormat(gameObject, "[Kawa|AnimatorParametersSave] Loading {1}={2}... @ {0}", _path, p_name, p_value);
+			_Info($"Loading {p_name}={p_value}...");
 			if (p_type == AnimatorControllerParameterType.Bool) {
 				animator.SetBool(p_name, p_value != 0.0f);
 			} else if (p_type == AnimatorControllerParameterType.Int) {
@@ -76,16 +71,4 @@ public class AnimatorParametersSave : UdonSharpBehaviour {
 			}
 		}
 	}
-
-	/* Utils */
-
-	private string GetPath(Transform t) {
-		var path = t.name;
-		while (t.parent != null) {
-			t = t.parent;
-			path = t.name + "/" + path;
-		}
-		return path;
-	}
-
 }
