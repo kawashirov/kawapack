@@ -1,43 +1,22 @@
 ﻿using System;
 using UdonSharp;
 using UnityEngine;
-using VRC.SDK3.Components;
 using VRC.SDKBase;
-using VRC.Udon;
 using Kawashirov;
-using Kawashirov.Refreshables;
-using System.Linq;
 using Kawashirov.Udon;
 
-#if !COMPILER_UDONSHARP && UNITY_EDITOR
-using UnityEditor;
-using UdonSharpEditor;
-#endif
-
 [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
-public class UITabs : UdonSharpBehaviour
-#if !COMPILER_UDONSHARP
-	, IRefreshable
-#endif
-{
+public class UITabs : CommonUSharpBehaviour {
 	public UITab[] tabs;
 	public int currentTab = 0;
 
-	[NonSerialized] public string path__ = "";
+	public override void Start() {
+		base.Start();
+		logName = "Kawa|UITabs";
 
-	public void Start() {
-		path__ = _GetPath(transform);
+		_EnsureAll(tabs, true, 1, nameof(tabs));
 
-		if (!Utilities.IsValid(tabs)) {
-			Debug.LogErrorFormat(gameObject, "Tabs is not valid! @ {0}", path__);
-		} else {
-			for (var i = 0; i < tabs.Length; ++i) {
-				var tab = tabs[i];
-				if (!Utilities.IsValid(tab))
-					Debug.LogErrorFormat(gameObject, "Tab #{1} is not valid! @ {0}", path__, i);
-			}
-		}
-		_UpdateState();
+		SendCustomEventDelayedSeconds("_UpdateState", 1f);
 	}
 
 	public void _UpdateState() {
@@ -54,7 +33,7 @@ public class UITabs : UdonSharpBehaviour
 
 	public void _Activate(UITab activated_tab) {
 		if (!Utilities.IsValid(activated_tab)) {
-			Debug.LogErrorFormat(gameObject, "Activating not valid tab! @ {0}", path__);
+			_Error($"Activating not valid tab!");
 			return;
 		}
 		if (!Utilities.IsValid(tabs))
@@ -76,27 +55,7 @@ public class UITabs : UdonSharpBehaviour
 
 	public override void Interact() => _UpdateState();
 
-	private string _GetPath(Transform t) {
-		var path = t.name;
-		while (t.parent != null) {
-			t = t.parent;
-			path = t.name + "/" + path;
-		}
-		return path;
-	}
-
 #if !COMPILER_UDONSHARP && UNITY_EDITOR
-
-	[CustomEditor(typeof(UITabs))]
-	public class Editor : UnityEditor.Editor {
-		public override void OnInspectorGUI() {
-			if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target))
-				return;
-			DrawDefaultInspector();
-			KawaGizmos.DrawEditorGizmosGUI();
-			this.EditorRefreshableGUI();
-		}
-	}
 
 	private bool Validate_tabs() => KawaUdonUtilities.DistinctArray(this, nameof(tabs), ref tabs);
 
@@ -106,20 +65,16 @@ public class UITabs : UdonSharpBehaviour
 			tab.tabs = this;
 			tab.ApplyProxyModificationsAndSetDirty();
 		} else if (tab.tabs != this) {
-			throw new ArgumentException(string.Format("Children UITab is not bound to this UITabs! @ {0}", tab.gameObject.KawaGetFullPath()));
+			throw new ArgumentException($"Children UITab is not bound to this UITabs! @ {tab.gameObject.KawaGetFullPath()}");
 		}
 	}
 
-	public void Refresh() {
+	public override void Refresh() {
 		KawaUdonUtilities.ValidateSafe(Validate_tabs, this, nameof(tabs));
 
 		// Ensure children UITab is bound to this UITabs
 		KawaUdonUtilities.ValidateSafeForEach(tabs, Validate_tab_in_tabs, this, nameof(tabs));
 	}
-
-	public UnityEngine.Object AsUnityObject() => this;
-
-	public string RefreshablePath() => gameObject.KawaGetFullPath();
 
 	public void OnDrawGizmosSelected() {
 		var self_pos = transform.position;
