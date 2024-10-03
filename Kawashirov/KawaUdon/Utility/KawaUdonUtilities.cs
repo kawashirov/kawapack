@@ -15,6 +15,8 @@ using UnityEditor;
 using UdonSharpEditor;
 #endif
 
+using Object = UnityEngine.Object;
+
 namespace Kawashirov.Udon {
 	public static partial class KawaUdonUtilities {
 #if UNITY_EDITOR
@@ -27,7 +29,7 @@ namespace Kawashirov.Udon {
 			Debug.Log($"Modified <b>{proxy.name}</b> @ <i>{proxy.gameObject.KawaGetFullPath()}</i>", proxy);
 		}
 
-		public static void EnsureIsValid(System.Object obj, string paramName = null) {
+		public static void EnsureIsValid(object obj, string paramName = null) {
 			if (!Utilities.IsValid(obj))
 				throw new ArgumentNullException(paramName, "Object is not valid!");
 		}
@@ -69,8 +71,8 @@ namespace Kawashirov.Udon {
 				Debug.LogError($"Error validating {source_msg}\n{ExtraLogDescResolver(extraLogDesc)}\n{exc.GetType()}: {exc.Message}\n{exc.StackTrace}", source);
 				Debug.LogException(exc, source);
 			}
-			if (modified)
-				usharp?.ApplyProxyModificationsAndSetDirty();
+			if (modified && Utilities.IsValid(usharp))
+				usharp.ApplyProxyModificationsAndSetDirty();
 			return modified;
 		}
 
@@ -79,7 +81,7 @@ namespace Kawashirov.Udon {
 			return EnsureAppended(proxy, name, ref array, items, KawaUtilities.UnityEquality);
 		}
 
-		public static bool EnsureAppended<T>(UdonSharpBehaviour proxy, string name, ref T[] array, T item) where T : UnityEngine.Object {
+		public static bool EnsureAppended<T>(UdonSharpBehaviour proxy, string name, ref T[] array, T item) where T : Object {
 			// Убеждается, что массив array который proxy.name содержит в себе item.
 			// Если item нету в array, добавляет его помечая изменения.
 			return EnsureAppended(proxy, name, ref array, item.ToEnumerable(), KawaUtilities.UnityEquality);
@@ -91,7 +93,7 @@ namespace Kawashirov.Udon {
 			return EnsureAppended(proxy, name, ref array, item.ToEnumerable(), cmp);
 		}
 
-		public static bool EnsureAppended<T>(UdonSharpBehaviour proxy, string name, ref T[] array, IEnumerable<T> items) where T : UnityEngine.Object {
+		public static bool EnsureAppended<T>(UdonSharpBehaviour proxy, string name, ref T[] array, IEnumerable<T> items) where T : Object {
 			return EnsureAppended(proxy, name, ref array, items, KawaUtilities.UnityEquality);
 		}
 
@@ -154,7 +156,7 @@ namespace Kawashirov.Udon {
 			return ModifyArray(usb, name, ref array, new_array, cmp);
 		}
 
-		public static bool DistinctArray<T>(UdonSharpBehaviour usb, string name, ref T[] array) where T : UnityEngine.Object {
+		public static bool DistinctArray<T>(UdonSharpBehaviour usb, string name, ref T[] array) where T : Object {
 			var new_array = array.Where(Utilities.IsValid).Distinct().ToArray();
 			return ModifyArray(usb, name, ref array, new_array, KawaUtilities.UnityEquality);
 		}
@@ -190,7 +192,7 @@ namespace Kawashirov.Udon {
 			return modified;
 		}
 
-		public static bool ModifyArray<T>(UdonSharpBehaviour usb, string name, ref T[] array, T[] new_array) where T : UnityEngine.Object {
+		public static bool ModifyArray<T>(UdonSharpBehaviour usb, string name, ref T[] array, T[] new_array) where T : Object {
 			return ModifyArray(usb, name, ref array, new_array, KawaUtilities.UnityEquality);
 		}
 
