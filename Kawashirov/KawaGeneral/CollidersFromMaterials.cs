@@ -212,15 +212,12 @@ namespace Kawashirov {
 
 		public override void Refresh() {
 			var mrs = GetComponentsInChildren<MeshRenderer>(true);
-			Debug.LogFormat(this,
-				"Processing colliders on {1} mesh renderers with {2} mappings... @ <i>{0}</i>",
-				kawaHierarchyPath, mrs.Length, mappings.Length
-			);
+			Debug.Log($"Processing colliders on {mrs.Length} mesh renderers with {mappings.Length} mappings... @ <i>{kawaHierarchyPath}</i>", this);
 			var counter = 0;
 			foreach (var mr in mrs)
 				if (RefreshMeshRenderer(mr))
 					++counter;
-			Debug.LogFormat(this, "Processed {1} colliders. @ <i>{0}</i>", kawaHierarchyPath, counter);
+			Debug.Log($"Processed {counter} colliders. @ <i>{kawaHierarchyPath}</i>", this);
 		}
 
 		public bool RefreshMeshRenderer(MeshRenderer mr) {
@@ -236,13 +233,11 @@ namespace Kawashirov {
 					any_partial = true;
 			}
 
-			if (match_mappings.Count > 1)
-				Debug.LogWarningFormat(mr,
-					"MeshRenderer match <b>{1}</b> collider material mappings: <b>{2}</b>! Only first one will be used! @ <i>{0}</i>",
-					hpath, match_mappings.Count, string.Join(", ", match_mappings.Select(i => string.Format("#{0}", i)))
-				);
-			else if (any_partial)
-				Debug.LogWarningFormat(mr, "MeshRenderer has both matching and missmatching materials for colliders! @ <i>{0}</i>", hpath);
+			if (match_mappings.Count > 1) {
+				var ms = string.Join(", ", match_mappings.Select(i => string.Format("#{0}", i)));
+				Debug.LogWarning($"MeshRenderer match <b>{match_mappings.Count}</b> collider material mappings: <b>{ms}</b>! Only first one will be used! @ <i>{hpath}</i>", this);
+			} else if (any_partial)
+				Debug.LogWarning($"MeshRenderer has both matching and missmatching materials for colliders! @ <i>{hpath}</i>", this);
 
 			if (match_mappings.Count < 1)
 				return false;
