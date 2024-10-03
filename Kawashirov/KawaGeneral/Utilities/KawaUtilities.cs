@@ -58,6 +58,8 @@ namespace Kawashirov {
 
 		public static bool IsRuntime(this UnityEngine.Object obj) {
 			// Имеет ли объект шанс попасть в рантайм после сборки? Если точно известно, что нет, то возвращается false
+			if (obj == null)
+				return false;
 			if (!IsRuntimeHideFlags(obj))
 				return false;
 			var gameObject = obj as GameObject;
@@ -76,7 +78,7 @@ namespace Kawashirov {
 			return true;
 		}
 
-		public static bool IsEditorOnly(this UnityEngine.Object obj) => !IsRuntime(obj);
+		public static bool IsEditorOnly(this UnityEngine.Object obj) => obj != null && !IsRuntime(obj);
 
 		public static IEnumerable<T> RuntimeOnly<T>(this IEnumerable<T> enumerable) where T : UnityEngine.Object => enumerable.Where(IsRuntime);
 		public static IEnumerable<T> EditorOnly<T>(this IEnumerable<T> enumerable) where T : UnityEngine.Object => enumerable.Where(IsEditorOnly);
