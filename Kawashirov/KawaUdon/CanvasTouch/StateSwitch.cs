@@ -1,102 +1,71 @@
-﻿using System;
-using UdonSharp;
+﻿using UdonSharp;
 using UnityEngine;
-using VRC.SDK3.Components;
 using VRC.SDKBase;
 using VRC.Udon;
 using Kawashirov;
-using Kawashirov.Refreshables;
-using System.Linq;
 using Kawashirov.Udon;
 
-#if !COMPILER_UDONSHARP && UNITY_EDITOR
-using UnityEditor;
-using UdonSharpEditor;
-#endif
-
 [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
-public class StateSwitch : UdonSharpBehaviour
-#if !COMPILER_UDONSHARP
-	, IRefreshable
-#endif
-{
-	public Component[] eventReceivers;
-	public string eventName = "Derp";
-	public int eventDelay = 1;
+public class StateSwitch : CommonUSharpBehaviour {
+	[Tooltip("Must be UdonBehaviours only.")]
+	public Component[] EventReceivers;
+	public string EventName = "_UpdateState";
+	public int EventDelay = 1;
+	public GameObject[] States;
 
-	public GameObject[] states;
-	public int currentState = 0;
+	[ReadOnly] public int CurrentState = 0;
 
-	[NonSerialized] public string path__ = "";
+	public override void Start() {
+		base.Start();
+		logName = "Kawa|StateSwitch";
 
-	public void Start() {
-		path__ = _GetPath(transform);
+		if (_EnsureValid(States, true, "States array is invalid!")) {
+			_Ensure(States.Length > 1, $"states.Length={States.Length}");
+		}
 
-		_UpdateState();
+		SendCustomEventDelayedSeconds(nameof(_UpdateState), 1f);
 	}
 
 	public void _UpdateState() {
-		for (var i = 0; i < states.Length; ++i) {
-			var state_go = states[i];
+		// _Info(nameof(_UpdateState));
+		for (var i = 0; i < States.Length; ++i) {
+			var state_go = States[i];
 			if (Utilities.IsValid(state_go))
-				state_go.SetActive(currentState == i);
+				state_go.SetActive(CurrentState == i);
 		}
-		for (var i = 0; i < eventReceivers.Length; ++i) {
-			var receiver_c = eventReceivers[i];
+		for (var i = 0; i < EventReceivers.Length; ++i) {
+			var receiver_c = EventReceivers[i];
 			if (!Utilities.IsValid(receiver_c))
 				continue;
 			var receiver = (UdonBehaviour)receiver_c;
-			if (eventDelay < 1) {
-				receiver.SendCustomEvent(eventName);
+			_Info($"{receiver}.{EventName}(), delay={EventDelay}.");
+			if (EventDelay < 1) {
+				receiver.SendCustomEvent(EventName);
 			} else {
-				receiver.SendCustomEventDelayedFrames(eventName, eventDelay);
+				receiver.SendCustomEventDelayedFrames(EventName, EventDelay);
 			}
 		}
 	}
 
 	public void _NextState() {
-		currentState = (currentState + 1) % states.Length;
+		CurrentState = (CurrentState + 1) % States.Length;
 		_UpdateState();
 	}
 
-	private string _GetPath(Transform t) {
-		var path = t.name;
-		while (t.parent != null) {
-			t = t.parent;
-			path = t.name + "/" + path;
-		}
-		return path;
-	}
-
 #if !COMPILER_UDONSHARP && UNITY_EDITOR
-
-	[CustomEditor(typeof(StateSwitch))]
-	public class Editor : UnityEditor.Editor {
-		public override void OnInspectorGUI() {
-			if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target))
-				return;
-			DrawDefaultInspector();
-			KawaGizmos.DrawEditorGizmosGUI();
-			this.EditorRefreshableGUI();
-		}
-	}
-
 	private bool Validate_states() =>
-		KawaUdonUtilities.DistinctArray(this, nameof(states), ref states);
+		KawaUdonUtilities.DistinctArray(this, nameof(States), ref States);
 
-	private bool Validate_eventReceivers() => 
-		KawaUdonUtilities.ValidateComponentsArrayOfUdonSharpBehaviours(this, nameof(eventReceivers), ref eventReceivers);
+	private bool Validate_eventReceivers() =>
+		KawaUdonUtilities.ValidateComponentsArrayOfUdonSharpBehaviours(this, nameof(EventReceivers), ref EventReceivers);
 
-	public void Refresh() {
-		KawaUdonUtilities.ValidateSafe(Validate_states, this, nameof(states));
-		KawaUdonUtilities.ValidateSafe(Validate_eventReceivers, this, nameof(eventReceivers));
+	public override void Refresh() {
+		KawaUdonUtilities.ValidateSafe(Validate_states, this, nameof(States));
+		KawaUdonUtilities.ValidateSafe(Validate_eventReceivers, this, nameof(EventReceivers));
 
 		if (gameObject.GetComponent<RectTransform>() == null)
 			gameObject.AddComponent<RectTransform>();
 	}
-
-	public UnityEngine.Object AsUnityObject() => this;
-	public string RefreshablePath() => gameObject.KawaGetFullPath();
 
 	public void OnDrawGizmosSelected() {
 		var self_pos = transform.position;
@@ -105,10 +74,9 @@ public class StateSwitch : UdonSharpBehaviour
 		Gizmos.DrawWireSphere(self_pos, 0.1f);
 
 		Gizmos.color = Color.green.Alpha(KawaGizmos.GizmosAplha);
-		foreach (var receivers in eventReceivers)
+		foreach (var receivers in EventReceivers)
 			if (Utilities.IsValid(receivers))
 				Gizmos.DrawLine(self_pos, receivers.transform.position);
 	}
-
 #endif
 }
