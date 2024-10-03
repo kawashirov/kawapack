@@ -34,6 +34,49 @@ namespace Kawashirov.Udon {
 				throw new ArgumentNullException(paramName, "Object is not valid!");
 		}
 
+		public static bool ValidProgramName(string p_name) {
+			return !string.IsNullOrWhiteSpace(p_name) && p_name.Trim().Equals(p_name);
+		}
+
+		public static bool ValidProgramName(string p_name, string f_name, Object context = null) {
+			if (ValidProgramName(p_name))
+				return true;
+			Debug.LogError($"Invalid udon program name on {f_name}!", context);
+			return false;
+		}
+
+		public static IEnumerable<UdonBehaviour> SelectAllRuntimeUdonsWithProgramName(Scene scene, IEnumerable<string> names) {
+			return SelectAllRuntimeUdonsWithProgram(scene, u => names.Any(n => ValidProgramName(n) && u.programSource.name.Equals(n)));
+		}
+
+		public static IEnumerable<UdonBehaviour> SelectAllRuntimeUdonsWithProgramName(Scene scene, string name) {
+			return SelectAllRuntimeUdonsWithProgram(scene, u => ValidProgramName(name) && u.programSource.name.Equals(name));
+		}
+
+		public static IEnumerable<UdonBehaviour> SelectAllRuntimeUdonsWithProgram(Scene scene, Func<UdonBehaviour, bool> predicate) {
+			return scene.GetRootGameObjects()
+				.UnityNotNull().SelectMany(g => g.GetComponentsInChildren<UdonBehaviour>(true))
+				.Where(KawaUtilities.IsRuntime).Where(u => Utilities.IsValid(u.programSource)).Where(predicate);
+		}
+
+		public static int WarnIfMultiProgram(IEnumerable<UdonBehaviour> udons, string name, Object context = null) {
+			var programs = udons.Select(u => u.programSource).Distinct().ToList();
+			return WarnIfMultiProgram(programs, name, context);
+		}
+
+		public static int WarnIfMultiProgram(List<AbstractUdonProgramSource> programs, string name, Object context = null) {
+			var c = programs.Count;
+			if (c > 1) {
+				var paths = programs
+					.Select(AssetDatabase.GetAssetPath)
+					.Select(p => string.IsNullOrWhiteSpace(p) ? "(unknown path)" : p)
+					.Select(p => $"- {p}").ToList();
+				var paths_s = string.Join("\n", paths);
+				Debug.LogWarning($"Multiple ({c}) udon programs \"{name}\" found:\n {paths_s}", context);
+			}
+			return c;
+		}
+
 		private static string ExtraLogDescResolver(Func<string> extraLogDesc) {
 			var extra_desc = extraLogDesc?.Invoke();
 			if (string.IsNullOrWhiteSpace(extra_desc))
