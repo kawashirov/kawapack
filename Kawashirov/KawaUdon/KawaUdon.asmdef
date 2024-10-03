@@ -1,5 +1,6 @@
 {
     "name": "KawaUdon",
+    "rootNamespace": "",
     "references": [
         "GUID:89c1c24a7ce724b4fa333247d8146605",
         "GUID:3c1bc1267eab5884ebe7f232c09ee0d9",
@@ -7,7 +8,9 @@
         "GUID:f70a94b0bedfa8ec50ed757f72032810",
         "GUID:99835874ee819da44948776e0df4ff1d",
         "GUID:e1a67d4778ffb214390ddafa61c1a557",
-        "GUID:84265b35cca3905448e623ef3903f0ff"
+        "GUID:84265b35cca3905448e623ef3903f0ff",
+        "GUID:5b5aaf99749535a42aedbc3313fc3314",
+        "GUID:a34edcc090795d24ebafb53fec5b4ca8"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -18,6 +21,17 @@
     "defineConstraints": [
         "UDON"
     ],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "dev.architech.protv",
+            "expression": "3.0.0",
+            "define": "ARCHITECH_PROTV_3"
+        },
+        {
+            "name": "dev.architech.protv",
+            "expression": "3.0.0-beta",
+            "define": "ARCHITECH_PROTV_3"
+        }
+    ],
     "noEngineReferences": false
 }
