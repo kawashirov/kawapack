@@ -1,26 +1,16 @@
 using System;
 using UdonSharp;
 using UnityEngine;
-using VRC.SDK3.Components;
 using VRC.SDKBase;
 using VRC.Udon;
 using Kawashirov;
-using Kawashirov.Refreshables;
 using System.Linq;
 using Kawashirov.Udon;
 
-#if !COMPILER_UDONSHARP && UNITY_EDITOR
-using UnityEditor;
-using UdonSharpEditor;
-#endif
 
 [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
-public class ThrottledUpdate : UdonSharpBehaviour
-#if !COMPILER_UDONSHARP
-	, IRefreshable
-#endif
-{
-	[Tooltip("UdonBehaviours.\nUdonBehaviours[] is not exposed, so it's Component[].\nNon-UdonBehaviours here -> script crash.")]
+public class ThrottledUpdate : CommonUSharpBehaviour {
+	[Tooltip("UdonBehaviours.\nUdonBehaviours[] is not exposed, so it's Component[].\nNon-UdonBehaviours here will cause script crash.")]
 	public Component[] EventReceivers;
 
 	[Tooltip("Name of event to be sent to UdonBehaviours.")]
@@ -32,24 +22,21 @@ public class ThrottledUpdate : UdonSharpBehaviour
 	[Tooltip("ShuffleFactor * EventReceivers.Length = number of randm swaps while shuffling EventReceivers.\n0 means no shuffling.\nRecommended <10, because large values can cause major lag.")]
 	public float ShuffleFactor = 5.0f;
 
-	public UnityEngine.Object[] AutoBindPrograms; // AbstractUdonProgramSource
+	[Tooltip("Names of abstract (whatever) udon program sourcesassets to automatically add to EventReceivers.")]
+	public string[] AutoBindPrograms;
 
 	// Debug purposes only
 	public ulong _UpdatesCalled = 0;
 
 	private int ReceiversIndex = 0;
 
-	/* Internal */
+	public override void Start() {
+		base.Start();
+		logName = "Kawa|ThrottledUpdate";
 
-	private string path__ = "";
-
-	public void Start() {
-		path__ = GetPath(transform);
 		_UpdatesCalled = 0;
 
-		if (!Utilities.IsValid(EventReceivers) || EventReceivers.Length < 1) {
-			Debug.LogErrorFormat(gameObject, "[Kawa|ThrottledUpdate] No EventReceivers is set! @ {0}", path__);
-		} else {
+		if (_EnsureAll(EventReceivers, true, 1, "EventReceivers")) {
 			var length = EventReceivers.Length; // getter
 			var shuffle_n = Mathf.RoundToInt(EventReceivers.Length * Mathf.Clamp(ShuffleFactor, 1.0f, 100.0f));
 			for (var i = 0; i < shuffle_n; ++i) {
@@ -63,9 +50,7 @@ public class ThrottledUpdate : UdonSharpBehaviour
 			ReceiversIndex = UnityEngine.Random.Range(0, length);
 		}
 
-		if (string.IsNullOrWhiteSpace(ThrottledUpdateEventName)) {
-			Debug.LogErrorFormat(gameObject, "[Kawa|ThrottledUpdate] ThrottledUpdateEventName is null or empty! @ {0}", path__);
-		}
+		_Ensure(!string.IsNullOrWhiteSpace(ThrottledUpdateEventName), true, "ThrottledUpdateEventName is null or empty!");
 	}
 
 	public void Update() {
@@ -104,30 +89,7 @@ public class ThrottledUpdate : UdonSharpBehaviour
 		ReceiversIndex = UnityEngine.Random.Range(0, length);
 	}
 
-	/* Utils */
-
-	private string GetPath(Transform t) {
-		var path = t.name;
-		while (!Utilities.IsValid(t.parent)) {
-			t = t.parent;
-			path = t.name + "/" + path;
-		}
-		return path;
-	}
-
 #if !COMPILER_UDONSHARP && UNITY_EDITOR
-
-	[CustomEditor(typeof(ThrottledUpdate))]
-	public class Editor : UnityEditor.Editor {
-		public override void OnInspectorGUI() {
-			if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target))
-				return;
-			DrawDefaultInspector();
-			KawaGizmos.DrawEditorGizmosGUI();
-			this.EditorRefreshableGUI();
-		}
-	}
-
 	public void OnDrawGizmosSelected() {
 		var self_pos = transform.position;
 		Gizmos.color = Color.cyan.Alpha(KawaGizmos.GizmosAplha);
@@ -143,17 +105,24 @@ public class ThrottledUpdate : UdonSharpBehaviour
 	}
 
 	private bool Validate_AutoBindPrograms() {
-		var new_programs = AutoBindPrograms.OfType<AbstractUdonProgramSource>().Cast<UnityEngine.Object>().ToArray();
-		return KawaUdonUtilities.ModifyArray(this, nameof(AutoBindPrograms), ref AutoBindPrograms, new_programs);
+		var modified = false;
+		if (!Utilities.IsValid(AutoBindPrograms)) {
+			Debug.LogWarning($"AutoBindPrograms is not valid, trying to reset...", this);
+			AutoBindPrograms = new string[0];
+			modified = true;
+		}
+		for (var i = 0; i < AutoBindPrograms.Length; ++i) {
+			KawaUdonUtilities.ValidProgramName(AutoBindPrograms[i], $"{nameof(AutoBindPrograms)}[{i}]", this);
+		}
+		return modified;
 	}
 
 	private bool Validate_EventReceivers() {
-		var auto_event_recievers = gameObject.scene.GetRootGameObjects()
-			.SelectMany(g => g.GetComponentsInChildren<UdonBehaviour>(true))
-			.Where(u => AutoBindPrograms.Contains(u.programSource) && u.IsRuntime());
+		var auto_event_recievers = KawaUdonUtilities.SelectAllRuntimeUdonsWithProgramName(gameObject.scene, AutoBindPrograms);
 		var fixed_event_recievers = EventReceivers
-			.SelectMany(KawaUdonUtilities.ConvertToUdonBehaviour);
-		var new_receivers = fixed_event_recievers.Concat(auto_event_recievers).Distinct().Cast<Component>().ToArray();
+			.SelectMany(KawaUdonUtilities.ConvertToUdonBehaviour).RuntimeOnly();
+		var new_receivers = fixed_event_recievers.Concat(auto_event_recievers)
+			.Distinct().Cast<Component>().ToArray();
 		return KawaUdonUtilities.ModifyArray(this, nameof(EventReceivers), ref EventReceivers, new_receivers);
 	}
 
@@ -163,16 +132,11 @@ public class ThrottledUpdate : UdonSharpBehaviour
 			throw new ArgumentException($"UdonBehaviour does not have entry point {ThrottledUpdateEventName} @ {udon.gameObject.KawaGetFullPath()}");
 	}
 
-	public void Refresh() {
+	public override void Refresh() {
 		KawaUdonUtilities.ValidateSafe(Validate_AutoBindPrograms, this, nameof(AutoBindPrograms));
 		KawaUdonUtilities.ValidateSafe(Validate_ThrottledUpdateEventName, this, nameof(ThrottledUpdateEventName));
 		KawaUdonUtilities.ValidateSafe(Validate_EventReceivers, this, nameof(EventReceivers));
 		KawaUdonUtilities.ValidateSafeForEach(EventReceivers, Validate_EventReceiver_EntryPoint, this, nameof(EventReceivers));
 	}
-
-	public UnityEngine.Object AsUnityObject() => this;
-
-	public string RefreshablePath() => gameObject.KawaGetFullPath();
-
 #endif
 }
