@@ -1,12 +1,9 @@
 ﻿using System;
 using UdonSharp;
 using UnityEngine;
-using VRC.SDK3.Components;
 using VRC.SDKBase;
 using VRC.Udon;
 using Kawashirov;
-using Kawashirov.Refreshables;
-using System.Linq;
 using Kawashirov.Udon;
 
 #if !COMPILER_UDONSHARP && UNITY_EDITOR
@@ -15,11 +12,7 @@ using UdonSharpEditor;
 #endif
 
 [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
-public class TouchButton : UdonSharpBehaviour
-#if !COMPILER_UDONSHARP
-	, IRefreshable
-#endif
-	{
+public class TouchButton : CommonUSharpBehaviour {
 	public float clickDistance = 1f;
 	public float clickTime = 0.5f;
 
@@ -28,10 +21,11 @@ public class TouchButton : UdonSharpBehaviour
 
 	[NonSerialized] public RectTransform rect__;
 	[NonSerialized] public float next_press__;
-	[NonSerialized] public string path__ = "";
 
-	public void Start() {
-		path__ = _GetPath(transform);
+	public override void Start() {
+		base.Start();
+		logName = "Kawa|TouchButton";
+
 		rect__ = gameObject.GetComponent<RectTransform>();
 		next_press__ = -1f;
 	}
@@ -48,7 +42,7 @@ public class TouchButton : UdonSharpBehaviour
 			return false;
 		if (next_press__ > Time.time) // Слишком быстро
 			return false;
-		// Debug.LogFormat(gameObject, "Click: rect={1}, local={2} @ {0}.", path__, rect, source_local);
+		// _Info($"Click: rect={rect}, local={source_local}.");
 		next_press__ = Time.time + clickTime;
 		_Click();
 		return true;
@@ -66,19 +60,10 @@ public class TouchButton : UdonSharpBehaviour
 
 	public override void Interact() => _Click();
 
-	private string _GetPath(Transform t) {
-		var path = t.name;
-		while (t.parent != null) {
-			t = t.parent;
-			path = t.name + "/" + path;
-		}
-		return path;
-	}
-
 #if !COMPILER_UDONSHARP && UNITY_EDITOR
 
 	[CustomEditor(typeof(TouchButton))]
-	public class Editor : UnityEditor.Editor {
+	public new class Editor : CommonUSharpBehaviour.Editor {
 		public override void OnInspectorGUI() {
 			if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target))
 				return;
@@ -92,18 +77,15 @@ public class TouchButton : UdonSharpBehaviour
 		}
 	}
 
-	private bool Validate_eventReceivers() => 
+	private bool Validate_eventReceivers() =>
 		KawaUdonUtilities.ValidateComponentsArrayOfUdonSharpBehaviours(this, nameof(eventReceivers), ref eventReceivers);
 
-	public void Refresh() {
+	public override void Refresh() {
 		KawaUdonUtilities.ValidateSafe(Validate_eventReceivers, this, nameof(eventReceivers));
 
 		if (gameObject.GetComponent<RectTransform>() == null)
 			gameObject.AddComponent<RectTransform>();
 	}
-
-	public UnityEngine.Object AsUnityObject() => this;
-	public string RefreshablePath() => gameObject.KawaGetFullPath();
 
 	public void OnDrawGizmosSelected() {
 		var self_pos = transform.position;
@@ -116,6 +98,5 @@ public class TouchButton : UdonSharpBehaviour
 			if (Utilities.IsValid(receivers))
 				Gizmos.DrawLine(self_pos, receivers.transform.position);
 	}
-
 #endif
 }

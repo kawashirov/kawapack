@@ -1,7 +1,6 @@
 ﻿using System;
 using UdonSharp;
 using UnityEngine;
-using VRC.SDK3.Components;
 using VRC.SDKBase;
 using VRC.Udon;
 using Kawashirov;
@@ -15,13 +14,14 @@ using UdonSharpEditor;
 #endif
 
 [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
-public class TouchController : UdonSharpBehaviour
-#if !COMPILER_UDONSHARP
-	, IRefreshable
-#endif
-{
+public class TouchController : CommonUSharpBehaviour {
 	public Transform editorPointer;
 	public TouchButton[] buttons;
+
+	public override void Start() {
+		base.Start();
+		logName = "Kawa|TouchController";
+	}
 
 	private bool _TryInteract(Vector3 tracking_world) {
 		var had_interaction = false;
@@ -56,18 +56,6 @@ public class TouchController : UdonSharpBehaviour
 	}
 
 #if !COMPILER_UDONSHARP && UNITY_EDITOR
-
-	[CustomEditor(typeof(TouchController))]
-	public class Editor : UnityEditor.Editor {
-		public override void OnInspectorGUI() {
-			if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target))
-				return;
-			DrawDefaultInspector();
-			KawaGizmos.DrawEditorGizmosGUI();
-			this.EditorRefreshableGUI();
-		}
-	}
-
 	private bool Validate_buttons() {
 		var all_buttons = gameObject.scene.GetRootGameObjects()
 			.SelectMany(g => g.GetComponentsInChildren<UdonBehaviour>())
@@ -78,13 +66,9 @@ public class TouchController : UdonSharpBehaviour
 		return KawaUdonUtilities.ModifyArray(this, nameof(buttons), ref buttons, all_buttons);
 	}
 
-	public void Refresh() {
+	public override void Refresh() {
 		KawaUdonUtilities.ValidateSafe(Validate_buttons, this, nameof(Validate_buttons));
 	}
-
-	public UnityEngine.Object AsUnityObject() => this;
-
-	public string RefreshablePath() => gameObject.KawaGetFullPath();
 
 	public void OnDrawGizmosSelected() {
 		var self_pos = transform.position;
@@ -97,6 +81,5 @@ public class TouchController : UdonSharpBehaviour
 			if (Utilities.IsValid(receivers))
 				Gizmos.DrawLine(self_pos, receivers.transform.position);
 	}
-
 #endif
 }
