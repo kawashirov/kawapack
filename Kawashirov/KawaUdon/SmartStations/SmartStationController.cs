@@ -1,14 +1,9 @@
-﻿
-using System;
-using System.Text;
+﻿using System;
 using UdonSharp;
-using UnityEngine;
 using VRC.SDKBase;
-using VRC.Udon;
-using VRC.Udon.Common.Interfaces;
 
 [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
-public class SmartStationController : UdonSharpBehaviour {
+public class SmartStationController : CommonUSharpBehaviour {
 	/* Config variables */
 
 	public SmartStationUpdater Updater;
@@ -17,122 +12,127 @@ public class SmartStationController : UdonSharpBehaviour {
 	[NonSerialized] public VRCStation Station;
 	[NonSerialized] public VRCPlayerApi Occupant = null;
 
-	/* Internal variables */
+	public override void Start() {
+		base.Start();
+		logName = "Kawa|SmartStation|Controller";
 
-	[NonSerialized] private string _path = "";
+		_EnsureValid(Updater, true, "SmartStationUpdater is invalid!");
 
-	/* Events */
+		Station = GetComponent<VRCStation>();
+		_EnsureValid(Station, true, "No VRCStation attached!");
 
-	private void Start() {
-		var trying_to_evade_bug = transform;
-		_path = GetPath(trying_to_evade_bug);
+		SendCustomEventDelayedSeconds(nameof(_UpdateOccupant_OnStartDelayed), 2);
 
-		if (Updater == null) {
-			Debug.LogErrorFormat(gameObject, "[Kawa|SmartStationController] KawaSmartStationUpdater is not set! @ {0}", _path);
-			gameObject.SetActive(false);
-		}
-
-		Station = (VRCStation)GetComponent(typeof(VRCStation));
-		if (Station == null) {
-			Debug.LogErrorFormat(gameObject, "[Kawa|SmartStationController] No VRCStation attached! @ {0}", _path);
-			gameObject.SetActive(false);
-		}
-
-		Debug.LogFormat(gameObject, "[Kawa|SmartStationController] Initialized. @ {0}", _path);
-
-		UpdateOccupant();
+		// _Info($"Initialized.");
 	}
 
-	public override void OnStationEntered(VRCPlayerApi player) {
-		VRCPlayerApi exit = Occupant != null && Occupant != player ? player : null;
+	public void _UpdateOccupant_OnStartDelayed() => _UpdateState_Internal(nameof(Start));
 
-		if (Occupant == null || Occupant == player) {
-			LogChangeOccupant(Occupant, player, "OnStationEntered");
+	public override void OnStationEntered(VRCPlayerApi player) {
+		if (Utilities.IsValid(Occupant) && Occupant != player) {
+			var old_occupant_str = _PlayerToString(Occupant);
+			var new_occupant_str = _PlayerToString(player);
+			_Warning($"OnStationEntered fired for {new_occupant_str}, but OnStationExited wasnt for {old_occupant_str}! Desync!");
+			Station.ExitStation(Occupant);
+			// Не обновляем Occupant на player ..?
+			// Повторный _UpdateState в след. кадре что бы попытаться засинхрониться.
+			SendCustomEventDelayedFrames(nameof(_UpdateState_OnStationEntered_Delayed), 2);
+		} else {
+			// Occupant: null -> player
+			_LogChangeOccupant(Occupant, player, nameof(OnStationEntered));
 			Occupant = player;
 		}
 
-		UpdateOccupant();
-
-		if (exit != null)
-			Station.ExitStation(exit);
+		_UpdateState_Internal(nameof(OnStationEntered));
 	}
+
+	public void _UpdateState_OnStationEntered_Delayed() => _UpdateState_Internal(nameof(OnStationEntered));
 
 	public override void OnStationExited(VRCPlayerApi player) {
-		VRCPlayerApi exit = Occupant == player ? null : Occupant;
+		if (Occupant != player) {
+			var exited_str = _PlayerToString(player);
+			if (Utilities.IsValid(Occupant)) {
+				var occupant_str = _PlayerToString(Occupant);
+				_Warning($"OnStationExited fired for {exited_str}, but Occupant was {occupant_str}! Desync!");
+				Station.ExitStation(Occupant);
+			} else {
+				_Warning($"OnStationExited fired for {exited_str}, but Occupant was null! Desync!");
+			}
+			// Повторный _UpdateState в след. кадре что бы попытаться засинхрониться.
+			SendCustomEventDelayedFrames(nameof(_UpdateState_OnStationExited_Delayed), 2);
+		}
 
-		LogChangeOccupant(Occupant, null, "OnStationExited");
+		_LogChangeOccupant(Occupant, null, nameof(OnStationExited));
 		Occupant = null;
 
-		UpdateOccupant();
-		
-		if (exit != null)
-			Station.ExitStation(exit);
+		_UpdateState_Internal(nameof(OnStationExited));
 	}
+
+	public void _UpdateState_OnStationExited_Delayed() => _UpdateState_Internal(nameof(OnStationEntered));
 
 	public override void OnPlayerLeft(VRCPlayerApi player) {
 		if (Occupant == player) {
-			LogChangeOccupant(Occupant, null, "OnPlayerLeft");
+			_LogChangeOccupant(Occupant, null, nameof(OnPlayerLeft));
 			Occupant = null;
-			UpdateOccupant();
+			_UpdateState_Internal(nameof(OnPlayerLeft));
 		}
 	}
 
 	public override void OnDeserialization() {
-		// ???
-		UpdateOccupant();
+		_UpdateState_Internal(nameof(OnDeserialization));
+	}
+
+	public override bool OnOwnershipRequest(VRCPlayerApi requestingPlayer, VRCPlayerApi requestedOwner) {
+		// Если стул свободен, то любой может быть овнером, если занят то только сидящий на нём.
+		SendCustomEventDelayedFrames(nameof(_UpdateState_Internal), 2);
+		return !Utilities.IsValid(Occupant) || requestedOwner == Occupant;
+	}
+
+	public override void OnOwnershipTransferred(VRCPlayerApi player) {
+		_UpdateState_Internal(nameof(OnOwnershipTransferred));
+		SendCustomEventDelayedFrames(nameof(_UpdateState_Internal), 2);
 	}
 
 	/* Logics */
 
-	public void UpdateOccupant() {
-		var is_occupied = Occupant != null;
-		var occupant_str = PlayerToString(Occupant);
-		var updater_go = Updater != null ? Updater.gameObject : null;
+	public void _UpdateState() => _UpdateState_Internal(nameof(_UpdateState));
+
+	private void _UpdateState_Internal(string cause) {
+		// _Info($"_UpdateState_Internal");
+		var is_occupied = Utilities.IsValid(Occupant);
+		var occupant_str = _PlayerToString(Occupant);
+		var updater_go = Utilities.IsValid(Updater) ? Updater.gameObject : null;
+		// _Info($"_UpdateState_Internal: is_occupied={is_occupied}, occupant_str={occupant_str}, updater_go={updater_go}");
 
 		if (is_occupied && !Occupant.IsOwner(gameObject)) {
-			Debug.LogFormat(gameObject, "[Kawa|SmartStationController] Setting Controller owner to {1}. @ {0}", _path, occupant_str);
+			_Info($"Setting Controller owner to {occupant_str}, updated by {cause}.");
 			Networking.SetOwner(Occupant, gameObject);
 		}
 
-		if (is_occupied && updater_go != null && !Occupant.IsOwner(updater_go)) {
-			Debug.LogFormat(gameObject, "[Kawa|SmartStationController] Setting Updater owner to {1}. @ {0}", _path, occupant_str);
+		if (is_occupied && Utilities.IsValid(updater_go) && !Occupant.IsOwner(updater_go)) {
+			_Info($"Setting Updater owner to {occupant_str}, updated by {cause}.");
 			Networking.SetOwner(Occupant, updater_go);
 		}
-		
-		if (updater_go != null && is_occupied != updater_go.activeSelf) {
-			Debug.LogFormat(gameObject, "[Kawa|SmartStationController] Setting updataer state to {1}. @ {0}", _path, is_occupied);
+
+		if (Utilities.IsValid(updater_go) && is_occupied != updater_go.activeSelf) {
+			_Info($"Setting updataer state to {is_occupied} as {occupant_str} is sitting, updated by {cause}.");
 			updater_go.SetActive(is_occupied);
 		}
 	}
 
 	/* Utils */
 
-	private void LogChangeOccupant(VRCPlayerApi old_occupant, VRCPlayerApi new_occupant, string reason) {
-		var old_occupant_str = PlayerToString(old_occupant);
-		var new_occupant_str = PlayerToString(new_occupant);
-		if (old_occupant != null && new_occupant != null) {
-			Debug.LogWarningFormat(gameObject, "[Kawa|SmartStationController] Changing occupant {1} -> {2}, reason: {3}. @ {0}", _path, old_occupant_str, new_occupant_str, reason);
+	private void _LogChangeOccupant(VRCPlayerApi old_occupant, VRCPlayerApi new_occupant, string reason) {
+		var old_occupant_str = _PlayerToString(old_occupant);
+		var new_occupant_str = _PlayerToString(new_occupant);
+		if (Utilities.IsValid(old_occupant) && Utilities.IsValid(new_occupant)) {
+			_Warning($"Changing occupant {old_occupant_str} -> {new_occupant_str}, reason: {reason}.");
 		} else {
-			Debug.LogFormat(gameObject, "[Kawa|SmartStationController] Changing occupant {1} -> {2}, reason: {3}. @ {0}", _path, old_occupant_str, new_occupant_str, reason);
+			_Info($"Changing occupant {old_occupant_str} -> {new_occupant_str}, reason: {reason}.");
 		}
 	}
 
-	private string PlayerToString(VRCPlayerApi player) {
-		if (player == null)
-			return "null";
-		var tags = player.isLocal ? "local" : "remote";
-		if (player.isMaster)
-			tags = "master," + tags;
-		tags = (player.IsUserInVR() ? "vr" : "desktop") + "," + tags;
-		return string.Format("\"{0}\" ({2}#{1})", player.displayName, player.playerId, tags);
-	}
-
-	private string GetPath(Transform t) {
-		var path = t.name;
-		while (t.parent != null) {
-			t = t.parent;
-			path = t.name + "/" + path;
-		}
-		return path;
+	protected override string _PlayerToString_Tag(VRCPlayerApi player, string tags) {
+		return (player.IsUserInVR() ? "vr" : "desktop") + "," + tags;
 	}
 }

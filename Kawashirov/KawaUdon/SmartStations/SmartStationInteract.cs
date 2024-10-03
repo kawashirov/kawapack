@@ -1,37 +1,31 @@
-
-using System;
 using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
-using VRC.Udon;
 
 [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
-public class SmartStationInteract : UdonSharpBehaviour {
+public class SmartStationInteract : CommonUSharpBehaviour {
 	/* Config variables */
-
 	public SmartStationController Controller;
-	[Tooltip("If 0: Do not control rotation.\nIf 1: Set rotation = ExplicitRotation.\nIf 2: Compute rotation from player view direction.\nIf 3: Same as 2, but opposite.")]
+	[Tooltip("If 0: Do not control rotation.\n"
+		+ "If 1: Set rotation = ExplicitRotation.\n"
+		+ "If 2: Compute rotation from player view direction.\n"
+		+ "If 3: Same as 2, but opposite.")]
 	public int ShouldSetRotation = 0;
 	public float ExplicitRotation = 0;
 
-	/* Internal variables */
+	public override void Start() {
+		base.Start();
+		logName = "Kawa|SmartStation|Interact";
 
-	private string _path = "";
-
-	public void Start() {
-		_path = GetPath(transform);
-
-		if (Controller == null) {
-			Debug.LogErrorFormat(gameObject, "[Kawa|SmartStationInteract] Controller is not set! @ {0}", _path);
-		}
+		_EnsureValid(Controller, true, "Controller is invalid!");
 	}
 
 	public override void Interact() {
-		if (Controller == null || Controller.Occupant != null)
+		if (!Utilities.IsValid(Controller) || Utilities.IsValid(Controller.Occupant))
 			return;
 		var updater = Controller.Updater;
-		if (updater == null) {
-			Debug.LogErrorFormat(gameObject, "[Kawa|SmartStationInteract] Controller.Updater is not set! @ {0}", _path);
+		if (!Utilities.IsValid(updater)) {
+			_Error("Controller.Updater is not set!");
 			return;
 		}
 
@@ -39,7 +33,7 @@ public class SmartStationInteract : UdonSharpBehaviour {
 			updater.CurrentRotation = ExplicitRotation;
 		} else if (ShouldSetRotation == 2 || ShouldSetRotation == 3) {
 			var ref_t = updater.ReferenceSeat;
-			if (ref_t != null) {
+			if (Utilities.IsValid(ref_t)) {
 				var data = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head);
 
 				var local_dir_player = ref_t.InverseTransformDirection(data.rotation * Vector3.forward);
@@ -53,16 +47,4 @@ public class SmartStationInteract : UdonSharpBehaviour {
 
 		Controller.Station.UseStation(Networking.LocalPlayer);
 	}
-
-	/* Utils */
-
-	private string GetPath(Transform t) {
-		var path = t.name;
-		while (t.parent != null) {
-			t = t.parent;
-			path = t.name + "/" + path;
-		}
-		return path;
-	}
-
 }

@@ -6,7 +6,7 @@ using VRC.Udon;
 using VRC.Udon.Common;
 
 [UdonBehaviourSyncMode(BehaviourSyncMode.Continuous)]
-public class SmartStationUpdater : UdonSharpBehaviour {
+public class SmartStationUpdater : CommonUSharpBehaviour {
 	public SmartStationController Controller;
 
 
@@ -83,52 +83,42 @@ public class SmartStationUpdater : UdonSharpBehaviour {
 	public float LerpSpeed = 0.9f;
 
 	/* Internal variables */
-	[NonSerialized] private bool _should_exit = false;
-	[NonSerialized] private float _horizontal_axis = 0;
-	[NonSerialized] private float _vertical_axis = 0;
+	private bool _should_exit = false;
+	private float _horizontal_axis = 0;
+	private float _vertical_axis = 0;
 
-	[NonSerialized] private string _path = "";
+	public override void Start() {
+		base.Start();
+		logName = "Kawa|SmartStation|Updater";
 
-	void Start() {
-		_path = GetPath(transform);
+		_EnsureValid(Controller, true, "SmartStationController is not set!");
+		_EnsureValid(DynamicSeat, true, "DynamicSeat is not set!");
+		_EnsureValid(DynamicExit, true, "DynamicExit is not set!");
 
-		if (Controller == null) {
-			Debug.LogErrorFormat(gameObject, "[Kawa|SmartStationUpdater] KawaSmartStationController is not set! @ {0}", _path);
-			gameObject.SetActive(false);
-		}
-
-		if (ReferenceSeat == null) {
-			Debug.LogWarningFormat(gameObject, "[Kawa|SmartStationUpdater] ReferenceSeat is not set. Will use station itself as reference. @ {0}", _path);
+		if (!Utilities.IsValid(ReferenceSeat)) {
+			_Warning("ReferenceSeat is not set. Will use station itself as reference.");
 			ReferenceSeat = transform;
 		}
 
-		if (ReferenceExit == null) {
-			Debug.LogWarningFormat(gameObject, "[Kawa|SmartStationUpdater] ReferenceSeat is not set. Will use station itself as reference. @ {0}", _path);
+		if (!Utilities.IsValid(ReferenceExit)) {
+			_Warning("ReferenceSeat is not set. Will use station itself as reference.");
 			ReferenceExit = transform;
 		}
 
-		if (DynamicSeat == null) {
-			Debug.LogErrorFormat(gameObject, "[Kawa|SmartStationUpdater] DynamicSeat is not set! @ {0}", _path);
-			gameObject.SetActive(false);
-		}
-
-		if (DynamicExit == null) {
-			Debug.LogErrorFormat(gameObject, "[Kawa|SmartStationUpdater] DynamicExit is not set! @ {0}", _path);
-			gameObject.SetActive(false);
-		}
-
-		Debug.LogFormat(gameObject, "[Kawa|SmartStationUpdater] Initialized. @ {0}", _path);
-
-		if (Controller != null) {
+		if (Utilities.IsValid(Controller)) {
 			UpdateOwnership();
 			UpdateDynamicExit();
 			UpdateDynamicSeat();
 		}
+
+		//_Info("Initialized.");
 	}
 
 	private void OnEnable() {
-		Debug.LogFormat(gameObject, "[Kawa|SmartStationUpdater] Enabled. @ {0}", _path);
-		if (Controller != null) {
+		if (string.IsNullOrWhiteSpace(path_))
+			return; // OnEnable почему-то вызывается раньше Start
+		_Info("Enabled.");
+		if (Utilities.IsValid(Controller)) {
 			UpdateOwnership();
 			UpdateDynamicSeat();
 			UpdateDynamicExit();
@@ -136,11 +126,11 @@ public class SmartStationUpdater : UdonSharpBehaviour {
 	}
 
 	private void OnDisable() {
-		Debug.LogFormat(gameObject, "[Kawa|SmartStationUpdater] Disabled. @ {0}", _path);
+		_Info("Disabled.");
 	}
 
 	private void Update() {
-		if (Controller != null) {
+		if (Utilities.IsValid(Controller)) {
 			UpdateOwnership();
 			UpdateDynamicSeat();
 			UpdateDynamicExit();
@@ -154,16 +144,20 @@ public class SmartStationUpdater : UdonSharpBehaviour {
 			Networking.SetOwner(owner_ctrl, gameObject);
 	}
 
+	public override bool OnOwnershipRequest(VRCPlayerApi requestingPlayer, VRCPlayerApi requestedOwner) {
+		return !Utilities.IsValid(Controller) || requestedOwner == Networking.GetOwner(Controller.gameObject);
+	}
+
 	private void UpdateDynamicExit() {
 		var forward = ReferenceExit.forward;
 		forward.y = 0;
-		// Когда forward (0,0,0) оно работает как (0,0,1), так что всё ок.
+		// Когда forward (0,0,0) оно работает как (0,0,1), так что LookRotation не обосрётся.
 		DynamicExit.SetPositionAndRotation(ReferenceExit.position, Quaternion.LookRotation(forward));
 	}
 
 	private void UpdateDynamicSeat() {
 		var occupant = Controller.Occupant;
-		if (occupant == null) {
+		if (!Utilities.IsValid(occupant)) {
 			DynamicSeat.SetPositionAndRotation(ReferenceSeat.position, Quaternion.identity);
 		} else {
 			UpdateDynamicSeatOccupied(occupant);
@@ -179,6 +173,7 @@ public class SmartStationUpdater : UdonSharpBehaviour {
 			if (Networking.IsOwner(Controller.gameObject)) {
 				var custom_lift = CurrentLift;
 				custom_lift += _vertical_axis * Time.deltaTime * LiftSpeed;
+				// _vertical_axis = 0; // Сброс до след. инпут ивента // НЕТ!
 				custom_lift = Mathf.Clamp(custom_lift, -MaxLiftDown, MaxLiftUp);
 				if (Mathf.Abs(custom_lift - CurrentLift) > 0.001f)
 					CurrentLift = custom_lift;
@@ -217,6 +212,7 @@ public class SmartStationUpdater : UdonSharpBehaviour {
 			if (Networking.IsOwner(Controller.gameObject)) {
 				var custom_rotation = CurrentRotation;
 				custom_rotation += _horizontal_axis * Time.deltaTime * RotationSpeed;
+				// _horizontal_axis = 0; // Сброс до след. инпут ивента // НЕТ!
 				if (MaxLeftRotation >= 0f && MaxLeftRotation <= 180f)
 					custom_rotation = Mathf.Max(custom_rotation, -MaxLeftRotation);
 				if (MaxRightRotation >= 0f && MaxRightRotation <= 180f)
@@ -235,7 +231,7 @@ public class SmartStationUpdater : UdonSharpBehaviour {
 		// Выход 
 		if (occupant.isLocal && _should_exit) {
 			Controller.Station.ExitStation(occupant);
-			_should_exit = false;
+			_should_exit = false; // Сброс до след. инпут ивента
 		}
 
 		DynamicSeat.SetPositionAndRotation(position, rotation);
@@ -263,16 +259,5 @@ public class SmartStationUpdater : UdonSharpBehaviour {
 	public override void InputMoveHorizontal(float value, UdonInputEventArgs args) {
 		if (IsLocalOccupant())
 			_horizontal_axis = value;
-	}
-
-	/* Utils */
-
-	private string GetPath(Transform t) {
-		var path = t.name;
-		while (t.parent != null) {
-			t = t.parent;
-			path = t.name + "/" + path;
-		}
-		return path;
 	}
 }
