@@ -1,12 +1,9 @@
-﻿
-using System;
-using UdonSharp;
+﻿using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
-using VRC.Udon;
 
 [UdonBehaviourSyncMode(BehaviourSyncMode.Continuous)]
-public class DoorPhysHandle : UdonSharpBehaviour {
+public class DoorPhysHandle : CommonUSharpBehaviour {
 	/* Config variables */
 
 	[Tooltip("The door object.\nShould contain Rigidbody and HingeJoint.\nCan not be changed at run-time.")]
@@ -40,55 +37,36 @@ public class DoorPhysHandle : UdonSharpBehaviour {
 
 	/* Internal variables */
 
-	private string _path = "";
 	private VRC_Pickup _ThisPickup = null;
 	private Rigidbody _DoorRigidbody = null;
 	private HingeJoint _DoorHinge = null;
 
 	/* Events */
 
-	public void Start() {
-		_path = GetPath(transform);
+	public override void Start() {
+		base.Start();
+		logName = "Kawa|DoorPhysHandle";
 
-		if (Door == null) {
-			Debug.LogErrorFormat(gameObject, "[Kawa|DoorPhysHandle] Door GameObject is not set! @ {0}", _path);
-			gameObject.SetActive(false);
-		}
+		_EnsureValid(Door, true, "Door GameObject is invalid!");
+		_EnsureValid(HandleHome, true, "HandleHome Transform is invalid!");
 
-		if (HandleHome == null) {
-			Debug.LogErrorFormat(gameObject, "[Kawa|DoorPhysHandle] HandleHome Transform is not set! @ {0}", _path);
-			gameObject.SetActive(false);
-		}
+		_Ensure(HandleHome.IsChildOf(Door.transform), true, "HandleHome is not child of Door!");
 
-		if (!HandleHome.IsChildOf(Door.transform)) {
-			Debug.LogErrorFormat(gameObject, "[Kawa|DoorPhysHandle] HandleHome is not child of Door! @ {0}", _path);
-			gameObject.SetActive(false);
-		}
-
-		_ThisPickup = (VRC_Pickup)GetComponent(typeof(VRC_Pickup));
-		if (_ThisPickup == null) {
-			Debug.LogErrorFormat(gameObject, "[Kawa|DoorPhysHandle] There is no VRC_Pickup here! @ {0}", _path);
-			gameObject.SetActive(false);
-		}
+		_ThisPickup = GetComponent<VRC_Pickup>();
+		_EnsureValid(_ThisPickup, true, "There is no VRC_Pickup here!");
 
 		_DoorRigidbody = Door.GetComponent<Rigidbody>();
-		if (_DoorRigidbody == null) {
-			Debug.LogErrorFormat(gameObject, "[Kawa|DoorPhysHandle] Door GameObject is missing Rigidbody! @ {0}", _path);
-			gameObject.SetActive(false);
-		}
-
+		_EnsureValid(_ThisPickup, true, "Door GameObject is missing Rigidbody!");
+		
 		_DoorHinge = Door.GetComponent<HingeJoint>();
-		if (_DoorHinge == null) {
-			Debug.LogErrorFormat(gameObject, "[Kawa|DoorPhysHandle] Door GameObject is missing HingeJoint! @ {0}", _path);
-			gameObject.SetActive(false);
-		}
+		_EnsureValid(_ThisPickup, true, "Door GameObject is missing HingeJoint!");
 
-		Debug.LogFormat(gameObject, "[Kawa|DoorPhysHandle] Initialized! @ {0}", _path);
+		// _Info($"Initialized.");
 	}
 
 	public void FixedUpdate() {
 		var handle_owner = Networking.GetOwner(gameObject);
-		var is_editor = handle_owner == null; // TODO delet this
+		var is_editor = !Utilities.IsValid(handle_owner); // TODO delet this
 		if (!(is_editor || handle_owner.isLocal))
 			return;
 		// Дальнейшая обработка только владельцем.
@@ -133,7 +111,7 @@ public class DoorPhysHandle : UdonSharpBehaviour {
 	}
 
 	public override void OnDrop() {
-		Debug.LogFormat(gameObject, "[Kawa|DoorPhysHandle] Handle pickup dropped! @ {0}", _path);
+		_Info($"Handle pickup dropped!");
 		// Сброс позиции ручки в домашнее, если владелец
 		if (Networking.IsOwner(gameObject))
 			transform.SetPositionAndRotation(HandleHome.position, HandleHome.rotation);
@@ -153,7 +131,7 @@ public class DoorPhysHandle : UdonSharpBehaviour {
 					// Если ручка не держится то рандомно меняем владельца ручки на нового игрока что бы распределить нагрузку.
 					if (UnityEngine.Random.Range(0, VRCPlayerApi.AllPlayers.Count + 1) == 0)
 					{
-							Debug.LogFormat(gameObject, "[Kawa|DoorPhysHandle] Randomply transfering ownership to new player \"{0}\" @ {1}", _path, player.displayName);
+							Debug.Log("[Kawa|DoorPhysHandle] Randomply transfering ownership to new player \"{player.displayName}\" @ {_path}", this);
 							Networking.SetOwner(player, this_go);
 					}
 			}
@@ -191,16 +169,4 @@ public class DoorPhysHandle : UdonSharpBehaviour {
 		// 3. [0, 1] -> [drag, 0]
 		return Mathf.SmoothStep(drag, 0, Mathf.Clamp01(Mathf.Abs(angle / drag_angle)));
 	}
-
-	/* Utils */
-
-	private string GetPath(Transform t) {
-		var path = t.name;
-		while (t.parent != null) {
-			t = t.parent;
-			path = t.name + "/" + path;
-		}
-		return path;
-	}
-
 }
