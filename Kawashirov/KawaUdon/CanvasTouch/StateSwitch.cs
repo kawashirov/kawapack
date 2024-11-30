@@ -4,6 +4,7 @@ using VRC.SDKBase;
 using VRC.Udon;
 using Kawashirov;
 using Kawashirov.Udon;
+using VRC.SDK3.Persistence;
 
 [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
 public class StateSwitch : CommonUSharpBehaviour {
@@ -13,7 +14,11 @@ public class StateSwitch : CommonUSharpBehaviour {
 	public int EventDelay = 1;
 	public GameObject[] States;
 
+	public int DefaultState = 0;
+	public string PersistenceKey = "";
+
 	[ReadOnly] public int CurrentState = 0;
+	[ReadOnly] public bool PersistenceRestored = false;
 
 	public override void Start() {
 		base.Start();
@@ -23,11 +28,38 @@ public class StateSwitch : CommonUSharpBehaviour {
 			_Ensure(States.Length > 1, $"states.Length={States.Length}");
 		}
 
+		PersistenceRestored = false;
 		SendCustomEventDelayedSeconds(nameof(_UpdateState), 1f);
+	}
+
+	public void _SetDefault() {
+		// Set Default value if previous wasnt restored yet
+		if (PersistenceRestored)
+			return;
+		CurrentState = DefaultState;
+		_UpdateState();
+	}
+
+	public override void OnPlayerRestored(VRCPlayerApi player) {
+		if (!(Utilities.IsValid(player) && player.isLocal) || string.IsNullOrWhiteSpace(PersistenceKey))
+			return;
+		_Info($"PlayerData restored, figuring out prev state...");
+
+		if (PlayerData.TryGetByte(player, PersistenceKey, out var value)) {
+			_Info($"Got persistent \"{PersistenceKey}\"={value}");
+			CurrentState = value;
+		} else {
+			_Info($"Got no persistent value, setting default \"{PersistenceKey}\"={DefaultState}...");
+			CurrentState = DefaultState;
+		}
+		PersistenceRestored = true;
+		// Avoid PlayerData rewrite on the same frame
+		SendCustomEventDelayedFrames(nameof(_UpdateState), 1);
 	}
 
 	public void _UpdateState() {
 		// _Info(nameof(_UpdateState));
+		CurrentState %= States.Length;
 		for (var i = 0; i < States.Length; ++i) {
 			var state_go = States[i];
 			if (Utilities.IsValid(state_go))
@@ -44,6 +76,9 @@ public class StateSwitch : CommonUSharpBehaviour {
 			} else {
 				receiver.SendCustomEventDelayedFrames(EventName, EventDelay);
 			}
+		}
+		if (PersistenceRestored && !string.IsNullOrWhiteSpace(PersistenceKey)) {
+			PlayerData.SetByte(PersistenceKey, (byte)CurrentState);
 		}
 	}
 
