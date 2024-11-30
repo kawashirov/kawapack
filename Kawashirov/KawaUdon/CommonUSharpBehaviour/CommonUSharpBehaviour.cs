@@ -51,6 +51,29 @@ public class CommonUSharpBehaviour : UdonSharpBehaviour
 		return isValid;
 	}
 
+	protected int _CountValid(object[] arr, string arrayName) {
+		var count = 0;
+		for (var i = 0; i < arr.Length; ++i) {
+			var item = arr[i];
+			if (Utilities.IsValid(item)) {
+				++count;
+			} else {
+				_Error($"{arrayName}[{i}] is invalid!");
+			}
+		}
+		return count;
+	}
+
+	protected int _EnsureCountValid(object[] arr, bool disableSelf, string arrayName) {
+		// Ensure array itself valid, 
+		// but elements might be invalid with error
+		var count = 0;
+		if (_EnsureValid(arr, disableSelf, $"{arrayName} is invalid!")) {
+			count = _CountValid(arr, arrayName);
+			_Info($"Bound to {count} {arrayName}.");
+		}
+		return count;
+	}
 
 	protected bool _EnsureAll(object[] arr, string arrayName) {
 		return _EnsureAll(arr, false, 0, arrayName);

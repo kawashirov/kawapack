@@ -56,8 +56,10 @@ public class BGMAudioSync : CommonUSharpBehaviour {
 			_Ensure(Clips.Length > 0, true, "Clips array is empty!");
 			for (var i = 0; i < Clips.Length; ++i) {
 				var clip = Clips[i];
-				clip.LoadAudioData();
-				length += clip.length;
+				if (_Ensure(clip, true, $"Clips[{i}] is invalid!")) {
+					clip.LoadAudioData();
+					length += clip.length;
+				}
 			}
 			_Info($"Loaded {Clips.Length} audio clips, total time: {length}");
 		}
