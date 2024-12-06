@@ -37,7 +37,7 @@ public class BGMAudioSync : CommonUSharpBehaviour {
 			var event_name = nameof(_UpdateVolume);
 			var curr_name = SwitchButton.EventName;
 			if (!string.Equals(curr_name, event_name)) {
-				_Warning($"Updating SwitchButton.eventName: {curr_name} -> event_name");
+				_Warning($"Updating SwitchButton.eventName: {curr_name} -> {event_name}");
 				SwitchButton.EventName = event_name;
 			}
 			SendCustomEventDelayedSeconds(nameof(_SetDefault), 0.9f);
