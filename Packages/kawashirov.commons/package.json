@@ -1,0 +1,15 @@
+{
+	"name": "kawashirov.commons",
+	"version": "2024.12.9",
+	"displayName": "kawashirov.commons",
+	"description": "Shared code for multiple projects",
+	"unity": "2022.3",
+	"hideInEditor": false,
+	"legacyFolders" : {
+		"Assets\\Kawashirov\\KawaGeneral" : "736d4e9f5ba6a324ca7a40e8b771e213"
+	},
+	"author": {
+		"name": "kawashirov",
+		"url": "https://github.com/kawashirov"
+	}
+}

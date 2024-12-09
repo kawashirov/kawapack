@@ -1,11 +1,10 @@
 fileFormatVersion: 2
-guid: fd5ac9bd5f464894dbe25e1533c01af6
+guid: 76e68ce48b128ba43916626d0574c535
 labels:
 - Kawashirov
-- Kawashirov-Udon
-folderAsset: yes
-DefaultImporter:
+NativeFormatImporter:
   externalObjects: {}
+  mainObjectFileID: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 

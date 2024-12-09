@@ -1,9 +1,8 @@
 fileFormatVersion: 2
-guid: 736d4e9f5ba6a324ca7a40e8b771e213
+guid: 70c63fcccea3ff547b881cedbdfd454c
 labels:
 - Kawashirov
-folderAsset: yes
-DefaultImporter:
+AssemblyDefinitionImporter:
   externalObjects: {}
   userData: 
   assetBundleName: 

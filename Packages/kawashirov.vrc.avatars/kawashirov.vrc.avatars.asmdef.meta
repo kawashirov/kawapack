@@ -1,8 +1,9 @@
 fileFormatVersion: 2
-guid: 76e68ce48b128ba43916626d0574c535
-NativeFormatImporter:
+guid: 08f31b93d242b1c4c979ce0728321b47
+labels:
+- Kawashirov
+AssemblyDefinitionImporter:
   externalObjects: {}
-  mainObjectFileID: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 
