@@ -44,9 +44,12 @@ public class CommonUSharpBehaviour : UdonSharpBehaviour
 	protected bool _EnsureValid(object obj, bool disableSelf, string msgWhenInvalid) {
 		var isValid = Utilities.IsValid(obj);
 		if (!isValid) {
-			_Error(msgWhenInvalid);
-			if (disableSelf)
+			if (disableSelf) {
 				enabled = false;
+				_Error(msgWhenInvalid);
+			} else {
+				_Warning(msgWhenInvalid);
+			}
 		}
 		return isValid;
 	}

@@ -46,7 +46,7 @@ namespace Kawashirov {
 			}
 
 			var source_game_objects = this.gameObject.scene.GetRootGameObjects()
-				.SelectMany(g => g.Traverse()).Select(g => g.transform)
+				.SelectMany(KawaUtilities.Traverse).Select(g => g.transform)
 				.Where(t => t.name.Equals(sourceObjectName, System.StringComparison.InvariantCultureIgnoreCase)).ToList();
 
 			if (source_game_objects.Count == 0) {
