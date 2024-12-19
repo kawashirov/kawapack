@@ -8,57 +8,26 @@ using UnityEngine;
 namespace Kawashirov.Refreshables {
 	public static class RefreshableUtility {
 
-		[MenuItem("Kawashirov/Refreshables/Refresh every IRefreshable in loaded scenes")]
-		public static void RefreshEverytingInLoadedScenes() {
-			KawaUtilities.IterScenesRoots()
-				.SelectMany(g => g.GetComponentsInChildren<IRefreshable>(true))
-				.ToList().RefreshMultiple();
+		public static void GetRefresahblesByGUID(string guid, Type sub_type, ICollection<IRefreshable> container) {
+			var path = AssetDatabase.GUIDToAssetPath(guid);
+			var objects = AssetDatabase.LoadAllAssetsAtPath(path)
+				.Where(obj => obj != null && obj is IRefreshable && (
+					sub_type == null || sub_type.IsAssignableFrom(obj.GetType())
+				));
+			foreach (var obj in objects)
+				if (obj is IRefreshable robj)
+					container.Add(robj);
 		}
 
-		[MenuItem("Kawashirov/Refreshables/Refresh every IRefreshable asset in project")]
-		public static void RefreshEveryIRefreshableInProject() {
-			RefreshEverytingInProject<IRefreshable>(true);
-		}
-
-		public static List<T> FindAllRefreshablesInProject<T>(bool ui = false) where T : class, IRefreshable {
-			Debug.LogFormat("[KawaEditor] Searching <b>{0}</b> assets...", typeof(T));
-			var list = new List<T>();
-			try {
-				if (ui)
-					EditorUtility.DisplayProgressBar("Searching assets...", "Searching assets...", 0.5f);
-				var guids = AssetDatabase.FindAssets("t:" + typeof(ScriptableObject).Name);
-				Debug.LogFormat("[KawaEditor] Loading <b>{0}</b> scriptable object assets...", guids.Length);
-				for (var i = 0; i < guids.Length; ++i) {
-					var s = string.Format("{0}/{1}", i + 1, guids.Length);
-					var p = 1.0f * (i + 1) / (guids.Length + 1);
-					if (ui && EditorUtility.DisplayCancelableProgressBar("Searching assets...", s, p))
-						break;
-					var path = AssetDatabase.GUIDToAssetPath(guids[i]);
-					var obj = AssetDatabase.LoadAssetAtPath<ScriptableObject>(path);
-					if (obj is T refreshable)
-						list.Add(refreshable);
-				}
-			} finally {
-				if (ui)
-					EditorUtility.ClearProgressBar();
-			}
-			Debug.LogFormat("[KawaEditor] Found <b>{0}</b> <b>{1}</b> assets.", list.Count, typeof(T));
-			return list;
-		}
-
-		public static void RefreshEverytingInProject<T>(bool ui = false) where T : class, IRefreshable {
-			var list = FindAllRefreshablesInProject<T>(ui);
-
-			list.RefreshMultiple();
-
-			try {
-				Debug.Log("[KawaEditor] Unloading unused assets...");
-				EditorUtility.DisplayProgressBar("Unloading unused assets...", "Unloading unused assets..", 0.5f);
-				EditorUtility.UnloadUnusedAssetsImmediate();
-			} finally {
-				EditorUtility.ClearProgressBar();
-			}
-			Debug.LogFormat("[KawaEditor] Done processing <b>{0}</b> <b>{1}</b> assets.", list.Count, typeof(T));
+		public static HashSet<IRefreshable> LoadAllRefreshablesInProject(Type sub_type) {
+			Debug.Log($"[KawaEditor] Searching refreshable ({sub_type}) assets...");
+			var guids = AssetDatabase.FindAssets("t:" + typeof(ScriptableObject).Name);
+			Debug.Log($"[KawaEditor] Found {guids.Length} scriptables GUIDs, loading...");
+			var set = new HashSet<IRefreshable>();
+			foreach (var guid in guids)
+				GetRefresahblesByGUID(guid, sub_type, set);
+			Debug.Log($"[KawaEditor] Loaded {set.Count} refreshable ({sub_type}) objects...");
+			return set;
 		}
 
 		public static bool RefreshSafe(this IRefreshable refreshable) {
