@@ -8,7 +8,6 @@ using UnityEngine;
 using UnityEditor;
 using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
-using Unity.EditorCoroutines.Editor;
 using Kawashirov.ToolsGUI;
 
 using Object = UnityEngine.Object;
