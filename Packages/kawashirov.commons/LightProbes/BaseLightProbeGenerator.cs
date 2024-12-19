@@ -98,12 +98,6 @@ namespace Kawashirov {
 
 		[CanEditMultipleObjects, CustomEditor(typeof(BaseLightProbeGenerator), true)]
 		public class Editor : UnityEditor.Editor {
-			[MenuItem("Kawashirov/Lightprobe volumes/Refresh in loaded scenes")]
-			public static void RefreshLP() {
-				KawaUtilities.IterScenesRoots()
-					.SelectMany(g => g.GetComponentsInChildren<BaseLightProbeGenerator>())
-					.ToList().RefreshMultiple();
-			}
 
 			public override void OnInspectorGUI() {
 				var targets = this.targets.Select(t => t as BaseLightProbeGenerator).ToArray();

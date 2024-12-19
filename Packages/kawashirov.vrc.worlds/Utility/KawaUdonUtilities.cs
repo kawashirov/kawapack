@@ -290,6 +290,7 @@ namespace Kawashirov.Udon {
 			"_onPlayerTriggerStay", "_onTriggerStay", "OnTriggerStay"
 		};
 
+		#if KAWA_DEBUG
 		[MenuItem("Kawashirov/Udon/Report (to console) program instances with potentially laggy entry points")]
 		public static void ReportUdonScriptsWithUpdates() {
 			var laggy_symbols = new List<string>(LAGGY_SYMBOLS.Length);
@@ -352,6 +353,7 @@ namespace Kawashirov.Udon {
 			}
 			Debug.LogFormat("Total <b>{0}</b> Udon program instances in loaded scenes.", instances);
 		}
+		#endif
 
 		private static void RefreshUdonBehavioursOnScene(Scene scene, UdonSharpBehaviour ushrp) {
 			var program = UdonSharpEditorUtility.GetBackingUdonBehaviour(ushrp).programSource;

@@ -200,7 +200,8 @@ namespace Kawashirov {
 
 #if UNITY_EDITOR
 
-		[MenuItem("Kawashirov/Path info")]
+		#if KAWA_DEBUG
+		[MenuItem("Kawashirov/Debug/Path info")]
 		public static void ReportInfos() {
 			var items = Selection.objects.OfType<GameObject>()
 				.SelectMany(g => g.GetComponentsInChildren<Component>(true));
@@ -212,7 +213,7 @@ namespace Kawashirov {
 				);
 			}
 		}
-
+		#endif
 
 		public class ReadOnlyAttribute : PropertyAttribute { }
 

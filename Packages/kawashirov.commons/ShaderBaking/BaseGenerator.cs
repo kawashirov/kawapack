@@ -84,11 +84,6 @@ namespace Kawashirov.ShaderBaking {
 			}
 		}
 
-		[MenuItem("Kawashirov/Shader Baking/Refresh every shader in project")]
-		public static void RefreshEverytingInLoadedScenes() {
-			RefreshableUtility.RefreshEverytingInProject<BaseGenerator>(true);
-		}
-
 		public static void DeleteGeneratedAtPath(string path) {
 			Debug.LogFormat("[KawaShaderBaking] Searching and removing all generated shader files at <i>{0}</i>...", path);
 			var shaders = AssetDatabase.FindAssets("t:Shader", new string[] { path })
