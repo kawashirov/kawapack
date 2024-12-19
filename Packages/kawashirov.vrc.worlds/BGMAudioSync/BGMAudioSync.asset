@@ -355,7 +355,7 @@ MonoBehaviour:
       Data: 20|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: StateSwitch, KawaUdon
+      Data: StateSwitch, kawashirov.vrc.worlds
     - Name: 
       Entry: 8
       Data: 
@@ -424,7 +424,7 @@ MonoBehaviour:
       Data: 25|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: BGMAudioSync_ArchiTechProTVBridge[], KawaUdon
+      Data: BGMAudioSync_ArchiTechProTVBridge[], kawashirov.vrc.worlds
     - Name: 
       Entry: 8
       Data: 
@@ -529,7 +529,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 33|Kawashirov.ReadOnlyAttribute, KawaCommons
+      Data: 33|Kawashirov.ReadOnlyAttribute, kawashirov.commons
     - Name: 
       Entry: 8
       Data: 
@@ -589,7 +589,7 @@ MonoBehaviour:
       Data: 2
     - Name: 
       Entry: 7
-      Data: 37|Kawashirov.ReadOnlyAttribute, KawaCommons
+      Data: 37|Kawashirov.ReadOnlyAttribute, kawashirov.commons
     - Name: 
       Entry: 8
       Data: 
@@ -655,7 +655,7 @@ MonoBehaviour:
       Data: 1
     - Name: 
       Entry: 7
-      Data: 42|Kawashirov.ReadOnlyAttribute, KawaCommons
+      Data: 42|Kawashirov.ReadOnlyAttribute, kawashirov.commons
     - Name: 
       Entry: 8
       Data: 

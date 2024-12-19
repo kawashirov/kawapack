@@ -163,7 +163,7 @@ MonoBehaviour:
       Data: 8|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: UITab[], KawaUdon
+      Data: UITab[], kawashirov.vrc.worlds
     - Name: 
       Entry: 8
       Data: 

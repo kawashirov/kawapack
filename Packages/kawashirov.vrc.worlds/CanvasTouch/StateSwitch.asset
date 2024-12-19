@@ -499,7 +499,7 @@ MonoBehaviour:
       Data: 1
     - Name: 
       Entry: 7
-      Data: 25|Kawashirov.ReadOnlyAttribute, KawaCommons
+      Data: 25|Kawashirov.ReadOnlyAttribute, kawashirov.commons
     - Name: 
       Entry: 8
       Data: 
@@ -559,7 +559,7 @@ MonoBehaviour:
       Data: 1
     - Name: 
       Entry: 7
-      Data: 29|Kawashirov.ReadOnlyAttribute, KawaCommons
+      Data: 29|Kawashirov.ReadOnlyAttribute, kawashirov.commons
     - Name: 
       Entry: 8
       Data: 

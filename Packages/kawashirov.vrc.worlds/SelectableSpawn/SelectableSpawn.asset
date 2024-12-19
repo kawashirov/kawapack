@@ -163,7 +163,7 @@ MonoBehaviour:
       Data: 8|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: StateSwitch, KawaUdon
+      Data: StateSwitch, kawashirov.vrc.worlds
     - Name: 
       Entry: 8
       Data: 
@@ -223,7 +223,7 @@ MonoBehaviour:
       Data: 12|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: SpawnGroup[], KawaUdon
+      Data: SpawnGroup[], kawashirov.vrc.worlds
     - Name: 
       Entry: 8
       Data: 

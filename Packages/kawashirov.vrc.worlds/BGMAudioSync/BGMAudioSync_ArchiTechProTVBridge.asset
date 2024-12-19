@@ -217,7 +217,7 @@ MonoBehaviour:
       Data: 11|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: BGMAudioSync, KawaUdon
+      Data: BGMAudioSync, kawashirov.vrc.worlds
     - Name: 
       Entry: 8
       Data: 
@@ -307,7 +307,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 17|Kawashirov.ReadOnlyAttribute, KawaCommons
+      Data: 17|Kawashirov.ReadOnlyAttribute, kawashirov.commons
     - Name: 
       Entry: 8
       Data: 
@@ -361,7 +361,7 @@ MonoBehaviour:
       Data: 1
     - Name: 
       Entry: 7
-      Data: 20|Kawashirov.ReadOnlyAttribute, KawaCommons
+      Data: 20|Kawashirov.ReadOnlyAttribute, kawashirov.commons
     - Name: 
       Entry: 8
       Data: 
@@ -421,7 +421,7 @@ MonoBehaviour:
       Data: 1
     - Name: 
       Entry: 7
-      Data: 24|Kawashirov.ReadOnlyAttribute, KawaCommons
+      Data: 24|Kawashirov.ReadOnlyAttribute, kawashirov.commons
     - Name: 
       Entry: 8
       Data: 
@@ -484,7 +484,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 28|Kawashirov.ReadOnlyAttribute, KawaCommons
+      Data: 28|Kawashirov.ReadOnlyAttribute, kawashirov.commons
     - Name: 
       Entry: 8
       Data: 
