@@ -1,5 +1,7 @@
 fileFormatVersion: 2
 guid: e3d8323a2de95ce42bdca1c77cc510ee
+labels:
+- Kawashirov
 ShaderImporter:
   externalObjects: {}
   defaultTextures: []

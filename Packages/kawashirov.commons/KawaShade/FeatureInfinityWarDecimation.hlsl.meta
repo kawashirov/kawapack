@@ -1,9 +1,9 @@
 fileFormatVersion: 2
 guid: 0a4872b5f303fc74aa2c444c367e7c50
-ShaderImporter:
+labels:
+- Kawashirov
+ShaderIncludeImporter:
   externalObjects: {}
-  defaultTextures: []
-  nonModifiableTextures: []
   userData: 
   assetBundleName: 
   assetBundleVariant: 
