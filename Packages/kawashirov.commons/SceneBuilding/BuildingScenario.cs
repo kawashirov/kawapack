@@ -33,8 +33,8 @@ namespace Kawashirov.SceneBuilding {
 						Debug.LogWarning($"Building action #{i} is empty, skip!", this);
 						continue;
 					}
-					if (!action.enabled) {
-						Debug.LogWarning($"Building action #{i} is not enabled, skip!", this);
+					if (!action.enabled || !action.gameObject.activeInHierarchy) {
+						Debug.LogWarning($"Building action #{i} is not active/enabled, skip!", this);
 						continue;
 					}
 					if (progress_gui) {

@@ -7,8 +7,8 @@ using UnityEditor;
 #endif
 
 namespace Kawashirov.SceneBuilding {
-#if UNITY_EDITOR
 	public class BakeOcclusionAction : BaseBuildingAction {
+#if UNITY_EDITOR
 		public override void Run() {
 			Debug.Log($"Clearing old occlusion culling...", this);
 			StaticOcclusionCulling.Clear();
