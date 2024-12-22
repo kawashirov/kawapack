@@ -1,0 +1,55 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Kawashirov.SceneBuilding;
+using System.Linq;
+
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
+namespace Kawashirov.MeshCombining {
+	public class MeshCombineBuildingAction : BaseBuildingAction {
+#if UNITY_EDITOR
+		[Tooltip("Run only eanbled mesh combiners, ignore disabled")]
+		public bool OnlyEnabled = true;
+		[Tooltip("Grab and apply literaly every mesh combiner on scene")]
+		public bool CombineEveryithingOnScene = false;
+
+		[Tooltip("What combiners to run.\nUsed only if CombineEveryithingOnScene is off")]
+		public BaseMeshCombiner[] Combiners;
+
+		[Tooltip("Exclude those combiners.\nUseful when CombineEveryithingOnScene is on, but applies always.")]
+		public BaseMeshCombiner[] Except;
+
+		protected virtual List<BaseMeshCombiner> GetCombiners() {
+			var allow_disabled = !OnlyEnabled;
+			var except = Except.Distinct().UnityNotNull();
+			if (CombineEveryithingOnScene) {
+				return gameObject.scene.GetRootGameObjects()
+					.SelectMany(gobj => gobj.GetComponentsInChildren<BaseMeshCombiner>())
+					.Where(mc => allow_disabled || mc.enabled)
+					.Except(except).ToList();
+			} else {
+				return Combiners.Distinct().UnityNotNull()
+					.Where(mc => allow_disabled || mc.enabled)
+					.Except(except).ToList();
+			}
+		}
+
+		public override void Run() {
+			Debug.Log($"Searching combiners to run...", this);
+			var combiners = GetCombiners();
+			Debug.Log($"Found {combiners.Count}, running...", this);
+			foreach (var combiner in combiners) {
+				Debug.Log($"Running cobiner at {combiner.gameObject.KawaGetFullPath()}...", combiner);
+				combiner.Run();
+			}
+			Debug.Log($"Done {combiners.Count} combiners.", this);
+		}
+
+		// TODO MeshCombineBuildingActionEditor
+#endif
+	}
+}
