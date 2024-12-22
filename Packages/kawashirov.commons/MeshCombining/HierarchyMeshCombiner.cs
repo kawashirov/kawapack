@@ -19,6 +19,7 @@ namespace Kawashirov.MeshCombining {
 			}
 			op.Sources = sources.ToList();
 			op.Target = gameObject;
+			op.RepackLightmapUV = RepackLightmapUV;
 			op.ApplyScaleInLightmap = ApplyScaleInLightmap;
 			op.Run();
 		}
