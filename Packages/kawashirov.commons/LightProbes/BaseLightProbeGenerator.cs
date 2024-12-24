@@ -12,6 +12,7 @@ using UnityEditor;
 
 
 namespace Kawashirov {
+	[ExecuteAlways]
 	public class BaseLightProbeGenerator : KawaEditorBehaviour {
 		protected static bool _debug_fold_renderers = false;
 

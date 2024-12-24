@@ -9,6 +9,7 @@ using UnityEditor;
 #endif
 
 namespace Kawashirov {
+	[ExecuteAlways]
 	[RequireComponent(typeof(LightProbeProxyVolume))]
 	public class LightProbeProxyVolumeGenerator : BaseLightProbeGenerator {
 

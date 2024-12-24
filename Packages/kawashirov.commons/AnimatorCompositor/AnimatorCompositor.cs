@@ -20,7 +20,6 @@ using VRC.SDKBase;
 #endif
 
 namespace Kawashirov {
-	[Serializable]
 	public class AnimatorCompositor : ScriptableObject, IRefreshable {
 #if UNITY_EDITOR
 		public AnimatorController[] sources;

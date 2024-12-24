@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 220785035967264706}
   - component: {fileID: 5044761070755682256}
   m_Layer: 2
-  m_Name: KawaBoxLightProbeGenerator
+  m_Name: BoxLightProbeGenerator
   m_TagString: EditorOnly
   m_Icon: {fileID: 2800000, guid: 302691306fd300648a26254d75364f60, type: 3}
   m_NavMeshLayer: 0
@@ -26,12 +26,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1643666585446377834}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &8754347410515748970
 BoxCollider:
@@ -41,9 +42,17 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1643666585446377834}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 1
+  m_ProvidesContacts: 0
   m_Enabled: 0
-  serializedVersion: 2
+  serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!220 &220785035967264706
@@ -71,7 +80,7 @@ MonoBehaviour:
   debug: 1
   _debug_hits_: []
   _debug_segments_: []
-  _debug_renderrers_: 0
+  _debug_renderrers_: []
   _debug_initial_segments_: 0
   raycast_axis: 1
   padding: {x: 0.05, y: 0.05, z: 0.05}

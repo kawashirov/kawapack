@@ -8,6 +8,7 @@ using UnityEditor;
 #endif
 
 namespace Kawashirov {
+	[ExecuteAlways]
 	[RequireComponent(typeof(BoxCollider))]
 	public class BoxLightProbeGenerator : BaseLightProbeGenerator {
 		[Tooltip("Direction of raycasts. Local. Y is vertical.")]

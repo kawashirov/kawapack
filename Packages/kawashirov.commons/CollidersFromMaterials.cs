@@ -12,6 +12,7 @@ using UnityEditor;
 
 
 namespace Kawashirov {
+	[ExecuteAlways]
 	public class CollidersFromMaterials : KawaEditorBehaviour {
 		private static MeshColliderCookingOptions mesh_options =
 			MeshColliderCookingOptions.CookForFasterSimulation |

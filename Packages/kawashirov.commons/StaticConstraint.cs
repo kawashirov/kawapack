@@ -11,6 +11,7 @@ using UnityEditor;
 
 
 namespace Kawashirov {
+	[ExecuteAlways]
 	public class StaticConstraint : KawaEditorBehaviour {
 		public string sourceObjectName = "";
 		public bool syncPosition = true;
