@@ -155,7 +155,7 @@ namespace Kawashirov.KawaShade {
 
 		public override void Refresh() {
 			if (string.IsNullOrWhiteSpace(shaderName)) {
-				Debug.LogErrorFormat(this, "[KawaShade] Name of shader is not set. <b>{0}</b>\n@ <i>{1}</i>", this, RefreshablePath());
+				Debug.LogErrorFormat(this, "[KawaShade] Name of shader is not set. <b>{0}</b>\n@ <i>{1}</i>", this, this.KawaGetFullPath());
 				return;
 			}
 
@@ -190,7 +190,7 @@ namespace Kawashirov.KawaShade {
 			code.Append("//\n");
 			shader.Bake(code);
 
-			Debug.LogFormat(this, "[KawaShade] Writing generated shader <b>{0}</b> to disk...\n@ <i>{1}</i>", this, RefreshablePath());
+			Debug.LogFormat(this, "[KawaShade] Writing generated shader <b>{0}</b> to disk...\n@ <i>{1}</i>", this, this.KawaGetFullPath());
 			using (var writer = new StreamWriter(shader_path, false, Encoding.UTF8)) {
 				writer.Write(code.ToString());
 				writer.Flush();
@@ -205,7 +205,7 @@ namespace Kawashirov.KawaShade {
 
 			var shader_importer = AssetImporter.GetAtPath(shader_path) as ShaderImporter;
 			if (shader_importer == null) {
-				Debug.LogWarningFormat(this, "Can not get ShaderImporter for shader <b>{0}</b>!\n@ <i>{1}</i>", this, RefreshablePath());
+				Debug.LogWarningFormat(this, "Can not get ShaderImporter for shader <b>{0}</b>!\n@ <i>{1}</i>", this, this.KawaGetFullPath());
 			} else {
 				shader_importer.SetDefaultTextures(new string[] {
 					"_Rnd_Seed"

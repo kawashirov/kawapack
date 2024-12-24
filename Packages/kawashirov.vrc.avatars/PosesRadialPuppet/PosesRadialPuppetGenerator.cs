@@ -272,13 +272,6 @@ namespace Kawashirov {
 				Undo.CollapseUndoOperations(undoGroup);
 			}
 		}
-
-		public UnityEngine.Object AsUnityObject()
-			=> this;
-
-		public string RefreshablePath()
-			=> AssetDatabase.GetAssetPath(this);
-
 #endif
 	}
 }

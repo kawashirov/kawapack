@@ -161,11 +161,6 @@ public class CommonUSharpBehaviour : UdonSharpBehaviour
 	}
 
 	public virtual void Refresh() { }
-
-	public Object AsUnityObject() => this;
-
-	public string RefreshablePath() => gameObject.KawaGetFullPath();
-
 #endif
 
 }

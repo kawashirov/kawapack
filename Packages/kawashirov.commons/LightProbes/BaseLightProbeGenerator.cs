@@ -231,13 +231,13 @@ namespace Kawashirov {
 
 				var filter = renderer.GetComponent<MeshFilter>();
 				if (filter == null) {
-					Debug.LogWarningFormat(renderer, "[KawaLPG] Renderer has no MeshFilter! @ <i>{0}</i>", renderer.transform.KawaGetHierarchyPath());
+					Debug.LogWarningFormat(renderer, "[KawaLPG] Renderer has no MeshFilter! @ <i>{0}</i>", renderer.KawaGetFullPath());
 					continue;
 				}
 
 				var mesh = filter.sharedMesh;
 				if (mesh == null) {
-					Debug.LogWarningFormat(filter, "[KawaLPG] MeshFilter has no attached Mesh! @ <i>{0}</i>", filter.transform.KawaGetHierarchyPath());
+					Debug.LogWarningFormat(filter, "[KawaLPG] MeshFilter has no attached Mesh! @ <i>{0}</i>", filter.KawaGetFullPath());
 					continue;
 				}
 

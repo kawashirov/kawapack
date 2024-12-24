@@ -586,13 +586,6 @@ namespace Kawashirov {
 			}
 			Debug.Log(log, this);
 		}
-
-		public UnityEngine.Object AsUnityObject()
-			=> this;
-
-		public string RefreshablePath()
-			=> AssetDatabase.GetAssetPath(this);
-
 #endif // UNITY_EDITOR
 	}
 }

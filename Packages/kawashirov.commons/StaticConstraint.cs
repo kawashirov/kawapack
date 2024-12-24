@@ -55,8 +55,8 @@ namespace Kawashirov {
 			}
 
 			if (source_game_objects.Count > 1) {
-				var names = string.Join(", ", source_game_objects.Select(t => t.KawaGetHierarchyPath()));
-				Debug.LogErrorFormat(this, "[KawaEditor] Multipe Source Objects with name \"{1}\" found: {2} {3} @ <i>{0}</i>", kawaHierarchyPath, sourceObjectName, source_game_objects.Count, names);
+				var names = string.Join("\n", source_game_objects.Select(KawaUtilities.KawaGetFullPath));
+				Debug.LogErrorFormat(this, "[KawaEditor] Multipe Source Objects with name \"{1}\" found: {2}\n{3}\n@ <i>{0}</i>", kawaHierarchyPath, sourceObjectName, source_game_objects.Count, names);
 				return;
 			}
 

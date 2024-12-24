@@ -4,6 +4,8 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Object = UnityEngine.Object;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -101,39 +103,80 @@ namespace Kawashirov {
 			return tagged;
 		}
 
-		public static string KawaGetHierarchyPath(this Transform transform) {
+		private static string KawaGetFullPath_Transform(Transform transform) {
+			if (transform == null)
+				return "<unknown transform>";
 			var path = transform.name;
 			while (transform.parent != null) {
 				transform = transform.parent;
-				path = transform.name + "/" + path;
+				path = $"{transform.name}/{path}";
 			}
 			return path;
 		}
 
-		public static string KawaGetFullPath(this GameObject gameObject) {
-			var path = gameObject.transform.KawaGetHierarchyPath();
+		private static string KawaGetFullPath_GameObject(GameObject gobj) {
+			var transform_path = KawaGetFullPath_Transform(gobj.transform);
 
-			var persistent = false;
 #if UNITY_EDITOR
-			persistent = EditorUtility.IsPersistent(gameObject);
-#endif
-			if (persistent) {
-#if UNITY_EDITOR
-				string asset_path = null;
-				asset_path = AssetDatabase.GetAssetPath(gameObject);
+			if (PrefabUtility.IsPartOfPrefabAsset(gobj)) {
+				var asset_path = AssetDatabase.GetAssetPath(gobj);
 				if (string.IsNullOrWhiteSpace(asset_path))
-					asset_path = "<unknown persistent>";
-				path = asset_path + "/" + path;
-#endif
-			} else if (gameObject.scene.IsValid()) {
-				var scene_path = gameObject.scene.path;
-				if (string.IsNullOrWhiteSpace(scene_path))
-					scene_path = "<unknown scene>";
-				path = scene_path + "/" + path;
-			} else {
-				path = "<unknown>/" + path;
+					asset_path = "<unknown prefab asset>";
+				return $"{asset_path}/{transform_path}";
 			}
-			return path;
+
+			var prefab_stage = PrefabStageUtility.GetPrefabStage(gobj);
+			if (prefab_stage != null) {
+				var asset_path = prefab_stage.assetPath;
+				if (string.IsNullOrWhiteSpace(asset_path))
+					asset_path = "<unknown prefab asset stage>";
+				return $"{asset_path}/{transform_path}";
+			}
+
+			if (EditorUtility.IsPersistent(gobj)) {
+				return $"<unknown persistent>/{transform_path}";
+			}
+#endif // UNITY_EDITOR
+
+			if (gobj.scene.IsValid()) {
+				var scene_path = gobj.scene.path;
+				if (string.IsNullOrWhiteSpace(scene_path)) {
+					var scene_name = gobj.scene.name;
+					scene_path = string.IsNullOrWhiteSpace(scene_name) ? "<unknown scene>" : $"scene:{scene_name}";
+				}
+				return $"{scene_path}/{transform_path}";
+			}
+
+			return $"<invalid scene>/{transform_path}";
+		}
+
+		private static string KawaGetFullPath_Component(Component component) {
+			var path = KawaGetFullPath_GameObject(component.gameObject);
+			var index = component.GetComponentIndex();
+			return $"{path}[{index}]";
+		}
+
+		private static string KawaGetFullPath_WhateverAsset(Object obj) {
+#if UNITY_EDITOR
+			var asset_path = AssetDatabase.GetAssetPath(obj);
+			if (!string.IsNullOrWhiteSpace(asset_path))
+				return asset_path;
+			else if (EditorUtility.IsPersistent(obj))
+				return "<unknown persistent asset>";
+#endif
+			return "<in-memory asset>";
+		}
+
+		public static string KawaGetFullPath(this Object obj) {
+			// В основном используется для логов, что бы точно знать где именно контекстный объект
+			// Пытается найти максимально подробный путь к объектам.
+			if (obj is GameObject gobj) {
+				return KawaGetFullPath_GameObject(gobj);
+			} else if (obj is Component component) {
+				return KawaGetFullPath_Component(component);
+			} else {
+				return KawaGetFullPath_WhateverAsset(obj);
+			}
 		}
 
 		public static IEnumerable<Scene> IterScenes(bool onlyLoaded = true, bool onlyValid = true) {
@@ -200,7 +243,7 @@ namespace Kawashirov {
 
 #if UNITY_EDITOR
 
-		#if KAWA_DEBUG
+#if KAWA_DEBUG
 		[MenuItem("Kawashirov/Debug/Path info")]
 		public static void ReportInfos() {
 			var items = Selection.objects.OfType<GameObject>()
@@ -208,12 +251,12 @@ namespace Kawashirov {
 			foreach (var item in items) {
 				Debug.LogFormat(
 					item, "item={0}\nname={1}\ntransform={2}\nscene={3}\nIsPersistent={4}\nKawaGetFullPath={5}",
-					item, item.name, item.transform.KawaGetHierarchyPath(), item.gameObject.scene.path,
-					EditorUtility.IsPersistent(item), item.gameObject.KawaGetFullPath()
+					item, item.name, item.KawaGetFullPath(), item.gameObject.scene.path,
+					EditorUtility.IsPersistent(item), item.KawaGetFullPath()
 				);
 			}
 		}
-		#endif
+#endif
 
 		public class ReadOnlyAttribute : PropertyAttribute { }
 

@@ -106,13 +106,6 @@ namespace Kawashirov.ShaderBaking {
 		public virtual void Refresh() {
 			throw new NotImplementedException();
 		}
-
-		public UnityEngine.Object AsUnityObject()
-			=> this;
-
-		public string RefreshablePath() 
-			=> AssetDatabase.GetAssetPath(this);
-
 #endif
 	}
 }

@@ -5,6 +5,8 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
+using Object = UnityEngine.Object;
+
 namespace Kawashirov.Refreshables {
 	public static class RefreshableUtility {
 
@@ -31,25 +33,38 @@ namespace Kawashirov.Refreshables {
 		}
 
 		public static bool RefreshSafe(this IRefreshable refreshable) {
-			var unityObj = refreshable as UnityEngine.Object;
-			var refreshSucess = false;
-			var undoGroup = Undo.GetCurrentGroup();
-			try {
-				var undoName = $"Refresh {unityObj.name} ({unityObj.GetType().Name})";
-				Undo.SetCurrentGroupName(undoName);
-				Undo.RegisterCompleteObjectUndo(unityObj, undoName);
-				// Debug.Log($"Refreshing <b>{refreshable}</b>...", unityObj); // DEBUG
-				refreshable.Refresh();
-				refreshSucess = true;
-			} catch (Exception exc) {
-				var errMsg = $"Failed to Refresh: \"<b>{exc.Message}</b>\"\n@ <i>{refreshable}</i>\n{exc.StackTrace}";
-				Debug.LogError(errMsg, unityObj);
-				Debug.LogException(exc, unityObj);
-			} finally {
-				if (unityObj != null)
-					Undo.CollapseUndoOperations(undoGroup);
+			// "Безопасное" обновление IRefreshable
+			// Регистрация Undo и подробные сообщения об ошибке.
+			// Возвращает true если получилось сделать Refresh, иначе false
+			var refresh_sucess = false;
+			if (refreshable is Object uobj) {
+				var undoGroup = Undo.GetCurrentGroup();
+				try {
+					var undoName = $"Refresh {uobj.name} ({uobj.GetType().Name})";
+					Undo.SetCurrentGroupName(undoName);
+					Undo.RegisterCompleteObjectUndo(uobj, undoName);
+					// Debug.Log($"Refreshing <b>{refreshable}</b>...", unityObj); // DEBUG
+					refreshable.Refresh();
+					refresh_sucess = true;
+				} catch (Exception exc) {
+					Debug.LogException(exc, uobj);
+					var errMsg = $"Failed to Refresh: \"<b>{exc.Message}</b>\"\n@ <i>{refreshable}</i>\n{exc.StackTrace}";
+					Debug.LogError(errMsg, uobj);
+				} finally {
+					if (uobj != null)
+						Undo.CollapseUndoOperations(undoGroup);
+				}
+			} else {
+				try {
+					refreshable.Refresh();
+					refresh_sucess = true;
+				} catch (Exception exc) {
+					Debug.LogException(exc);
+					var errMsg = $"Failed to Refresh: \"<b>{exc.Message}</b>\"\n@ <i>{refreshable}</i>\n{exc.StackTrace}";
+					Debug.LogError(errMsg);
+				}
 			}
-			return refreshSucess;
+			return refresh_sucess;
 		}
 
 		public static void RefreshMultiple<T>(this IEnumerable<T> refreshables) where T : class, IRefreshable {
@@ -59,7 +74,7 @@ namespace Kawashirov.Refreshables {
 				Debug.Log($"Refreshing <b>{array.Count}</b> objects...");
 				for (var i = 0; i < array.Count; ++i) {
 					var refreshable = array[i];
-					var path = refreshable.RefreshablePath();
+					var path = (refreshable is Object uobj) ? uobj.KawaGetFullPath() : "<unknown path>";
 					var info = string.Format($"Refreshing {i + 1}/{array.Count}: {path}");
 					var progress = 1.0f * (i + 1) / (array.Count + 1);
 					if (EditorUtility.DisplayCancelableProgressBar(info, info, progress))

@@ -303,7 +303,7 @@ namespace Kawashirov.Udon {
 				if (laggy_symbols.Count > 0) {
 					Debug.LogWarningFormat(udon,
 						"UdonBehaviour (activeInHierarchy=<b>{0}</b>) @ <b>{1}</b> have <b>{2}</b> potentially laggy entry points: <b>{3}</b>",
-						udon.gameObject.activeInHierarchy, udon.transform.KawaGetHierarchyPath(), laggy_symbols.Count, string.Join(", ", laggy_symbols)
+						udon.gameObject.activeInHierarchy, udon.KawaGetFullPath(), laggy_symbols.Count, string.Join(", ", laggy_symbols)
 					);
 				}
 			}
@@ -326,7 +326,7 @@ namespace Kawashirov.Udon {
 				var source = pair.Key == null ? "<i>null</i>" : string.Format("<b>{0}</b> (<i>{1}</i>)", pair.Key.name, pair.Key.GetType().Name);
 				builder.AppendFormat("Udon program source {0} have <b>{1}</b> instances:", source, pair.Value.Count);
 				var paths = pair.Value
-						.GroupBy(u => u.transform.KawaGetHierarchyPath())
+						.GroupBy(KawaUtilities.KawaGetFullPath)
 						.Select(grp => new { grp.Key, Value = grp.ToList() })
 						.OrderByDescending(x => x.Value.Count);
 				foreach (var path in paths) {

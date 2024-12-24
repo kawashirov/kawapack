@@ -10,6 +10,7 @@ using UnityEditor;
 #endif
 
 namespace Kawashirov {
+	[ExecuteAlways]
 	public abstract class KawaEditorBehaviour : MonoBehaviour, IRefreshable {
 #if UNITY_EDITOR
 
@@ -21,13 +22,21 @@ namespace Kawashirov {
 			}
 		}
 
-		public string kawaHierarchyPath => transform.KawaGetHierarchyPath();
+		public virtual void Awake() {
+			EnsureDontSaveInBuild();
+		}
+
+		public void EnsureDontSaveInBuild() {
+			if ((hideFlags & HideFlags.DontSaveInBuild) != 0)
+				return;
+			hideFlags |= HideFlags.DontSaveInBuild;
+			EditorUtility.SetDirty(this);
+			Debug.Log($"Assigned DontSaveInBuild to {kawaHierarchyPath}", this);
+		}
+
+		public string kawaHierarchyPath => this.KawaGetFullPath();
 
 		public virtual void Refresh() { }
-
-		public UnityEngine.Object AsUnityObject() => this;
-
-		public string RefreshablePath() => gameObject.KawaGetFullPath();
 
 #endif
 	}

@@ -89,7 +89,7 @@ namespace Kawashirov {
 			}
 
 			public bool TryApply(MeshRenderer mr) {
-				var hpath = mr.transform.KawaGetHierarchyPath();
+				var hpath = mr.KawaGetFullPath();
 				var materials = mr.sharedMaterials;
 
 				if (IsNone()) {
@@ -221,7 +221,7 @@ namespace Kawashirov {
 		}
 
 		public bool RefreshMeshRenderer(MeshRenderer mr) {
-			var hpath = mr.transform.KawaGetHierarchyPath();
+			var hpath = mr.KawaGetFullPath();
 
 			match_mappings.Clear();
 			var any_partial = false;
