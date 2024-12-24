@@ -1,7 +1,10 @@
 {
     "name": "kawashirov.commons",
+    "rootNamespace": "",
     "references": [
-        "GUID:478a2357cc57436488a56e564b08d223"
+        "GUID:478a2357cc57436488a56e564b08d223",
+        "GUID:290dd5870d0ead646bcb6ea5c6a60af5",
+        "GUID:a1653399f63795746b1857281d1e400d"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
