@@ -10,13 +10,20 @@ namespace Kawashirov.SceneBuilding {
 	public class BaseBuildingAction : MonoBehaviour {
 #if UNITY_EDITOR
 
-		public virtual void Prepare() {
-
+		public virtual IEnumerator PrepareAsync() {
+			PrepareSync();
+			yield break;
 		}
 
-		public virtual void Run() {
+		public virtual void PrepareSync() { }
 
+		public virtual IEnumerator RunAsync() {
+			RunSync();
+			yield break;
 		}
+
+		public virtual void RunSync() { }
+
 
 		[CustomEditor(typeof(BaseBuildingAction), true)]
 		public class BaseBuildingActionEditor : Editor {

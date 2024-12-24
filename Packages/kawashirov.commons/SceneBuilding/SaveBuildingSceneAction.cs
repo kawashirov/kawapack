@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -55,7 +57,7 @@ namespace Kawashirov.SceneBuilding {
 			}
 		}
 
-		public override void Run() {
+		public override void RunSync() {
 			var scene = gameObject.scene;
 			var original_scene_path = OriginalScenePath = scene.path;
 			EditorUtility.SetDirty(this);
@@ -69,6 +71,7 @@ namespace Kawashirov.SceneBuilding {
 
 			var scenes_to_unload = new List<Scene>();
 			for (var i = 0; i < EditorSceneManager.loadedRootSceneCount; ++i) {
+				
 				var whatever_scene = EditorSceneManager.GetSceneAt(i);
 				// Debug.Log($"Scene #{i} path: \"{whatever_scene.path}\"", this);
 				if (EnsureOtherScenesUnloaded && whatever_scene != scene) {

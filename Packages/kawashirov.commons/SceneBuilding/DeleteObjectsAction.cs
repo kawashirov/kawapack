@@ -13,7 +13,7 @@ namespace Kawashirov.SceneBuilding {
 
 		public GameObject[] GameObjects;
 
-		public override void Run() {
+		public override void RunSync() {
 			for (var i = 0; i < GameObjects.Length; ++i) {
 				var gobj = GameObjects[i];
 				if (gobj == null || gobj.scene != gameObject.scene)

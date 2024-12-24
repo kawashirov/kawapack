@@ -1,5 +1,9 @@
 using System;
 using UnityEngine;
+using Unity.EditorCoroutines.Editor;
+using System.Collections;
+
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -17,55 +21,83 @@ namespace Kawashirov.SceneBuilding {
 			EditorUtility.SetDirty(this);
 		}
 
-		public void RunScenario(bool progress_gui) {
+		protected IEnumerator RunActionSafe(int i, BaseBuildingAction action, bool progress_gui, string title) {
+			if (action == null) {
+				Debug.LogWarning($"Building action #{i} is empty, skip!", this);
+				yield break;
+			}
+			if (!action.enabled || !action.gameObject.activeInHierarchy) {
+				Debug.LogWarning($"Building action #{i} is not active/enabled, skip!", this);
+				yield break;
+			}
+			if (progress_gui) {
+				var progress = (i + 1f) / (Actions.Length + 1f);
+				var info = $"Running #{i} {action.GetType()} {action}...";
+				if (EditorUtility.DisplayCancelableProgressBar(title, info, progress))
+					throw new CancelBuilding();
+			}
+			Debug.Log($"Running Building action #{i} {action.GetType()} {action}...", this);
+			var task = action.RunAsync();
+			// C# момент, нельзя просто взять и запустить.
+			// yield return action.Run();
+			while (true) {
+				bool move_next;
+				try {
+					move_next = task.MoveNext();
+					if (!move_next)
+						break;
+				} catch (Exception exc) {
+					Debug.LogException(exc, this);
+					Debug.LogError($"Building action #{i} {action.GetType()} failed: {exc}", this);
+					throw exc;
+				}
+				yield return task.Current;
+			}
+
+			Debug.Log($"Building action #{i} {action.GetType()} success!", this);
+		}
+
+		protected IEnumerator RunActionsSafe(bool progress_gui) {
+			var title = $"Running Building Scenario...";
+			if (progress_gui) {
+				if (EditorUtility.DisplayCancelableProgressBar(title, "Preparing...", 0f))
+					throw new CancelBuilding();
+			}
+			// TODO call prepares
+			for (var i = 0; i < Actions.Length; ++i) {
+				var action = Actions[i];
+				yield return RunActionSafe(i, action, progress_gui, title);
+			}
+			status = BuildingStatus.Success;
+		}
+
+		public IEnumerator RunScenario(bool progress_gui) {
 			status = BuildingStatus.Running;
 			EditorUtility.SetDirty(this);
-			var title = $"Running Building Scenario...";
-			try {
-				if (progress_gui) {
-					if (EditorUtility.DisplayCancelableProgressBar(title, "Preparing...", 0f))
-						throw new CancelBuilding();
-				}
-				// TODO call prepares
-				for (var i = 0; i < Actions.Length; ++i) {
-					var action = Actions[i];
-					if (action == null) {
-						Debug.LogWarning($"Building action #{i} is empty, skip!", this);
-						continue;
-					}
-					if (!action.enabled || !action.gameObject.activeInHierarchy) {
-						Debug.LogWarning($"Building action #{i} is not active/enabled, skip!", this);
-						continue;
-					}
-					if (progress_gui) {
-						var progress = (i + 1f) / (Actions.Length + 1f);
-						var info = $"Running #{i} {action.GetType()} {action}...";
-						if (EditorUtility.DisplayCancelableProgressBar(title, info, progress))
-							throw new CancelBuilding();
-					}
-					Debug.Log($"Running Building action #{i} {action.GetType()} {action}...", this);
-					try {
-						action.Run();
-					} catch (Exception exc) {
+
+			// C# момент, нельзя просто взять и запустить.
+			// yield return RunActionsSafe(progress_gui);
+			var task = RunActionsSafe(progress_gui);
+			while (true) {
+				bool move_next;
+				try {
+					move_next = task.MoveNext();
+					if (!move_next)
+						break;
+				} catch (Exception exc) {
+					if (exc is CancelBuilding) {
+						status = BuildingStatus.Cancelled;
+						Debug.LogError($"Building cancelled.", this);
+					} else {
+						status = BuildingStatus.Failed;
 						Debug.LogException(exc, this);
-						Debug.LogError($"Building action #{i} {action.GetType()} failed: {exc}", this);
-						throw exc;
+						Debug.LogError($"Building failed: {exc}", this);
 					}
-					Debug.Log($"Building action #{i} {action.GetType()} success!", this);
+				} finally {
+					if (progress_gui)
+						EditorUtility.ClearProgressBar();
 				}
-				status = BuildingStatus.Success;
-			} catch (Exception exc) {
-				if (exc is CancelBuilding) {
-					status = BuildingStatus.Cancelled;
-					Debug.LogError($"Building cancelled.", this);
-				} else {
-					status = BuildingStatus.Failed;
-					Debug.LogException(exc, this);
-					Debug.LogError($"Building failed: {exc}", this);
-				}
-			} finally {
-				if (progress_gui)
-					EditorUtility.ClearProgressBar();
+				yield return task.Current;
 			}
 		}
 
@@ -101,7 +133,7 @@ namespace Kawashirov.SceneBuilding {
 
 				using (new EditorGUI.DisabledScope(target.status != BuildingStatus.NotStarted)) {
 					if (GUILayout.Button("Run Scenario")) {
-						target.RunScenario(true);
+						EditorCoroutineUtility.StartCoroutine(target.RunScenario(true), target);
 					}
 				}
 

@@ -38,7 +38,7 @@ namespace Kawashirov.MeshCombining {
 			}
 		}
 
-		public override void Run() {
+		public override void RunSync() {
 			Debug.Log($"Searching combiners to run...", this);
 			var combiners = GetCombiners();
 			Debug.Log($"Found {combiners.Count}, running...", this);
