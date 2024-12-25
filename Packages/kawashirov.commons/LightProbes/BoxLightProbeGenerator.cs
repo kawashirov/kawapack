@@ -31,8 +31,8 @@ namespace Kawashirov {
 		protected override Bounds GetBounds() {
 			var box = GetComponent<BoxCollider>();
 			if (box == null) {
-				Debug.LogErrorFormat(this, "[KawaLPG] <b>{0}</b> does not have BoxCollider, can not get bounds!", kawaHierarchyPath);
-				throw new NullReferenceException(string.Format("{0} does not have BoxCollider, can not get bounds!", kawaHierarchyPath));
+				LogError($"Missing BoxCollider, can not get bounds!");
+				throw new NullReferenceException("Missing BoxCollider, can not get bounds!");
 			}
 			return box.bounds;
 		}
@@ -135,7 +135,7 @@ namespace Kawashirov {
 			lpg.probePositions = lpg_positions;
 			EditorUtility.SetDirty(lpg);
 			gameObject.GetComponent<BoxCollider>().enabled = false;
-			Debug.LogFormat(this, "[KawaLPG] Placed <b>{0}</b> probes for <i>{1}</i>.", lpg_positions.Length, kawaHierarchyPath);
+			Log($"Placed <b>{lpg_positions.Length}</b> probes.");
 		}
 #endif
 	}

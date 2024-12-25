@@ -213,12 +213,12 @@ namespace Kawashirov {
 
 		public override void Refresh() {
 			var mrs = GetComponentsInChildren<MeshRenderer>(true);
-			Debug.Log($"Processing colliders on {mrs.Length} mesh renderers with {mappings.Length} mappings... @ <i>{kawaHierarchyPath}</i>", this);
+			Log($"Processing colliders on {mrs.Length} mesh renderers with {mappings.Length} mappings...");
 			var counter = 0;
 			foreach (var mr in mrs)
 				if (RefreshMeshRenderer(mr))
 					++counter;
-			Debug.Log($"Processed {counter} colliders. @ <i>{kawaHierarchyPath}</i>", this);
+			Log($"Processed {counter} colliders.");
 		}
 
 		public bool RefreshMeshRenderer(MeshRenderer mr) {

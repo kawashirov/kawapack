@@ -32,17 +32,17 @@ namespace Kawashirov {
 		public override void Refresh() {
 
 			if (string.IsNullOrWhiteSpace(sourceObjectName)) {
-				Debug.LogErrorFormat(this, "[KawaEditor] Source Object Name is not set or empty! Can not refresh. @ <i>{0}</i>", kawaHierarchyPath);
+				LogError("Source Object Name is not set or empty! Can not refresh.");
 				return;
 			}
 
 			if (!syncPosition && !syncRotation) {
-				Debug.LogErrorFormat(this, "[KawaEditor] Both position and rotation sync disabled. Nothing to sync. @ <i>{0}</i>", kawaHierarchyPath);
+				LogError("Both position and rotation sync disabled. Nothing to sync.");
 				return;
 			}
 
 			if (applyToParent && transform.parent == null) {
-				Debug.LogErrorFormat(this, "[KawaEditor] Apply to parent is set, but there is no parent. @ <i>{0}</i>", kawaHierarchyPath);
+				LogError("Apply to parent is set, but there is no parent.");
 				return;
 			}
 
@@ -51,13 +51,13 @@ namespace Kawashirov {
 				.Where(t => t.name.Equals(sourceObjectName, System.StringComparison.InvariantCultureIgnoreCase)).ToList();
 
 			if (source_game_objects.Count == 0) {
-				Debug.LogErrorFormat(this, "[KawaEditor] Source Object \"{1}\" not found! . @ <i>{0}</i>", kawaHierarchyPath, sourceObjectName);
+				LogError($"Source Object \"{sourceObjectName}\" not found!");
 				return;
 			}
 
 			if (source_game_objects.Count > 1) {
 				var names = string.Join("\n", source_game_objects.Select(KawaUtilities.KawaGetFullPath));
-				Debug.LogErrorFormat(this, "[KawaEditor] Multipe Source Objects with name \"{1}\" found: {2}\n{3}\n@ <i>{0}</i>", kawaHierarchyPath, sourceObjectName, source_game_objects.Count, names);
+				LogError($"Multipe Source Objects with name \"{sourceObjectName}\" found: {source_game_objects.Count}\n{names}\n");
 				return;
 			}
 
@@ -69,8 +69,7 @@ namespace Kawashirov {
 			if (syncRotation)
 				controlling.rotation = source_game_objects[0].rotation;
 
-			Debug.LogFormat(this, "[KawaEditor] Synced \"{1}\" to match \"{2}\" @ <i>{0}</i>", kawaHierarchyPath, controlling, source_game_objects[0]);
-
+			Log($"Synced \"{controlling}\" to match \"{source_game_objects[0]}\".");
 		}
 
 #endif // UNITY_EDITOR

@@ -273,7 +273,7 @@ namespace Kawashirov {
 					_debug_hits_ = new KawaRaycastHit[0];
 				}
 
-				Debug.LogFormat(this, "[KawaLPG] Using <b>{1}</b> meshes for raycasting. @ <i>{0}</i>", kawaHierarchyPath, tmp_colliders.Count);
+				Log($"Using <b>{tmp_colliders.Count}</b> meshes for raycasting.");
 				var conv_colliders = tmp_colliders.ConvertAll(c => (Collider)c);
 				foreach (var world_segment in world_segments) {
 					RaycastSegment(results, conv_colliders, world_segment, step_world, fake_hits);
@@ -356,7 +356,7 @@ namespace Kawashirov {
 				}
 			}
 
-			Debug.LogFormat(this, "[KawaLPG] Raycasted <b>{1}</b> forwardwd and <b>{2}</b> back hits. @ <i>{0}</i>", kawaHierarchyPath, hits_fwd.Count, hits_back.Count);
+			Log($"Raycasted <b>{hits_fwd.Count}</b> forwardwd and <b>{hits_back.Count}</b> back hits.");
 			if (debug)
 				_debug_hits_ = _debug_hits_.Concat(hits_mixed.Select(x => x.WorldToLocal(transform))).ToArray();
 		}

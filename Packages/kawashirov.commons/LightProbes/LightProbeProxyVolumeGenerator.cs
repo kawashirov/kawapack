@@ -5,7 +5,7 @@ using UnityEngine;
 using static UnityEngine.LightProbeProxyVolume;
 
 #if UNITY_EDITOR
-using UnityEditor; 
+using UnityEditor;
 #endif
 
 namespace Kawashirov {
@@ -16,10 +16,10 @@ namespace Kawashirov {
 #if UNITY_EDITOR
 
 		protected override Bounds GetBounds() {
-			var lppv = gameObject.GetComponent<LightProbeProxyVolume>();
-			if (lppv == null) {
-				Debug.LogErrorFormat(this, "[KawaLPG] <b>{0}</b> does not have LightProbeProxyVolume, can not get bounds!", kawaHierarchyPath);
-				throw new NullReferenceException(string.Format("{0} does not have LightProbeProxyVolume, can not get bounds!", kawaHierarchyPath));
+			if (!gameObject.TryGetComponent<LightProbeProxyVolume>(out var lppv) || lppv == null) {
+				var msg = "Missing LightProbeProxyVolume, can not get bounds!";
+				LogError(msg);
+				throw new NullReferenceException(msg);
 			}
 			return lppv.boundsGlobal;
 		}
@@ -55,12 +55,12 @@ namespace Kawashirov {
 			var lppv = gameObject.GetOrAddComponent<LightProbeProxyVolume>();
 
 			if (lppv.resolutionMode == ResolutionMode.Automatic) {
-				Debug.LogErrorFormat(this, "[Kawa-LPG-LPPV] ResolutionMode=Automatic is not supported yet! @ <i>{0}</i>", kawaHierarchyPath);
+				LogError("ResolutionMode=Automatic is not supported yet!");
 				return;
 			}
 
 			if (lppv.boundingBoxMode == BoundingBoxMode.AutomaticLocal) {
-				Debug.LogErrorFormat(this, "[Kawa-LPG-LPPV] BoundingBoxMode=AutomaticLocal is not supported yet! @ <i>{0}</i>", kawaHierarchyPath);
+				LogError("BoundingBoxMode=AutomaticLocal is not supported yet!");
 				return;
 			}
 
@@ -83,7 +83,7 @@ namespace Kawashirov {
 
 			var lpg = gameObject.GetOrAddComponent<LightProbeGroup>();
 			lpg.probePositions = points.ToArray();
-			Debug.LogFormat(this, "[Kawa-LPG-LPPV] Placed <b>{1}</b> probes. @ <i>{0}</i>", kawaHierarchyPath, points.Count);
+			Log($"Placed <b>{points.Count}</b> probes.");
 		}
 
 
