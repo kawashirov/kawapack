@@ -10,7 +10,6 @@ using Kawashirov.Refreshables;
 using UnityEditor;
 #endif
 
-
 namespace Kawashirov {
 	[ExecuteAlways]
 	public class BaseLightProbeGenerator : KawaEditorBehaviour {
@@ -190,7 +189,7 @@ namespace Kawashirov {
 					.Select(x => x.mr)
 					.ToList();
 			if (debug) {
-				Debug.LogFormat("near_renderers: {0}", near_renderers.Count);
+				Log($"near_renderers: {near_renderers.Count}");
 				_debug_renderrers_ = near_renderers.ToArray();
 			}
 			return near_renderers;
@@ -230,15 +229,14 @@ namespace Kawashirov {
 			for (var i = 0; i < renderers.Count; ++i) {
 				var renderer = renderers[i];
 
-				var filter = renderer.GetComponent<MeshFilter>();
-				if (filter == null) {
-					Debug.LogWarningFormat(renderer, "[KawaLPG] Renderer has no MeshFilter! @ <i>{0}</i>", renderer.KawaGetFullPath());
+				if (!renderer.TryGetComponent<MeshFilter>(out var filter)) {
+					LogWarning("Renderer has no MeshFilter!", renderer);
 					continue;
 				}
 
 				var mesh = filter.sharedMesh;
 				if (mesh == null) {
-					Debug.LogWarningFormat(filter, "[KawaLPG] MeshFilter has no attached Mesh! @ <i>{0}</i>", filter.KawaGetFullPath());
+					LogWarning("MeshFilter has no attached Mesh!", filter);
 					continue;
 				}
 

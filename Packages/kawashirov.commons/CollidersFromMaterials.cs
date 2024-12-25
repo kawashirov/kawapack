@@ -97,8 +97,7 @@ namespace Kawashirov {
 					foreach (var collider in mr.gameObject.GetComponents<Collider>())
 						DestroyImmediate(collider);
 				} else {
-					var mf = mr.GetComponent<MeshFilter>();
-					if (mf == null) {
+					if (!mr.TryGetComponent<MeshFilter>(out var mf)) {
 						Debug.LogWarningFormat(mf, "MeshRenderer does not have MeshFilter! @ <i>{0}</i>", hpath);
 						return false;
 					}
@@ -236,9 +235,9 @@ namespace Kawashirov {
 
 			if (match_mappings.Count > 1) {
 				var ms = string.Join(", ", match_mappings.Select(i => string.Format("#{0}", i)));
-				Debug.LogWarning($"MeshRenderer match <b>{match_mappings.Count}</b> collider material mappings: <b>{ms}</b>! Only first one will be used! @ <i>{hpath}</i>", this);
+				LogWarning($"MeshRenderer match <b>{match_mappings.Count}</b> collider material mappings: <b>{ms}</b>! Only first one will be used!");
 			} else if (any_partial)
-				Debug.LogWarning($"MeshRenderer has both matching and missmatching materials for colliders! @ <i>{hpath}</i>", this);
+				LogWarning($"MeshRenderer has both matching and missmatching materials for colliders!");
 
 			if (match_mappings.Count < 1)
 				return false;

@@ -4,13 +4,13 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Object = UnityEngine.Object;
-
 
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
 #endif
+
+using Object = UnityEngine.Object;
 
 namespace Kawashirov {
 	public static class KawaUtilities {
@@ -21,21 +21,21 @@ namespace Kawashirov {
 
 		public static Color Alpha(this Color c, float a) => new Color(c.r, c.g, c.b, a);
 
-		public class UnityEquality_ : IEqualityComparer<UnityEngine.Object> {
-			// UnityEngine.Object.CompareBaseObjects(x, y)
-			bool IEqualityComparer<UnityEngine.Object>.Equals(UnityEngine.Object x, UnityEngine.Object y) => x == y;
-			int IEqualityComparer<UnityEngine.Object>.GetHashCode(UnityEngine.Object obj) => obj.GetHashCode();
+		public class UnityEquality_ : IEqualityComparer<Object> {
+			// Object.CompareBaseObjects(x, y)
+			bool IEqualityComparer<Object>.Equals(Object x, Object y) => x == y;
+			int IEqualityComparer<Object>.GetHashCode(Object obj) => obj.GetHashCode();
 		}
 		public static readonly UnityEquality_ UnityEquality = new UnityEquality_();
 
 		public class EquatableComparer<T> : IEqualityComparer<T> where T : IEquatable<T> {
-			// UnityEngine.Object.CompareBaseObjects(x, y)
+			// Object.CompareBaseObjects(x, y)
 			bool IEqualityComparer<T>.Equals(T x, T y) => x.Equals(y);
 			int IEqualityComparer<T>.GetHashCode(T obj) => obj.GetHashCode();
 		}
 
 		public static IEnumerable<T> UnityNotNull<T>(this IEnumerable<T> iter) where T : class
-			=> iter.Where(obj => (obj as UnityEngine.Object) != null);
+			=> iter.Where(obj => (obj as Object) != null);
 
 		public static Type[] GetTypesSafe(this Assembly asm) {
 			try {
@@ -46,19 +46,15 @@ namespace Kawashirov {
 		}
 
 		public static T GetOrAddComponent<T>(this GameObject gobj) where T : Component {
-			var c = gobj.GetComponent<T>();
-			if (c == null) {
-				c = gobj.AddComponent<T>();
-			}
-			return c;
+			return gobj.TryGetComponent<T>(out var c) ? c : gobj.AddComponent<T>();
 		}
 
 		public static IEnumerable<GameObject> WithTag(this IEnumerable<GameObject> enumerable, string tag) => enumerable.Where(g => g.CompareTag(tag));
 		public static IEnumerable<GameObject> WithoutTag(this IEnumerable<GameObject> enumerable, string tag) => enumerable.Where(g => !g.CompareTag(tag));
 
-		private static bool IsRuntimeHideFlags(UnityEngine.Object obj) => (obj.hideFlags & (HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild)) == HideFlags.None;
+		private static bool IsRuntimeHideFlags(Object obj) => (obj.hideFlags & (HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild)) == HideFlags.None;
 
-		public static bool IsRuntime(this UnityEngine.Object obj) {
+		public static bool IsRuntime(this Object obj) {
 			// Имеет ли объект шанс попасть в рантайм после сборки? Если точно известно, что нет, то возвращается false
 			if (obj == null)
 				return false;
@@ -80,10 +76,10 @@ namespace Kawashirov {
 			return true;
 		}
 
-		public static bool IsEditorOnly(this UnityEngine.Object obj) => obj != null && !IsRuntime(obj);
+		public static bool IsEditorOnly(this Object obj) => obj != null && !IsRuntime(obj);
 
-		public static IEnumerable<T> RuntimeOnly<T>(this IEnumerable<T> enumerable) where T : UnityEngine.Object => enumerable.Where(IsRuntime);
-		public static IEnumerable<T> EditorOnly<T>(this IEnumerable<T> enumerable) where T : UnityEngine.Object => enumerable.Where(IsEditorOnly);
+		public static IEnumerable<T> RuntimeOnly<T>(this IEnumerable<T> enumerable) where T : Object => enumerable.Where(IsRuntime);
+		public static IEnumerable<T> EditorOnly<T>(this IEnumerable<T> enumerable) where T : Object => enumerable.Where(IsEditorOnly);
 
 		public static HashSet<GameObject> FindWithTagInactive(IEnumerable<GameObject> where, string tag) {
 			var queue = new Queue<GameObject>(where);

@@ -36,14 +36,6 @@ namespace Kawashirov.ToolsGUI {
 		[SerializeField] private Vector2 scroll;
 		internal static ProxyBehaviour proxy;
 
-		public static Type[] GetTypesSafe(Assembly asm) {
-			try {
-				return asm.GetTypes();
-			} catch (ReflectionTypeLoadException exc) {
-				return exc.Types;
-			}
-		}
-
 		internal static ProxyBehaviour TryFindProxy() {
 			for (var i = 0; i < EditorSceneManager.sceneCount; ++i) {
 				var scene = EditorSceneManager.GetSceneAt(i);
@@ -201,7 +193,7 @@ namespace Kawashirov.ToolsGUI {
 			Debug.Log("Loading panels...", this);
 
 			var panelTypes = AppDomain.CurrentDomain.GetAssemblies()
-				.SelectMany(GetTypesSafe)
+				.SelectMany(KawaUtilities.GetTypesSafe)
 				.Where(t => t != null && t.IsSubclassOf(typeof(AbstractToolPanel)))
 				.Select(t => (t, Attribute.GetCustomAttributes(t, typeof(ToolsWindowPanelAttribute))))
 				.Where(x => x.Item2.Length == 1)

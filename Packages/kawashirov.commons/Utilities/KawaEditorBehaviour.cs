@@ -15,24 +15,27 @@ namespace Kawashirov {
 
 		/* EditorBehaviour "API" (mostly shortcuts) */
 
-		public string KawaGetFullPath() => KawaUtilities.KawaGetFullPath(this); // to avoid this. syntax
+		public string FormatForLog(string message, Object override_context, out Object context) {
+			var type_name = GetType().Name;
+			context = override_context != null ? override_context : this;
+
+			var path = $"<i>@ {this.KawaGetFullPath()}</i>";
+			if (override_context != null)
+				path = $"<i>@ {override_context.KawaGetFullPath()}</i>\n{path}";
+			
+			return $"[{type_name}] {message}\n{path}";
+		}
 
 		public void Log(string message, Object override_context = null) {
-			var type_name = GetType().Name;
-			var context = override_context != null ? override_context : this;
-			Debug.Log($"[{type_name}] {message} <i>@ {KawaGetFullPath()}</i>", context);
+			Debug.Log(FormatForLog(message, override_context, out var context), context);
 		}
 
 		public void LogWarning(string message, Object override_context = null) {
-			var type_name = GetType().Name;
-			var context = override_context != null ? override_context : this;
-			Debug.LogWarning($"[{type_name}] {message} <i>@ {KawaGetFullPath()}</i>", context);
+			Debug.LogWarning(FormatForLog(message, override_context, out var context), context);
 		}
 
 		public void LogError(string message, Object override_context = null) {
-			var type_name = GetType().Name;
-			var context = override_context != null ? override_context : this;
-			Debug.LogError($"[{type_name}] {message} <i>@ {KawaGetFullPath()}</i>", context);
+			Debug.LogError(FormatForLog(message, override_context, out var context), context);
 		}
 
 		public void LogException(Exception exception, Object override_context = null) {
@@ -41,10 +44,9 @@ namespace Kawashirov {
 		}
 
 		public void LogException(string message, Exception exception, Object override_context = null) {
-			var type_name = GetType().Name;
-			var context = override_context != null ? override_context : this;
+			var msg = FormatForLog(message, override_context, out var context);
 			Debug.LogException(exception, context);
-			Debug.LogError($"[{type_name}] {message} <i>@ {KawaGetFullPath()}</i>", context);
+			Debug.LogError(msg, context);
 		}
 
 		public void EnsureDontSaveInBuild() {
