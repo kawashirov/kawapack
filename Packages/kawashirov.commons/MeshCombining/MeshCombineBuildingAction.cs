@@ -1,9 +1,7 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Kawashirov.SceneBuilding;
 using System.Linq;
-
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -17,9 +15,9 @@ namespace Kawashirov.MeshCombining {
 		[Tooltip("Grab and apply literaly every mesh combiner on scene")]
 		public bool CombineEveryithingOnScene = false;
 
+		[Space]
 		[Tooltip("What combiners to run.\nUsed only if CombineEveryithingOnScene is off")]
 		public BaseMeshCombiner[] Combiners;
-
 		[Tooltip("Exclude those combiners.\nUseful when CombineEveryithingOnScene is on, but applies always.")]
 		public BaseMeshCombiner[] Except;
 
@@ -43,7 +41,7 @@ namespace Kawashirov.MeshCombining {
 			var combiners = GetCombiners();
 			Debug.Log($"Found {combiners.Count}, running...", this);
 			foreach (var combiner in combiners) {
-				Debug.Log($"Running cobiner at {combiner.gameObject.KawaGetFullPath()}...", combiner);
+				Debug.Log($"Running combiner at {combiner.gameObject.KawaGetFullPath()}...", combiner);
 				combiner.Run();
 			}
 			Debug.Log($"Done {combiners.Count} combiners.", this);
