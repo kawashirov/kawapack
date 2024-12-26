@@ -49,6 +49,8 @@ namespace Kawashirov {
 			Debug.LogError(msg, context);
 		}
 
+		public void SetDirty() => EditorUtility.SetDirty(this);
+
 		public void EnsureDontSaveInBuild() {
 			if ((hideFlags & HideFlags.DontSaveInBuild) != 0)
 				return;

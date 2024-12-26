@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 using Object = UnityEngine.Object;
@@ -98,29 +99,55 @@ namespace Kawashirov.Refreshables {
 			if (refreshables.Count < 1)
 				return;
 
-			if (GUILayout.Button("Only refresh this")) {
-				refreshables.RefreshMultiple();
+			if (refreshables.Count == 1) {
+				// Simple mode (performant, most common)
+				var refreshable = refreshables[0];
+				GUILayout.Label("Refresh:");
+				using (new EditorGUILayout.HorizontalScope()) {
+					if (GUILayout.Button("Only This")) {
+						refreshable.RefreshSafe();
+					}
+					var type = refreshable.GetType();
+					if (GUILayout.Button($"Every {type.Name}")) {
+						var component = refreshable as Component;
+						var scene = component != null ? component.gameObject.scene : EditorSceneManager.GetActiveScene();
+						var all_targets = scene.GetRootGameObjects()
+								.SelectMany(g => g.GetComponentsInChildren(type, true))
+								.Distinct().OfType<IRefreshable>().ToList();
+						all_targets.RefreshMultiple();
+					}
+				}
+				return;
 			}
 
-			var scenes = editor.targets.OfType<Component>().Select(r => r.gameObject.scene).Distinct().ToList();
-			var scene_str = string.Join(", ", scenes.Select(s => s.name));
+			// Advanced mode
 
 			var types = editor.targets.Select(t => t.GetType()).Distinct().ToList();
-			var types_str = string.Join(", ", types.Select(t => t.Name));
+			var scenes = editor.targets.OfType<Component>().Select(r => r.gameObject.scene).Distinct().ToList();
 
-			var types_btn = string.Format("Refresh every {0} on scene: {1}", types_str, scene_str);
-			if (GUILayout.Button(types_btn)) {
-				var all_targets = scenes.SelectMany(s => s.GetRootGameObjects())
-						.SelectMany(g => types.SelectMany(t => g.GetComponentsInChildren(t, true)))
-						.Distinct().OfType<IRefreshable>().ToList();
-				all_targets.RefreshMultiple();
+			GUILayout.Label($"Refresh ({refreshables.Count} objects):");
+			if (types.Count > 1 || scenes.Count > 1) {
+				using (new EditorGUI.IndentLevelScope()) {
+					if (types.Count > 1) {
+						var types_str = string.Join(", ", types.Select(t => t.Name));
+						GUILayout.Label($"Types ({types.Count}): {types_str})");
+					}
+					if (scenes.Count > 1) {
+						var scenes_str = string.Join(", ", scenes.Select(s => s.name));
+						GUILayout.Label($"Scenes ({scenes.Count}): {scenes_str})");
+					}
+				}
 			}
-
-			var scene_btn = string.Format("Refresh every Behaviour on scene: {0}", scene_str);
-			if (GUILayout.Button(scene_btn)) {
-				var all_targets = scenes.SelectMany(s => s.GetRootGameObjects())
-						.SelectMany(g => g.GetComponentsInChildren<IRefreshable>(true)).ToList();
-				all_targets.RefreshMultiple();
+			using (new EditorGUILayout.HorizontalScope()) {
+				if (GUILayout.Button($"Selected ({refreshables.Count}")) {
+					refreshables.RefreshMultiple();
+				}
+				if (GUILayout.Button($"Every Type ({types.Count})")) {
+					var all_targets = scenes.SelectMany(s => s.GetRootGameObjects())
+							.SelectMany(g => types.SelectMany(t => g.GetComponentsInChildren(t, true)))
+							.Distinct().OfType<IRefreshable>().ToList();
+					all_targets.RefreshMultiple();
+				}
 			}
 		}
 	}
