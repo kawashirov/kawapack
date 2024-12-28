@@ -9,9 +9,12 @@ namespace Kawashirov.MaterialCombining {
 		public string name; // "Albedo", "Normal", ...
 
 		public Texture2D texture;
-		public string textureChannel; // "R", "G", "B", "A", "RGB", "RGBA", ...
+		public string textureChannel = "0000"; // Всегда 4 символа: "RGBA", "RGB0", "000A", ...
 		public Color scaleColor = Color.white;
 		public float scale = 1;
+
+		public float WeightSqr() => 1f * texture.height * texture.width;
+
 	}
 }
 #endif

@@ -27,6 +27,18 @@ namespace Kawashirov.MaterialCombining {
 			return !string.IsNullOrWhiteSpace(where) && where.Contains(what, StringComparison.InvariantCultureIgnoreCase);
 		}
 
+		protected static int ChCharToIndex(char channel) {
+			if (channel == 'R')
+				return 0;
+			if (channel == 'G')
+				return 1;
+			if (channel == 'B')
+				return 2;
+			if (channel == 'A')
+				return 3;
+			return -1;
+		}
+
 		protected bool GetCommon(Material mat, string prop_name,
 			out Shader shader, out int prop_index, out ShaderPropertyType prop_type) {
 			// Возвращает true если вызывающему нужно отказаться от этой проперти
@@ -34,12 +46,16 @@ namespace Kawashirov.MaterialCombining {
 			prop_index = -1;
 			prop_type = ShaderPropertyType.Color;
 
-			if (shader == null)
+			if (shader == null) {
+				LogWarning($"Material {mat} has no valid shader attached.");
 				return true;
+			}
 
-			prop_index = shader.FindPropertyIndex(name);
-			if (prop_index < 0)
+			prop_index = shader.FindPropertyIndex(prop_name);
+			if (prop_index < 0) {
+				LogWarning($"Material {mat} shader {shader} has no property \"{prop_name}\"");
 				return true;
+			}
 
 			prop_type = shader.GetPropertyType(prop_index);
 			return false;
@@ -48,12 +64,17 @@ namespace Kawashirov.MaterialCombining {
 		protected Texture2D GetTexture2D(Material mat, string prop_name, Texture2D default_) {
 			if (GetCommon(mat, prop_name, out var shader, out var prop_index, out var prop_type))
 				return default_;
-			if (prop_type != ShaderPropertyType.Texture)
+			if (prop_type != ShaderPropertyType.Texture) {
+				LogWarning($"Material {mat} shader {shader} property \"{prop_name}\" type is not Texture: {prop_type}.");
 				return default_;
-			if (shader.GetPropertyTextureDimension(prop_index) != TextureDimension.Tex2D)
+			}
+			var dim = shader.GetPropertyTextureDimension(prop_index);
+			if (dim != TextureDimension.Tex2D) {
+				LogWarning($"Material {mat} shader {shader} property \"{prop_name}\" dim is not Tex2D: {dim}.");
 				return default_; // Only Tex2D supported for now
-
-			return mat.GetTexture(prop_name) as Texture2D;
+			}
+			var bound_tex = mat.GetTexture(prop_name) as Texture2D;
+			return bound_tex == null ? default_ : bound_tex;
 		}
 
 		protected Color GetColor(Material mat, string prop_name, Color default_) {
@@ -62,7 +83,7 @@ namespace Kawashirov.MaterialCombining {
 			if (prop_type != ShaderPropertyType.Color)
 				return default_;
 
-			return mat.GetColor(name);
+			return mat.GetColor(prop_name);
 		}
 
 		protected virtual float GetScalar(Material mat, string prop_name, float default_) {
@@ -74,6 +95,9 @@ namespace Kawashirov.MaterialCombining {
 				return mat.GetInteger(prop_name);
 			return default_;
 		}
+
+		// Применяить data к mat_blit для Graphics.Blit
+		public abstract void DataToBlit(DataChannel data, Material mat_blit);
 
 		// Возвращает названия DataChannelов которые понимает этот адаптер
 		public abstract ICollection<string> SupportedFeatures();

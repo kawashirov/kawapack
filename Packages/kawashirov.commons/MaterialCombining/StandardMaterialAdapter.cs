@@ -33,7 +33,7 @@ namespace Kawashirov.MaterialCombining {
 			var main_color = GetColor(mat, "_Color", Color.white);
 			return new DataChannel() {
 				parent = mat, name = "Albedo",
-				texture = main_tex, textureChannel = "RGB",
+				texture = main_tex, textureChannel = "RGB0",
 				scaleColor = main_color, scale = 1
 			};
 		}
@@ -45,7 +45,7 @@ namespace Kawashirov.MaterialCombining {
 			var metallic_scale = metallic_tex_raw == null ? GetScalar(mat, "_Metallic", 0) : 1;
 			return new DataChannel() {
 				parent = mat, name = "Metallic",
-				texture = metallic_tex, textureChannel = "RGB",
+				texture = metallic_tex, textureChannel = "RGB0",
 				scaleColor = Color.white, scale = metallic_scale
 			};
 		}
@@ -60,7 +60,7 @@ namespace Kawashirov.MaterialCombining {
 				: metallic_tex;
 			return new DataChannel() {
 				parent = mat, name = "Metallic",
-				texture = smoothness_tex, textureChannel = "A",
+				texture = smoothness_tex, textureChannel = "000A",
 				scaleColor = Color.white, scale = smoothness_scale
 			};
 		}
@@ -70,7 +70,7 @@ namespace Kawashirov.MaterialCombining {
 			var bumpmap_scale = GetScalar(mat, "_BumpScale", 1);
 			return new DataChannel() {
 				parent = mat, name = "NormalMap",
-				texture = bumpmap_tex, textureChannel = "RGB", scaleColor = Color.white, scale = bumpmap_scale
+				texture = bumpmap_tex, textureChannel = "RGB0", scaleColor = Color.white, scale = bumpmap_scale
 			};
 		}
 
@@ -86,7 +86,7 @@ namespace Kawashirov.MaterialCombining {
 			}
 			return new DataChannel() {
 				parent = mat, name = "Emission",
-				texture = emission_tex, textureChannel = "RGB", scaleColor = emission_color, scale = scale
+				texture = emission_tex, textureChannel = "RGB0", scaleColor = emission_color, scale = scale
 			};
 		}
 
@@ -122,6 +122,34 @@ namespace Kawashirov.MaterialCombining {
 			}
 
 			return AssumeCompatible;
+		}
+
+		protected virtual void DataToBlitAlbedo(DataChannel data, Material mat_blit) {
+			var (tex, ch_str, color, scale)
+				= (data.texture, data.textureChannel, data.scaleColor, data.scale);
+
+			if (scale != 1) {
+				color = new Color(color.r * scale, color.g * scale, color.b * scale, color.a);
+				scale = 1;
+			}
+
+			mat_blit.SetTexture("_MainTex", tex);
+			mat_blit.SetColor("_Color", color);
+			mat_blit.SetFloat("_Scale", scale);
+
+			var channel_map = new Vector4(
+				ChCharToIndex(ch_str[0]),
+				ChCharToIndex(ch_str[1]),
+				ChCharToIndex(ch_str[2]),
+				ChCharToIndex(ch_str[3])
+			);
+			mat_blit.SetVector("_ChannelMap", channel_map);
+		}
+
+		public override void DataToBlit(DataChannel data, Material mat_blit) {
+			if (data.name == "Albedo") {
+				DataToBlitAlbedo(data, mat_blit);
+			}
 		}
 
 		public override ICollection<string> SupportedFeatures() => SUPPORTED_FEATURES;
