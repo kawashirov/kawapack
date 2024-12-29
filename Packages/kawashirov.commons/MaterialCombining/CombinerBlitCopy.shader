@@ -4,16 +4,11 @@ Shader "Kawashirov/MaterialCombiner/BlitCopy" {
 		_MainTex ("MainTex NOT USED", any) = "" {}
 
 		_TexR ("_TexR", any) = "" {}
-		_ChR ("_ChR", Integer) = 0
-
 		_TexG ("_TexG", any) = "" {}
-		_ChG ("_ChG", Integer) = 1
-
 		_TexB ("_TexB", any) = "" {}
-		_ChB ("_ChB", Integer) = 2
-
 		_TexA ("_TexA", any) = "" {}
-		_ChA ("_ChA", Integer) = 3
+		_Channels ("_Channels", Vector) = (0, 1, 2, 3)
+		_ColorSpaces ("_ColorSpaces", Vector) = (0, 0, 0, 0)
 
 		_Color("_Color", Color) = (1.0, 1.0, 1.0, 1.0)
 
@@ -39,16 +34,11 @@ Shader "Kawashirov/MaterialCombiner/BlitCopy" {
 
 			// В DataChannel написано как используется каждая текстура.
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_TexR);
-			uniform int _ChR;
-
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_TexG);
-			uniform int _ChG;
-
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_TexB);
-			uniform int _ChB;
-
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_TexA);
-			uniform int _ChA;
+			uniform float4 _Channels;
+			uniform float4 _ColorSpaces;
 
 			uniform float4 _Color;
 
@@ -87,10 +77,10 @@ Shader "Kawashirov/MaterialCombiner/BlitCopy" {
 				) {
 					// Внутри окна копируем данные из SourceRect
 					float2 src_uv = uv_window * (_SourceRect.zw - _SourceRect.xy) + _SourceRect.xy;
-					float color_src_r = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_TexR, src_uv)[_ChR];
-					float color_src_g = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_TexG, src_uv)[_ChG];
-					float color_src_b = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_TexB, src_uv)[_ChB];
-					float color_src_a = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_TexA, src_uv)[_ChA];
+					float color_src_r = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_TexR, src_uv)[(int)_Channels.r];
+					float color_src_g = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_TexG, src_uv)[(int)_Channels.g];
+					float color_src_b = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_TexB, src_uv)[(int)_Channels.b];
+					float color_src_a = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_TexA, src_uv)[(int)_Channels.a];
 					float4 color_src = float4(color_src_r, color_src_g, color_src_b, color_src_a);
 
 					if (_ColorSpace < 0) {
@@ -109,7 +99,7 @@ Shader "Kawashirov/MaterialCombiner/BlitCopy" {
 						color_src.a = 1;
 
 						// color_src.rgba = color_src.abgr;
-						
+
 						// float3 neutral = float3(0.5, 0.5, 1.0);
 						// color_src.rgb = lerp(neutral, color_src.rgb, scale);
 					}

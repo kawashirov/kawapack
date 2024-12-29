@@ -143,7 +143,7 @@ namespace Kawashirov.MaterialCombining {
 				dull_tex = islands.Select(x => x.isl.MakeDullTex()).ToArray();
 				// https://docs.unity3d.com/2022.3/Documentation/ScriptReference/Texture2D.PackTextures.html
 				yield return null;
-				var results = atlas_tex.PackTextures(dull_tex, 0, 8192);
+				var results = atlas_tex.PackTextures(dull_tex, 0, 1024);
 				yield return null;
 				atlasSize = new Vector2Int(atlas_tex.width, atlas_tex.height);
 				Log($"Packed {islands.Count} islands to {atlasSize.x}x{atlasSize.y} atlas.");
@@ -207,16 +207,10 @@ namespace Kawashirov.MaterialCombining {
 
 				// fill background
 				mat_blit.SetTexture("_TexR", descriptor.bgTexture);
-				mat_blit.SetInteger("_ChR", 0);
-
 				mat_blit.SetTexture("_TexG", descriptor.bgTexture);
-				mat_blit.SetInteger("_ChG", 1);
-
 				mat_blit.SetTexture("_TexB", descriptor.bgTexture);
-				mat_blit.SetInteger("_ChB", 2);
-
 				mat_blit.SetTexture("_TexA", descriptor.bgTexture);
-				mat_blit.SetInteger("_ChA", 3);
+				mat_blit.SetVector("_Channels", new Vector4(0, 1, 2, 3));
 
 				mat_blit.SetColor("_Color", descriptor.bgColor);
 
@@ -249,16 +243,10 @@ namespace Kawashirov.MaterialCombining {
 					var src_tex_size = group.textureSize;
 
 					mat_blit.SetTexture("_TexR", data.dstTex[0]);
-					mat_blit.SetInteger("_ChR", data.dstCh[0]);
-
 					mat_blit.SetTexture("_TexG", data.dstTex[1]);
-					mat_blit.SetInteger("_ChG", data.dstCh[1]);
-
 					mat_blit.SetTexture("_TexB", data.dstTex[2]);
-					mat_blit.SetInteger("_ChB", data.dstCh[2]);
-
 					mat_blit.SetTexture("_TexA", data.dstTex[3]);
-					mat_blit.SetInteger("_ChA", data.dstCh[3]);
+					mat_blit.SetVector("_Channels", data.ChannelsAsVector4());
 
 					mat_blit.SetColor("_Color", data.color);
 
@@ -274,7 +262,7 @@ namespace Kawashirov.MaterialCombining {
 						mat_blit.SetVector("_TargetRect", vec_target);
 						mat_blit.SetTexture("_TargetTex", tex_dst1);
 						Log($"Blitting {mat_original}/{dsc_name}/{islands_i}: {island_source}/{vec_source} -> {vec_target}");
-						Graphics.Blit(Texture2D.whiteTexture, tex_dst2, mat_blit);
+						Graphics.Blit(data.dstTex[0], tex_dst2, mat_blit);
 						(tex_dst1, tex_dst2) = (tex_dst2, tex_dst1); // swap buffers
 						Selection.SetActiveObjectWithContext(tex_dst1, this);
 						yield return null;

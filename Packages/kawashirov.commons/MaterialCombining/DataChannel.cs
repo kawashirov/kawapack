@@ -33,6 +33,8 @@ namespace Kawashirov.MaterialCombining {
 			this.descriptor = descriptor;
 		}
 
+		public Vector4 ChannelsAsVector4() => new Vector4(dstCh[0], dstCh[1], dstCh[2], dstCh[3]);
+
 		public DataChannel SetTextureRGBA(Texture2D tex) {
 			dstTex[0] = dstTex[1] = dstTex[2] = dstTex[3] = tex;
 			(dstCh[0], dstCh[1], dstCh[2], dstCh[3]) = (0, 1, 2, 3);
