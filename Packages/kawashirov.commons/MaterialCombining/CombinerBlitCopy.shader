@@ -14,6 +14,7 @@ Shader "Kawashirov/MaterialCombiner/BlitCopy" {
 
 		_ColorSpace ("_ColorSpace", Integer) = 0
 		_BumpMode ("_BumpMode", Integer) = 0
+		// _BumpBGR ("_BumpBGR", Integer) = 0
 		
 		_SourceRect ("_SourceRect", Vector) = (0, 0, 1, 1)
 		_TargetRect ("_TargetRect", Vector) = (0, 0, 1, 1)
@@ -25,6 +26,7 @@ Shader "Kawashirov/MaterialCombiner/BlitCopy" {
 			ZTest Always Cull Off ZWrite Off
 
 			CGPROGRAM
+			#pragma enable_d3d11_debug_symbols
 			#pragma vertex vert
 			#pragma fragment frag
 			#include "UnityCG.cginc"
@@ -44,6 +46,7 @@ Shader "Kawashirov/MaterialCombiner/BlitCopy" {
 
 			uniform int _ColorSpace;
 			uniform int _BumpMode;
+			// uniform int _BumpBGR;
 
 			uniform float4 _SourceRect;
 			uniform float4 _TargetRect;
@@ -83,25 +86,23 @@ Shader "Kawashirov/MaterialCombiner/BlitCopy" {
 					float color_src_a = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_TexA, src_uv)[(int)_Channels.a];
 					float4 color_src = float4(color_src_r, color_src_g, color_src_b, color_src_a);
 
+					if (_BumpMode <= 0) {
+						color_src *= _Color;
+					}
+
 					if (_ColorSpace < 0) {
 						color_src.rgb = GammaToLinearSpace(color_src.rgb);
 					} else if (_ColorSpace > 0) {
 						color_src.rgb = LinearToGammaSpace(color_src.rgb);
 					}
 
-					if (_BumpMode <= 0) {
-						color_src *= _Color;
-					} else {
+					if (_BumpMode > 0) {
 						// Надеюсь, что это работает.
 						float scale = _Color.r;
 						float3 normal = UnpackNormalWithScale(color_src, scale);
 						color_src.rgb = (normal + 1.0) / 2.0;
 						color_src.a = 1;
-
-						// color_src.rgba = color_src.abgr;
-
-						// float3 neutral = float3(0.5, 0.5, 1.0);
-						// color_src.rgb = lerp(neutral, color_src.rgb, scale);
+						// if (_BumpBGR > 0 ) color_src.rgb = color_src.bgr;
 					}
 
 					return color_src;

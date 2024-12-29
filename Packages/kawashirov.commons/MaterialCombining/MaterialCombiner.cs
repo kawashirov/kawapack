@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace Kawashirov.MaterialCombining {
@@ -143,7 +144,7 @@ namespace Kawashirov.MaterialCombining {
 				dull_tex = islands.Select(x => x.isl.MakeDullTex()).ToArray();
 				// https://docs.unity3d.com/2022.3/Documentation/ScriptReference/Texture2D.PackTextures.html
 				yield return null;
-				var results = atlas_tex.PackTextures(dull_tex, 0, 1024);
+				var results = atlas_tex.PackTextures(dull_tex, 0, 4096);
 				yield return null;
 				atlasSize = new Vector2Int(atlas_tex.width, atlas_tex.height);
 				Log($"Packed {islands.Count} islands to {atlasSize.x}x{atlasSize.y} atlas.");
@@ -216,6 +217,7 @@ namespace Kawashirov.MaterialCombining {
 
 				mat_blit.SetInteger("_ColorSpace", descriptor.sRGB ? 1 : 0);
 				mat_blit.SetInteger("_BumpMode", descriptor.isNormal ? 1 : 0);
+				// mat_blit.SetInteger("_BumpBGR", 0);
 
 				var full = new Vector4(0, 0, 1, 1);
 				mat_blit.SetVector("_SourceRect", full);
@@ -247,6 +249,7 @@ namespace Kawashirov.MaterialCombining {
 					mat_blit.SetTexture("_TexB", data.dstTex[2]);
 					mat_blit.SetTexture("_TexA", data.dstTex[3]);
 					mat_blit.SetVector("_Channels", data.ChannelsAsVector4());
+					// mat_blit.SetInteger("_BumpBGR", 1);
 
 					mat_blit.SetColor("_Color", data.color);
 
@@ -262,7 +265,15 @@ namespace Kawashirov.MaterialCombining {
 						mat_blit.SetVector("_TargetRect", vec_target);
 						mat_blit.SetTexture("_TargetTex", tex_dst1);
 						Log($"Blitting {mat_original}/{dsc_name}/{islands_i}: {island_source}/{vec_source} -> {vec_target}");
-						Graphics.Blit(data.dstTex[0], tex_dst2, mat_blit);
+						var capture = false; // descriptor.isNormal && data.dstTex.Any(t => t != Texture2D.normalTexture);
+						try {
+							if (capture)
+								ExternalGPUProfiler.BeginGPUCapture();
+							Graphics.Blit(data.dstTex[0], tex_dst2, mat_blit);
+						} finally {
+							if (capture)
+								ExternalGPUProfiler.EndGPUCapture();
+						}
 						(tex_dst1, tex_dst2) = (tex_dst2, tex_dst1); // swap buffers
 						Selection.SetActiveObjectWithContext(tex_dst1, this);
 						yield return null;

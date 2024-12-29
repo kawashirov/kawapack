@@ -69,6 +69,8 @@ namespace Kawashirov.MaterialCombining {
 			};
 			yield return descNormal = new DataChannelDescriptor(this, DATACH_NORMAL) {
 				bgTexture = Texture2D.normalTexture,
+				// Карта нормалей в Unity использует RGBA, 
+				// т.к. G и A каналы имеют лучшее качество в блочной компрессией
 				textureChannels = "RGBA",
 				bgColor = Color.white,
 				alphaIsTransparency = false, isNormal = true, sRGB = false, HDR = false
@@ -154,7 +156,7 @@ namespace Kawashirov.MaterialCombining {
 			var bumpmap_tex = GetTexture2D(mat, "_BumpMap", Texture2D.normalTexture);
 			var bumpmap_scale = GetScalar(mat, "_BumpScale", 1);
 			return new DataChannel(mat, descNormal)
-				.SetTextureRGB(bumpmap_tex).SetColor(Color.white * bumpmap_scale);
+				.SetTextureRGBA(bumpmap_tex).SetColor(Color.white * bumpmap_scale);
 		}
 
 		protected virtual DataChannel GetEmissionDC(Material mat) {
