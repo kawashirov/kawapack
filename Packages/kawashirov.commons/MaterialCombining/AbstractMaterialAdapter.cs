@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -17,7 +18,9 @@ namespace Kawashirov.MaterialCombining {
 
 	*/
 	public abstract class AbstractMaterialAdapter : KawaEditorBehaviour {
-		// Должен вернуть null, если 
+		protected readonly List<DataChannelDescriptor> descriptors = new List<DataChannelDescriptor>();
+
+		/* libarary methods */
 
 		protected static bool Equals(string a, string b) {
 			return string.Equals(a, b, StringComparison.InvariantCultureIgnoreCase);
@@ -96,16 +99,27 @@ namespace Kawashirov.MaterialCombining {
 			return default_;
 		}
 
-		// Применяить data к mat_blit для Graphics.Blit
-		public abstract void DataToBlit(DataChannel data, Material mat_blit);
+		/* abstract API */
 
-		// Возвращает названия DataChannelов которые понимает этот адаптер
-		public abstract ICollection<string> SupportedFeatures();
+		protected abstract IEnumerable<DataChannelDescriptor> YieldDescriptors();
+
+		public virtual List<DataChannelDescriptor> InitDescriptors() {
+			descriptors.Clear();
+			descriptors.AddRange(YieldDescriptors());
+			return descriptors;
+		}
+
+		protected virtual DataChannelDescriptor GetDescriptorByName(string name)
+			=> descriptors.FirstOrDefault(d => string.Equals(d.name, name));
 
 		// Возвращает true, если адаптер понимает данный материал и может привести его к DataChannelам.
 		public abstract bool CanAdaptMaterial(Material mat);
 
-		public abstract List<DataChannel> MaterialToData(Material mat);
+		// MaterialCombiner передаёт сюда материал, который ему нужно адаптировать.
+		// Если дескрипторы из этого адаптера, то хорошо, на пол беды меньше.
+		// Но если из другого, то адаптеру придется подумать как адаптировать этот канал. 
+		// Или проигнорировать его, тогда там будут данные по-умолчанию.
+		public abstract List<DataChannel> MaterialToData(Material mat, List<DataChannelDescriptor> descriptors);
 
 		public abstract void DataToMaterial(List<DataChannel> data, Material atlassed);
 	}

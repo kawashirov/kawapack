@@ -23,9 +23,9 @@ namespace Kawashirov.MaterialCombining {
 		public float epsilonPx = 8;
 		public float paddingPx = 8;
 
-		public Vector2 textureSize = Vector2.zero;
-		public readonly List<UVIsland> islandsOriginal = new List<UVIsland>(); // tex coords
-		public readonly List<UVIsland> islandsPadded = new List<UVIsland>(); // tex coords
+		public Vector2Int textureSize = Vector2Int.zero;
+		public readonly List<UVIsland> islandsOriginal = new List<UVIsland>(); // tex coords (by textureSize)
+		public readonly List<UVIsland> islandsPadded = new List<UVIsland>(); // tex coords (by textureSize)
 		public readonly List<UVIsland> islandsAtlas = new List<UVIsland>(); // 0..1 coords
 
 		public MaterialSlotGroup(MaterialCombiner parent, Material original, MaterialSlotItem init) {
@@ -36,13 +36,13 @@ namespace Kawashirov.MaterialCombining {
 
 		public void CalcTexSize() {
 			if (data.Count < 1) {
-				textureSize = Vector2.zero;
+				textureSize = Vector2Int.zero;
 				parent.LogWarning($"Texture size for {original} is 0, there is no data!");
 			} else {
-				var ldata = data.OrderByDescending(d => d.WeightSqr()).First();
-				var t = ldata.texture;
-				textureSize = new Vector2(t.width, t.height);
-				parent.Log($"Texture size for {original} is {t.width}x{t.height} from data \"{ldata.name}\" {t}.");
+				var ldata = data.OrderByDescending(d => d.LargestTexSize().sqrMagnitude).First();
+				var desc_name = ldata.descriptor.name;
+				var ts = textureSize = ldata.LargestTexSize();
+				parent.Log($"Texture size for {original} is {ts.x}x{ts.y} from data \"{desc_name}\".");
 			}
 		}
 
