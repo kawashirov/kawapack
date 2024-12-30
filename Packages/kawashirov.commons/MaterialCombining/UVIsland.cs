@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,12 @@ using UnityEngine;
 namespace Kawashirov.MaterialCombining {
 	public readonly struct UVIsland {
 		// preffered coord system is pixels
-		readonly float umin, vmin, umax, vmax;
+		public readonly float umin, vmin, umax, vmax;
+
+		public UVIsland(Vector2 uv) {
+			umin = umax = uv.x;
+			vmin = vmax = uv.y;
+		}
 
 		public UVIsland(float umin, float vmin, float umax, float vmax) {
 			this.umin = umin;
@@ -48,9 +54,39 @@ namespace Kawashirov.MaterialCombining {
 				left.vmax < right.vmin - epsilon);
 		}
 
+		public static bool TryMerge(UVIsland left, UVIsland right, float epsilon, out UVIsland merged) {
+			if (Intersects(left, right, epsilon)) {
+				merged = new UVIsland(
+					Mathf.Min(left.umin, right.umin), Mathf.Min(left.vmin, right.vmin),
+					Mathf.Max(left.umax, right.umax), Mathf.Max(left.vmax, right.vmax)
+				);
+				return true;
+			} else {
+				merged = new UVIsland(Rect.zero);
+				return false;
+			}
+		}
+
+		public UVIsland ExpandByUVPoint(Vector2 uv) => new UVIsland(
+			Mathf.Min(umin, uv.x), Mathf.Min(vmin, uv.y),
+			Mathf.Max(umax, uv.x), Mathf.Max(vmax, uv.y)
+		);
+
 		public UVIsland Expand(float value) => new UVIsland(
 			umin - value, vmin - value,
 			umax + value, vmax + value
+		);
+
+		public UVIsland TransformST(Vector4 st) => new UVIsland(
+			// Применить _ST преобразование к острову, аналог TRANSFORM_TEX в шейдерах
+			umin * st.x + st.z, vmin * st.y + st.w,
+			umax * st.x + st.z, vmax * st.y + st.w
+		);
+
+		public UVIsland TransformSTBack(Vector4 st) => new UVIsland(
+			// Обратное к TransformST преобразование
+			(umin - st.z) / st.x, (vmin - st.w) / st.y,
+			(umax - st.z) / st.x, (vmax - st.w) / st.y
 		);
 
 		private static int RoundToInt(float v) => Mathf.Max(Mathf.RoundToInt(v), 1);

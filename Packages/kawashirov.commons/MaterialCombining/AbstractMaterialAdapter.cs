@@ -1,6 +1,5 @@
 #if UNITY_EDITOR
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -89,6 +88,23 @@ namespace Kawashirov.MaterialCombining {
 			return mat.GetColor(prop_name);
 		}
 
+		protected Vector4 GetTextureST(Material mat, string prop_name, Vector4 default_) {
+			if (GetCommon(mat, prop_name, out var shader, out var prop_index, out var prop_type))
+				return default_;
+			if (prop_type != ShaderPropertyType.Texture) {
+				LogWarning($"Material {mat} shader {shader} property \"{prop_name}\" type is not Texture: {prop_type}.");
+				return default_;
+			}
+			var dim = shader.GetPropertyTextureDimension(prop_index);
+			if (dim != TextureDimension.Tex2D) {
+				LogWarning($"Material {mat} shader {shader} property \"{prop_name}\" dim is not Tex2D: {dim}.");
+				return default_; // Only Tex2D supported for now
+			}
+			var scale = mat.GetTextureScale(prop_name);
+			var offset = mat.GetTextureOffset(prop_name);
+			return new Vector4(scale.x, scale.y, offset.x, offset.y);
+		}
+
 		protected virtual float GetScalar(Material mat, string prop_name, float default_) {
 			if (GetCommon(mat, prop_name, out var shader, out var prop_index, out var prop_type))
 				return default_;
@@ -112,14 +128,13 @@ namespace Kawashirov.MaterialCombining {
 		protected virtual DataChannelDescriptor GetDescriptorByName(string name)
 			=> descriptors.FirstOrDefault(d => string.Equals(d.name, name));
 
-		// Возвращает true, если адаптер понимает данный материал и может привести его к DataChannelам.
-		public abstract bool CanAdaptMaterial(Material mat);
 
 		// MaterialCombiner передаёт сюда материал, который ему нужно адаптировать.
 		// Если дескрипторы из этого адаптера, то хорошо, на пол беды меньше.
-		// Но если из другого, то адаптеру придется подумать как адаптировать этот канал. 
+		// Но если из другого, то адаптеру придется подумать как адаптировать этот канал.
 		// Или проигнорировать его, тогда там будут данные по-умолчанию.
-		public abstract List<DataChannel> MaterialToData(Material mat, List<DataChannelDescriptor> descriptors);
+		// Возвращает true и data, если адаптер понимает данный материал и смог его адаптировать.
+		public abstract bool TryAdaptMaterial(Material mat, List<DataChannelDescriptor> descriptors, out DataAdapted data);
 
 		public abstract void DataToMaterial(List<DataChannel> data, Material atlassed);
 	}

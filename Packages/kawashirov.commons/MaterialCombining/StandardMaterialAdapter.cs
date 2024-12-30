@@ -83,7 +83,7 @@ namespace Kawashirov.MaterialCombining {
 			};
 		}
 
-		public override bool CanAdaptMaterial(Material mat) {
+		protected virtual bool CanAdaptMaterial(Material mat) {
 			var shader = mat.shader;
 			if (shader == null)
 				return false;
@@ -109,6 +109,9 @@ namespace Kawashirov.MaterialCombining {
 
 			return AssumeCompatible;
 		}
+
+		protected Vector4 MaterialToST(Material mat)
+			=> GetTextureST(mat, "_MainTex", new Vector4(1, 1, 0, 0));
 
 		protected virtual DataChannel GetAlbedoDC(Material mat) {
 			var main_tex = GetTexture2D(mat, "_MainTex", Texture2D.whiteTexture);
@@ -217,8 +220,19 @@ namespace Kawashirov.MaterialCombining {
 			}
 		}
 
-		public override List<DataChannel> MaterialToData(Material mat, List<DataChannelDescriptor> descriptors)
-			=> YieldDataChannels(mat, descriptors).ToList();
+		public override bool TryAdaptMaterial(Material mat, List<DataChannelDescriptor> descriptors, out DataAdapted data) {
+			if (CanAdaptMaterial(mat)) {
+				data = new DataAdapted(this,
+					YieldDataChannels(mat, descriptors).ToList(),
+					MaterialToST(mat),
+					0
+				);
+				return true;
+			} else {
+				data = null;
+				return false;
+			}
+		}
 
 		public override void DataToMaterial(List<DataChannel> data, Material atlassed) {
 
