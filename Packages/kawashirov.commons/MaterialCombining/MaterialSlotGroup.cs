@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
 using System.Linq;
+using Algolia.Search.Models.Common;
 using UnityEngine;
 
 namespace Kawashirov.MaterialCombining {
@@ -26,6 +27,9 @@ namespace Kawashirov.MaterialCombining {
 		public readonly List<UVIsland> islandsOriginal = new List<UVIsland>(); // tex coords (by textureSize)
 		public readonly List<UVIsland> islandsPadded = new List<UVIsland>(); // tex coords (by textureSize)
 		public readonly List<UVIsland> islandsAtlas = new List<UVIsland>(); // 0..1 coords
+
+		public int debugUVPushes = 0;
+		public int debugUVIters = 0;
 
 		public MaterialSlotGroup(MaterialCombiner parent, Material mat, DataAdapted adapted) {
 			this.parent = parent;
@@ -64,6 +68,7 @@ namespace Kawashirov.MaterialCombining {
 		}
 
 		protected void PushUVIsland(UVIsland island_px) {
+			++debugUVPushes;
 			// Остров уже должен быть в пиксельных коордах.
 			if (islandsOriginal.Count < 1) {
 				islandsOriginal.Add(island_px);
@@ -72,6 +77,7 @@ namespace Kawashirov.MaterialCombining {
 			// обходим список с конца, т.к. с конца быстрее работает RemoveAt
 			var i = islandsOriginal.Count - 1;
 			while (i >= 0) {
+				++debugUVIters;
 				var island_i = islandsOriginal[i];
 				if (UVIsland.TryMerge(island_i, island_px, epsilonPx, out var merged)) {
 					// Если два острова соприкасаются, то они объединяются,
@@ -118,14 +124,15 @@ namespace Kawashirov.MaterialCombining {
 			}
 
 			for (var i = 0; i < BUFFER_INDICES.Count; i += steps) {
-				Debug.Log($"{topology}:");
-				var uv = BUFFER_UV[i];
+				var v_idx = BUFFER_INDICES[i];
+				var uv = BUFFER_UV[v_idx];
 				var island_raw = new UVIsland(uv);
 				for (var j = 1; j < steps; j++) {
-					var v_idx = BUFFER_INDICES[i + j];
-					island_raw.ExpandByUVPoint(BUFFER_UV[v_idx]);
+					v_idx = BUFFER_INDICES[i + j];
+					island_raw = island_raw.ExpandByUVPoint(BUFFER_UV[v_idx]);
 				}
-				var island_px = island_raw.TransformST(adapted.texST).RoundToInt();
+				var island_px = island_raw.TransformST(adapted.texST).ToTexCoords(textureSize).RoundToInt();
+				// parent.Log($"{this}: PushUVIsland: {island_px}");
 				PushUVIsland(island_px);
 			}
 		}
@@ -133,20 +140,26 @@ namespace Kawashirov.MaterialCombining {
 		public virtual void CalcIslands() {
 			parent.Log($"Searching UV islands for {mat} on {items.Count} slots...");
 			islandsOriginal.Clear();
+			debugUVPushes = 0;
+			debugUVIters = 0;
 			foreach (var item in items) {
 				FindUVIslands(item);
 			}
 			islandsOriginal.TrimExcess();
-			parent.Log($"Found {islandsOriginal.Count} UV islands on {mat}...");
+			var count = islandsOriginal.Count;
+			var islandsOriginal_l = string.Join("\n", islandsOriginal.Select((isl, idx) => $"- №{idx}: {isl}"));
+			parent.Log($"Found {count} UV islands on {mat} " +
+				$"for {debugUVPushes} pushes, {debugUVIters} iterations:" +
+				$"\n{islandsOriginal_l}");
 
 			islandsPadded.Clear();
-			islandsPadded.Capacity = islandsOriginal.Count;
+			islandsPadded.Capacity = count;
 			islandsPadded.AddRange(islandsOriginal.Select(i => i.Expand(paddingPx)));
 			islandsPadded.TrimExcess();
 
 			islandsAtlas.Clear();
-			islandsAtlas.Capacity = islandsOriginal.Count;
-			islandsAtlas.AddRange(islandsOriginal); // alloc same size as islandsOriginal
+			islandsAtlas.Capacity = count;
+			islandsAtlas.AddRange(islandsOriginal); // alloc indicies same size as islandsOriginal
 			islandsAtlas.TrimExcess();
 		}
 

@@ -71,11 +71,11 @@ namespace Kawashirov.MaterialCombining {
 		}
 
 		public Vector2Int LargestTexSize() {
-			var tex = dstTex.OrderByDescending(t => t.height * t.width).First();
+			var tex = dstTex.OrderByDescending(WeightSqr).First();
 			return new Vector2Int(tex.width, tex.height);
 		}
 
-		private static float WeightSqr(Texture2D tex) => 1f * tex.height * tex.width;
+		private static float WeightSqr(Texture2D tex) => 1f * tex.width * tex.height;
 		public float WeightSqr() => dstTex.Select(WeightSqr).Max();
 
 	}

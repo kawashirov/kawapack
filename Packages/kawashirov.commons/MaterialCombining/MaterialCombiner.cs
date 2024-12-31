@@ -74,7 +74,7 @@ namespace Kawashirov.MaterialCombining {
 				Log($"Found adapter {data.adapter} for material {mat} with {data.data.Count} datas and transform {data.texST}.");
 				return true;
 			}
-			Log($"No adapter found for material {mat}.");
+			Log($"No adapter found for material {mat}, will be ignored.");
 			data = null;
 			return false;
 		}
@@ -155,7 +155,7 @@ namespace Kawashirov.MaterialCombining {
 			}
 			var sum = materials.Values.Select(g => g.IslandsCount()).Sum();
 			MaterialSlotGroup.ResetBuffers(); // Больше не понадобятся.
-			Log($"Got {sum} UV islands from {materials.Count} materials.");
+			Log($"Got {sum} UV islands total from {materials.Count} materials.");
 			yield return null;
 		}
 
@@ -171,21 +171,29 @@ namespace Kawashirov.MaterialCombining {
 				var islands = materials.Values.SelectMany(
 					grp => grp.islandsPadded.Select((isl, idx) => (grp, isl, idx))
 				).ToList();
-				Log($"Packing {islands.Count} islands total...");
-				atlas_tex = new Texture2D(1, 1, TextureFormat.Alpha8, false);
-				dull_tex = islands.Select(x => x.isl.MakeDullTex()).ToArray();
+				Log($"Packing {islands.Count} islands total into the atlas...");
+				var format = TextureFormat.R8;
+				atlas_tex = new Texture2D(1, 1, format, false);
+				dull_tex = islands.Select(x => x.isl.MakeDullTex(format)).ToArray();
 				// https://docs.unity3d.com/2022.3/Documentation/ScriptReference/Texture2D.PackTextures.html
+				Selection.SetActiveObjectWithContext(atlas_tex, this);
 				yield return null;
-				var results = atlas_tex.PackTextures(dull_tex, 0, 4096);
+				var results = atlas_tex.PackTextures(dull_tex, 0, 2048);
+				Selection.SetActiveObjectWithContext(atlas_tex, this);
 				yield return null;
 				atlasSize = new Vector2Int(atlas_tex.width, atlas_tex.height);
-				Log($"Packed {islands.Count} islands to {atlasSize.x}x{atlasSize.y} atlas.");
+				var islands_str = "";
+				// Размеры и индексы islands[], dull_tex[] и results[] совпадают.
 				for (var i = 0; i < results.Length; ++i) {
 					var (grp, isl, idx) = islands[i];
-					var atlas_island = new UVIsland(results[i]);
-					Log($"Packed {islands[i].grp.mat}, #{i}: {islands[i].isl} -> {atlas_island}");
+					var atlas_rect = results[i];
+					var atlas_island = new UVIsland(atlas_rect);
+					var dt = dull_tex[i]; // ({dt}, {dt.width}x{dt.height})
+					islands_str += $"\n- №{i}: {grp.mat}, №{idx}:\n\t" +
+						$"{isl} -> (dull {dt.width}x{dt.height}) -> {atlas_rect} -> {atlas_island}";
 					grp.islandsAtlas[idx] = atlas_island;
 				}
+				Log($"Packed {islands.Count} islands to {atlasSize.x}x{atlasSize.y} atlas: {islands_str}");
 			} finally {
 				if (dull_tex != null)
 					foreach (var dull in dull_tex)

@@ -89,9 +89,14 @@ namespace Kawashirov.MaterialCombining {
 			(umax - st.z) / st.x, (vmax - st.w) / st.y
 		);
 
-		private static int RoundToInt(float v) => Mathf.Max(Mathf.RoundToInt(v), 1);
+		public UVIsland ToTexCoords(Vector2Int size) => new UVIsland(
+			umin * size.x, vmin * size.y,
+			umax * size.x, vmax * size.y
+		);
 
 		public Vector2 Size() => new Vector2(umax - umin, vmax - vmin);
+
+		private static int RoundToInt(float v) => Mathf.Max(Mathf.RoundToInt(v), 1);
 
 		public Vector2Int SizeInt() => new Vector2Int(RoundToInt(umax - umin), RoundToInt(vmax - vmin));
 
@@ -100,9 +105,10 @@ namespace Kawashirov.MaterialCombining {
 			Mathf.Ceil(umax), Mathf.Ceil(vmax)
 		);
 
-		public Texture2D MakeDullTex() {
-			var s = SizeInt();
-			return new Texture2D(s.x, s.y, TextureFormat.Alpha8, false);
+		public Texture2D MakeDullTex(TextureFormat format) {
+			var width = RoundToInt(umax - umin);
+			var height = RoundToInt(vmax - vmin);
+			return new Texture2D(width, height, format, false);
 		}
 
 		public Vector4 ToVector4() => new Vector4(umin, vmin, umax, vmax);
@@ -112,7 +118,8 @@ namespace Kawashirov.MaterialCombining {
 			umax / tex_width, vmax / tex_height
 		);
 
-		public override string ToString() => $"UVIsland(({umin}, {vmin}), ({umax}, {vmax}))";
+		public override string ToString()
+			=> $"{nameof(UVIsland)}(min:({umin}, {vmin}), max:({umax}, {vmax}), size:({umax - umin},{vmax - vmin}))";
 	}
 }
 #endif
