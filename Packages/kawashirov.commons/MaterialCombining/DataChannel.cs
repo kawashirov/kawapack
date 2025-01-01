@@ -26,8 +26,6 @@ namespace Kawashirov.MaterialCombining {
 
 		public Color color = Color.white;
 
-		public Vector2Int size = Vector2Int.zero;
-
 		public DataChannel(Material parent, DataChannelDescriptor descriptor) {
 			this.parent = parent;
 			this.descriptor = descriptor;
@@ -35,25 +33,25 @@ namespace Kawashirov.MaterialCombining {
 
 		public Vector4 ChannelsAsVector4() => new Vector4(dstCh[0], dstCh[1], dstCh[2], dstCh[3]);
 
-		public DataChannel SetTextureRGBA(Texture2D tex) {
+		public DataChannel SetTexRGBA(Texture2D tex) {
 			dstTex[0] = dstTex[1] = dstTex[2] = dstTex[3] = tex;
 			(dstCh[0], dstCh[1], dstCh[2], dstCh[3]) = (0, 1, 2, 3);
 			return this;
 		}
 
-		public DataChannel SetTextureRGB(Texture2D tex) {
+		public DataChannel SetTexRGB(Texture2D tex) {
 			dstTex[0] = dstTex[1] = dstTex[2] = tex;
 			(dstCh[0], dstCh[1], dstCh[2]) = (0, 1, 2);
 			return this;
 		}
 
-		public DataChannel SetTextureSingleToRGB(Texture2D tex, int single_ch) {
+		public DataChannel SetTexSingleToRGB(Texture2D tex, int single_ch) {
 			dstTex[0] = dstTex[1] = dstTex[2] = tex;
 			(dstCh[0], dstCh[1], dstCh[2]) = (single_ch, single_ch, single_ch);
 			return this;
 		}
 
-		public DataChannel SetAlpha(Texture2D tex, int single_ch) {
+		public DataChannel SetTexAlpha(Texture2D tex, int single_ch) {
 			dstTex[3] = tex;
 			dstCh[3] = single_ch;
 			return this;
@@ -67,6 +65,25 @@ namespace Kawashirov.MaterialCombining {
 
 		public DataChannel SetColor(Color color) {
 			this.color = color;
+			return this;
+		}
+
+		public DataChannel SetColorRGB(Color color) {
+			this.color.r = color.r;
+			this.color.g = color.g;
+			this.color.b = color.b;
+			return this;
+		}
+
+		public DataChannel SetColorRGB(float single) {
+			color.r = single;
+			color.g = single;
+			color.b = single;
+			return this;
+		}
+
+		public DataChannel SetColorAlpha(float alpha) {
+			color.a = alpha;
 			return this;
 		}
 

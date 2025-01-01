@@ -25,11 +25,14 @@ namespace Kawashirov.MaterialCombining {
 		public AbstractMaterialAdapter[] MatToDataAdapters;
 		public AbstractMaterialAdapter DataToMatAdapter;
 
+		[Header("Properties below are auto-generated")]
+		public Texture2D[] TargetTextures;
+		public Material[] TargetMaterials;
+
 		/**/
 		public List<DataChannelDescriptor> descriptors;
 		protected Dictionary<Material, MaterialSlotGroup> materials;
 		protected readonly HashSet<Material> unadaptable = new HashSet<Material>();
-		protected List<string> textureNames;
 		protected Vector2Int atlasSize = Vector2Int.zero;
 
 		protected Material mat_blit;
@@ -189,7 +192,7 @@ namespace Kawashirov.MaterialCombining {
 					var atlas_rect = results[i];
 					var atlas_island = new UVIsland(atlas_rect);
 					var dt = dull_tex[i]; // ({dt}, {dt.width}x{dt.height})
-					islands_str += $"\n- №{i}: {grp.mat}, №{idx}:\n\t" +
+					islands_str += $"\n- №{i}: {grp.matOriginal}, №{idx}:\n\t" +
 						$"{isl} -> (dull {dt.width}x{dt.height}) -> {atlas_rect} -> {atlas_island}";
 					grp.islandsAtlas[idx] = atlas_island;
 				}
@@ -205,7 +208,7 @@ namespace Kawashirov.MaterialCombining {
 			yield return null;
 		}
 
-		protected virtual RenderTexture MakeRenderTexture_(DataChannelDescriptor descriptor) {
+		protected virtual RenderTexture AtlasMakeRT_(DataChannelDescriptor descriptor) {
 			// Какая-то хуйня, когда через дескриптор инициализирую, то нихуя не работает.
 			var rt_desc = new RenderTextureDescriptor();
 			// Сначала флажки, порядок имеет значение
@@ -228,12 +231,12 @@ namespace Kawashirov.MaterialCombining {
 			return RenderTexture.GetTemporary(rt_desc);
 		}
 
-		protected virtual RenderTexture MakeRenderTexture(DataChannelDescriptor descriptor) {
+		protected virtual RenderTexture AtlasMakeRT(DataChannelDescriptor descriptor) {
 			return RenderTexture.GetTemporary(atlasSize.x, atlasSize.y, 0,
 				RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.sRGB);
 		}
 
-		protected virtual void BakeAtlasBackground(DataChannelDescriptor descriptor) {
+		protected virtual void AtlasBlitBackground(DataChannelDescriptor descriptor) {
 			mat_blit.SetTexture("_TexR", descriptor.bgTexture);
 			mat_blit.SetTexture("_TexG", descriptor.bgTexture);
 			mat_blit.SetTexture("_TexB", descriptor.bgTexture);
@@ -257,14 +260,14 @@ namespace Kawashirov.MaterialCombining {
 			Selection.SetActiveObjectWithContext(tex_dst1, this);
 		}
 
-		protected virtual void BakeAtlasGroup(DataChannelDescriptor descriptor, MaterialSlotGroup group) {
+		protected virtual void AtlasBlitGroup(DataChannelDescriptor descriptor, MaterialSlotGroup group) {
 			var dsc_name = descriptor.name;
 			if (group.islandsAtlas.Count < 1)
 				return; // Группа может быть пустой.
 
-			Log($"Trying to render data \"{dsc_name}\" of material {group.mat}...");
+			Log($"Trying to render data \"{dsc_name}\" of material {group.matOriginal}...");
 			var datas = group.adapted.data.Where(d => d.descriptor == descriptor).ToArray();
-			var mat_original = group.mat;
+			var mat_original = group.matOriginal;
 			if (datas.Length < 1) {
 				LogWarning($"There is no passes for data \"{dsc_name}\" material {mat_original}... Not adapted?");
 				return;
@@ -311,108 +314,95 @@ namespace Kawashirov.MaterialCombining {
 			}
 		}
 
-		protected virtual IEnumerator SaveAtlas(DataChannelDescriptor descriptor, RenderTexture atlas) {
-			var dsc_name = descriptor.name;
-			var path_png = $"Assets/SavedTextureAtlas_{dsc_name}.png";
-
+		protected virtual Texture2D AtlasRTToTexture2D(DataChannelDescriptor descriptor, RenderTexture atlas) {
 			var tex_temp = new Texture2D(atlasSize.x, atlasSize.y, TextureFormat.RGBAHalf, true, linear: false);
 			var prev_active = RenderTexture.active;
 			try {
-				AssetDatabase.StartAssetEditing();
-
 				RenderTexture.active = atlas;
 				tex_temp.ReadPixels(new Rect(0, 0, atlasSize.x, atlasSize.y), 0, 0, true);
 				tex_temp.Apply();
 				EditorUtility.SetDirty(tex_temp);
 				Selection.SetActiveObjectWithContext(tex_temp, this);
-				yield return null;
-
-				//*
-				var png_data = tex_temp.EncodeToPNG();
-				File.WriteAllBytes(path_png, png_data);
-				yield return null;
-
-				AssetDatabase.ImportAsset(path_png, ImportAssetOptions.ForceUpdate |
-					ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUncompressedImport);
-
-				var png_asset = AssetDatabase.LoadAssetAtPath<Texture2D>(path_png);
-				if (png_asset != null)
-					Selection.SetActiveObjectWithContext(png_asset, this);
 			} finally {
 				RenderTexture.active = prev_active;
-				if (tex_temp != null)
-					DestroyImmediate(tex_temp);
-				AssetDatabase.StopAssetEditing();
 			}
-			yield return null;
-
-			TextureImporter importer = null;
-			for (var i = 0; i < 1000; ++i) {
-				importer = AssetImporter.GetAtPath(path_png) as TextureImporter;
-				if (importer == null) {
-					LogWarning($"Importer of {path_png} is null!");
-					yield return null;
-				} else {
-					break;
-				}
-			}
-
-			if (importer != null) {
-				Selection.SetActiveObjectWithContext(importer, this);
-				importer.textureType = descriptor.isNormal ? TextureImporterType.NormalMap : TextureImporterType.Default;
-				importer.alphaIsTransparency = descriptor.alphaIsTransparency;
-
-				importer.mipmapEnabled = true;
-				importer.streamingMipmaps = true;
-				importer.mipmapFilter = TextureImporterMipFilter.KaiserFilter;
-				importer.mipMapsPreserveCoverage = descriptor.alphaIsTransparency;
-				importer.alphaTestReferenceValue = 0.5f;
-
-				importer.filterMode = FilterMode.Trilinear;
-				importer.wrapMode = TextureWrapMode.Clamp;
-
-				importer.maxTextureSize = 16384; // TODO
-				importer.textureCompression = TextureImporterCompression.CompressedHQ;
-				importer.compressionQuality = 100;
-				importer.crunchedCompression = false;
-
-				importer.SaveAndReimport();
-				yield return null;
-
-				//*/
-
-				/*
-				EditorUtility.CompressTexture(tex_asset, TextureFormat.BC7, TextureCompressionQuality.Best);
-				tex_asset.Apply();
-				EditorUtility.SetDirty(tex_asset);
-				var path_asset = $"Assets/SavedTexture_{dsc_name}.asset";
-				AssetDatabase.CreateAsset(tex_asset, path_asset);
-				yield return null;
-				//*/
-			}
+			return tex_temp;
 		}
 
-		protected virtual IEnumerator BakeAtlasNamed(DataChannelDescriptor descriptor) {
+		protected virtual void AtlasSavePNG(string path_png, Texture2D tex_temp) {
+			Log($"Saving {tex_temp} to \"{path_png}\"...");
+			var png_data = tex_temp.EncodeToPNG();
+			File.WriteAllBytes(path_png, png_data);
+		}
+
+		protected virtual Texture2D AtlasReImportPNG(string path_png, bool compress) {
+			Log($"(Re)importing (compress={compress}) \"{path_png}\"...");
+
+			var flags = ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport;
+			if (!compress)
+				flags |= ImportAssetOptions.ForceUncompressedImport;
+			AssetDatabase.ImportAsset(path_png, flags);
+
+			var png_asset = AssetDatabase.LoadAssetAtPath<Texture2D>(path_png);
+			if (png_asset != null)
+				Selection.SetActiveObjectWithContext(png_asset, this);
+			return png_asset;
+		}
+
+		protected virtual bool AtlasConfigureImporter(DataChannelDescriptor descriptor, string path_png) {
+			var importer = AssetImporter.GetAtPath(path_png) as TextureImporter;
+			if (importer == null) {
+				LogWarning($"No TextureImporter at \"{path_png}\", need reimport?");
+				return true; // repeat
+			}
+			Log($"Configuring {importer} at \"{path_png}\"...");
+
+			Selection.SetActiveObjectWithContext(importer, this);
+			importer.textureType = descriptor.isNormal ? TextureImporterType.NormalMap : TextureImporterType.Default;
+			importer.alphaIsTransparency = descriptor.alphaIsTransparency;
+
+			importer.mipmapEnabled = true;
+			importer.streamingMipmaps = true;
+			importer.mipmapFilter = TextureImporterMipFilter.KaiserFilter;
+			importer.mipMapsPreserveCoverage = descriptor.alphaIsTransparency;
+			importer.alphaTestReferenceValue = 0.5f;
+
+			importer.filterMode = FilterMode.Trilinear;
+			importer.wrapMode = TextureWrapMode.Clamp;
+
+			importer.maxTextureSize = 16384; // TODO
+			importer.textureCompression = TextureImporterCompression.CompressedHQ;
+			importer.compressionQuality = 100;
+			importer.crunchedCompression = false;
+
+			AssetDatabase.WriteImportSettingsIfDirty(path_png);
+			Log($"Configured {importer} at \"{path_png}\".");
+			return false; // no repeat
+		}
+
+		protected virtual IEnumerator AtlasBakeNamed(DataChannelDescriptor descriptor) {
 			var dsc_name = descriptor.name;
 			tex_dst1 = null;
 			tex_dst2 = null;
+			EditorUtility.UnloadUnusedAssetsImmediate(true); // save ram
 			try {
 				// var rt_desc = PrepareRTDescriptor(descriptor);
 				// tex_dst1 = new RenderTexture(rt_desc) { name = $"RT_{dsc_name}_A" };
 				// tex_dst2 = new RenderTexture(rt_desc) { name = $"RT_{dsc_name}_B" };
-				tex_dst1 = MakeRenderTexture(descriptor);
-				tex_dst2 = MakeRenderTexture(descriptor);
+				tex_dst1 = AtlasMakeRT(descriptor);
+				tex_dst2 = AtlasMakeRT(descriptor);
 				Log($"For atlassing \"{dsc_name}\": Created temp buffers: {tex_dst1}, {tex_dst2}");
 				Selection.SetActiveObjectWithContext(tex_dst1, this);
 				yield return null;
 
-				BakeAtlasBackground(descriptor);
+				AtlasBlitBackground(descriptor);
 				yield return null;
 
 				foreach (var group in materials.Values) {
-					BakeAtlasGroup(descriptor, group);
+					AtlasBlitGroup(descriptor, group);
 					yield return null;
 				}
+				Log($"Rendered everything for \"{dsc_name}\", saving...");
 
 				// tex_dst2 больше не будет использоваться, а из tex_dst1 сохраним полученный атлас.
 				if (tex_dst2 != null)
@@ -420,9 +410,33 @@ namespace Kawashirov.MaterialCombining {
 				tex_dst2 = null;
 				yield return null;
 
-				var task_save = SaveAtlas(descriptor, tex_dst1);
-				while (task_save.MoveNext())
-					yield return task_save.Current;
+				var path_png = $"Assets/SavedTextureAtlas_{dsc_name}.png"; // TODO
+				var tex_temp = AtlasRTToTexture2D(descriptor, tex_dst1);
+				yield return null;
+				try {
+					AssetDatabase.StartAssetEditing();
+
+					AtlasSavePNG(path_png, tex_temp);
+					DestroyImmediate(tex_temp);
+
+					do {
+						yield return null;
+						AtlasReImportPNG(path_png, false); // first
+					} while (AtlasConfigureImporter(descriptor, path_png));
+				} finally {
+					AssetDatabase.StopAssetEditing();
+					if (tex_temp != null)
+						DestroyImmediate(tex_temp);
+				}
+
+				Texture2D png_asset;
+				do {
+					png_asset = AtlasReImportPNG(path_png, true); // final
+					yield return null;
+				} while (png_asset == null);
+
+				descriptor.atlasTexture = png_asset;
+				TargetTextures = TargetTextures.Append(png_asset).ToArray();
 			} finally {
 				if (tex_dst1 != null)
 					RenderTexture.ReleaseTemporary(tex_dst1); // DestroyImmediate(tex_dst1);
@@ -431,12 +445,13 @@ namespace Kawashirov.MaterialCombining {
 			yield return null;
 		}
 
-		protected virtual IEnumerator BakeAtlas() {
+		protected virtual IEnumerator AtlasBake() {
+			TargetTextures = new Texture2D[0];
+			var shader = Shader.Find("Kawashirov/MaterialCombiner/BlitCopy");
 			try {
-				var shader = Shader.Find("Kawashirov/MaterialCombiner/BlitCopy");
 				mat_blit = new Material(shader);
 				foreach (var descriptor in descriptors) {
-					var task = BakeAtlasNamed(descriptor);
+					var task = AtlasBakeNamed(descriptor);
 					while (task.MoveNext())
 						yield return task.Current;
 				}
@@ -445,6 +460,40 @@ namespace Kawashirov.MaterialCombining {
 					DestroyImmediate(mat_blit);
 				mat_blit = null;
 			}
+		}
+
+		public virtual Material ConvertMaterial(Material original) {
+			foreach (var target in TargetMaterials) {
+				if (DataToMatAdapter.IsCompatible(original, target))
+					return target;
+			}
+
+			var new_target = DataToMatAdapter.MakeNewTarget(original);
+			foreach (var target in TargetMaterials) {
+				// Может получиться так, что новый 
+				if (DataToMatAdapter.IsCompatible(new_target, target)) {
+					DestroyImmediate(new_target);
+					return target;
+				}
+			}
+			new_target.name = $"SavedTextureAtlas_{TargetMaterials.Length}";
+			var path_target = $"Assets/{new_target.name}.mat"; // TODO
+			AssetDatabase.CreateAsset(new_target, path_target);
+			Log($"Saved new atlas material {new_target} as \"{path_target}\"", new_target);
+			TargetMaterials = TargetMaterials.Append(new_target).ToArray();
+			return new_target;
+		}
+
+		protected virtual void ConvertMaterials() {
+			TargetMaterials = new Material[0];
+			foreach (var group in materials.Values) {
+				group.matAtlas = ConvertMaterial(group.matOriginal);
+				Log($"Converted orignal {group.matOriginal} -> atlas {group.matAtlas}.");
+			}
+		}
+
+		protected virtual IEnumerator ApplyMatAndUV() {
+			yield return null;
 		}
 
 		public virtual IEnumerator Run() {
@@ -476,9 +525,19 @@ namespace Kawashirov.MaterialCombining {
 				yield return task_layout.Current;
 
 			// Операции с рендером материалов на атласы.
-			var task_bake = BakeAtlas();
+			var task_bake = AtlasBake();
 			while (task_bake.MoveNext())
 				yield return task_bake.Current;
+
+			// После рендера можно сконверить материалы.
+			ConvertMaterials();
+			yield return null;
+
+			// И применить на меши.
+			var task_apply = ApplyMatAndUV();
+			while (task_apply.MoveNext())
+				yield return task_apply.Current;
+
 		}
 	}
 }

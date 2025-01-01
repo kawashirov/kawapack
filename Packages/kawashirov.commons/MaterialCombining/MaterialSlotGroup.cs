@@ -16,7 +16,7 @@ namespace Kawashirov.MaterialCombining {
 		private readonly static List<Vector2> BUFFER_UV = new List<Vector2>();
 
 		public readonly MaterialCombiner parent;
-		public readonly Material mat;
+		public readonly Material matOriginal;
 		public readonly DataAdapted adapted;
 		public readonly List<MaterialSlotItem> items;
 
@@ -31,9 +31,11 @@ namespace Kawashirov.MaterialCombining {
 		public int debugUVPushes = 0;
 		public int debugUVIters = 0;
 
+		public Material matAtlas = null;
+
 		public MaterialSlotGroup(MaterialCombiner parent, Material mat, DataAdapted adapted) {
 			this.parent = parent;
-			this.mat = mat;
+			this.matOriginal = mat;
 			this.adapted = adapted;
 			items = new List<MaterialSlotItem>(1);
 		}
@@ -58,12 +60,12 @@ namespace Kawashirov.MaterialCombining {
 		public void CalcTexSize() {
 			if (adapted.data.Count < 1) {
 				textureSize = Vector2Int.zero;
-				parent.LogWarning($"Texture size for {mat} is 0, there is no data!");
+				parent.LogWarning($"Texture size for {matOriginal} is 0, there is no data!");
 			} else {
 				var ldata = adapted.data.OrderByDescending(d => d.LargestTexSize().sqrMagnitude).First();
 				var desc_name = ldata.descriptor.name;
 				var ts = textureSize = ldata.LargestTexSize();
-				parent.Log($"Texture size for {mat} is {ts.x}x{ts.y} from data \"{desc_name}\".");
+				parent.Log($"Texture size for {matOriginal} is {ts.x}x{ts.y} from data \"{desc_name}\".");
 			}
 		}
 
@@ -138,7 +140,7 @@ namespace Kawashirov.MaterialCombining {
 		}
 
 		public virtual void CalcIslands() {
-			parent.Log($"Searching UV islands for {mat} on {items.Count} slots...");
+			parent.Log($"Searching UV islands for {matOriginal} on {items.Count} slots...");
 			islandsOriginal.Clear();
 			debugUVPushes = 0;
 			debugUVIters = 0;
@@ -148,7 +150,7 @@ namespace Kawashirov.MaterialCombining {
 			islandsOriginal.TrimExcess();
 			var count = islandsOriginal.Count;
 			var islandsOriginal_l = string.Join("\n", islandsOriginal.Select((isl, idx) => $"- №{idx}: {isl}"));
-			parent.Log($"Found {count} UV islands on {mat} " +
+			parent.Log($"Found {count} UV islands on {matOriginal} " +
 				$"for {debugUVPushes} pushes, {debugUVIters} iterations:" +
 				$"\n{islandsOriginal_l}");
 

@@ -115,7 +115,21 @@ namespace Kawashirov.MaterialCombining {
 			return default_;
 		}
 
+		protected static void SetTextureDesc(Material mat, string prop_name, DataChannelDescriptor desc) {
+			mat.SetTexture(prop_name, (desc != null && desc.atlasTexture != null) ? desc.atlasTexture : null);
+			mat.SetTextureScale(prop_name, Vector2.one);
+			mat.SetTextureOffset(prop_name, Vector2.zero);
+		}
+
+		protected static void SetTextureNoST(Material mat, string prop_name, Texture2D tex) {
+			mat.SetTexture(prop_name, tex);
+			mat.SetTextureScale(prop_name, Vector2.one);
+			mat.SetTextureOffset(prop_name, Vector2.zero);
+		}
+
 		/* abstract API */
+
+		protected abstract Shader GetDefaultTargetShader();
 
 		protected abstract IEnumerable<DataChannelDescriptor> YieldDescriptors();
 
@@ -125,10 +139,6 @@ namespace Kawashirov.MaterialCombining {
 			return descriptors;
 		}
 
-		protected virtual DataChannelDescriptor GetDescriptorByName(string name)
-			=> descriptors.FirstOrDefault(d => string.Equals(d.name, name));
-
-
 		// MaterialCombiner передаёт сюда материал, который ему нужно адаптировать.
 		// Если дескрипторы из этого адаптера, то хорошо, на пол беды меньше.
 		// Но если из другого, то адаптеру придется подумать как адаптировать этот канал.
@@ -136,7 +146,23 @@ namespace Kawashirov.MaterialCombining {
 		// Возвращает true и data, если адаптер понимает данный материал и смог его адаптировать.
 		public abstract bool TryAdaptMaterial(Material mat, List<DataChannelDescriptor> descriptors, out DataAdapted data);
 
-		public abstract void DataToMaterial(List<DataChannel> data, Material atlassed);
+		public virtual bool DiffFloat(Material left, Material right, string name) {
+			if (!left.HasFloat(name) && !right.HasFloat(name))
+				return false;
+			if (!(left.HasFloat(name) && right.HasFloat(name)))
+				return true;
+			var left_v = left.GetFloat(name);
+			var right_v = right.GetFloat(name);
+			return !Mathf.Approximately(left_v, right_v);
+		}
+
+		// Должен сравнить два материала на совместимость, согласно настройкам этого адаптера.
+		public abstract bool IsCompatible(Material left, Material right);
+
+		// Должен создать новый материал (и настроить его),
+		// на основе данного оригинала (не изменяя его)
+		public abstract Material MakeNewTarget(Material original);
+
 	}
 }
 #endif
