@@ -22,27 +22,32 @@ namespace Kawashirov {
 			var path = $"<i>@ {this.KawaGetFullPath()}</i>";
 			if (override_context != null)
 				path = $"<i>@ {override_context.KawaGetFullPath()}</i>\n{path}";
-			
+
 			return $"[{type_name}] {message}\n{path}";
 		}
 
+		[HideInCallstack]
 		public void Log(string message, Object override_context = null) {
 			Debug.Log(FormatForLog(message, override_context, out var context), context);
 		}
 
+		[HideInCallstack]
 		public void LogWarning(string message, Object override_context = null) {
 			Debug.LogWarning(FormatForLog(message, override_context, out var context), context);
 		}
 
+		[HideInCallstack]
 		public void LogError(string message, Object override_context = null) {
 			Debug.LogError(FormatForLog(message, override_context, out var context), context);
 		}
 
+		[HideInCallstack]
 		public void LogException(Exception exception, Object override_context = null) {
 			var context = override_context != null ? override_context : this;
 			Debug.LogException(exception, context);
 		}
 
+		[HideInCallstack]
 		public void LogException(string message, Exception exception, Object override_context = null) {
 			var msg = FormatForLog(message, override_context, out var context);
 			Debug.LogException(exception, context);
