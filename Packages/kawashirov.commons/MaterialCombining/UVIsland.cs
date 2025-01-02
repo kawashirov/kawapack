@@ -7,6 +7,10 @@ using UnityEngine;
 
 namespace Kawashirov.MaterialCombining {
 	public readonly struct UVIsland {
+		public static readonly UVIsland singual = new UVIsland(
+			float.PositiveInfinity, float.PositiveInfinity, float.NegativeInfinity, float.NegativeInfinity
+		);
+
 		// preffered coord system is pixels
 		public readonly float umin, vmin, umax, vmax;
 
@@ -66,6 +70,28 @@ namespace Kawashirov.MaterialCombining {
 				return false;
 			}
 		}
+
+		// Проверяет, что inner внутри this с допуском epsilon
+		public bool Inside(UVIsland inner, float epsilon) {
+			return umin <= inner.umin + epsilon &&
+				inner.umax - epsilon <= umax &&
+				vmin <= inner.vmin + epsilon &&
+				inner.vmax - epsilon <= vmax;
+		}
+
+		private static float InverseLerpUnclamped(float a, float b, float value) {
+			return a != b ? (value - a) / (b - a) : 0f;
+		}
+
+		public Vector2 InverseLerp(Vector2 uv) => new Vector2(
+			InverseLerpUnclamped(umin, umax, uv.x),
+			InverseLerpUnclamped(vmin, vmax, uv.y)
+		);
+
+		public Vector2 Lerp(Vector2 uv) => new Vector2(
+			Mathf.LerpUnclamped(umin, umax, uv.x),
+			Mathf.LerpUnclamped(vmin, vmax, uv.y)
+		);
 
 		public UVIsland ExpandByUVPoint(Vector2 uv) => new UVIsland(
 			Mathf.Min(umin, uv.x), Mathf.Min(vmin, uv.y),

@@ -22,16 +22,20 @@ namespace Kawashirov.MaterialCombining {
 		public AbstractMaterialFilter[] Filters;
 
 		[Space]
-		public AbstractMaterialAdapter[] MatToDataAdapters;
-		public AbstractMaterialAdapter DataToMatAdapter;
+		public AbstractMaterialAdapter MainAdapter;
+		public AbstractMaterialAdapter[] SecondaryAdapters;
 
 		[Header("Properties below are auto-generated")]
-		public Texture2D[] TargetTextures;
-		public Material[] TargetMaterials;
+		public Texture2D[] OriginalTextures;
+		public Texture2D[] OriginalMaterials;
+		public Texture2D[] AtlasTextures;
+		public Material[] AtlasMaterials;
+		public Mesh[] AtlasMeshes;
 
 		/**/
 		public List<DataChannelDescriptor> descriptors;
-		protected Dictionary<Material, MaterialSlotGroup> materials;
+		protected readonly List<RendererGroup> renderers = new List<RendererGroup>();
+		protected readonly Dictionary<Material, MaterialSlotGroup> materials = new Dictionary<Material, MaterialSlotGroup>();
 		protected readonly HashSet<Material> unadaptable = new HashSet<Material>();
 		protected Vector2Int atlasSize = Vector2Int.zero;
 
@@ -41,12 +45,12 @@ namespace Kawashirov.MaterialCombining {
 
 
 		protected virtual void InitData() {
-			if (DataToMatAdapter == null) {
-				var msg = $"{nameof(DataToMatAdapter)} is not set!";
+			if (MainAdapter == null) {
+				var msg = $"{nameof(MainAdapter)} is not set!";
 				LogError(msg);
 				throw new NullReferenceException(msg);
 			}
-			descriptors = DataToMatAdapter.InitDescriptors();
+			descriptors = MainAdapter.InitDescriptors();
 			Log($"Initialized {descriptors.Count} data channels desciptors materials.");
 		}
 
@@ -55,22 +59,10 @@ namespace Kawashirov.MaterialCombining {
 			return gobjs.SelectMany(g => g.GetComponentsInChildren<Renderer>(true)).Distinct();
 		}
 
-		protected virtual Mesh GetMesh(Renderer renderer) {
-			if (renderer is MeshRenderer mesh_renderer) {
-				if (mesh_renderer.TryGetComponent<MeshFilter>(out var filter)) {
-					return filter.sharedMesh;
-				}
-			} else if (renderer is SkinnedMeshRenderer skinned_renderer) {
-				return skinned_renderer.sharedMesh;
-			}
-			// TODO more types
-			return null;
-		}
-
 		protected virtual bool TryAdaptMaterial(Material mat, out DataAdapted data) {
 			Log($"Adapting material {mat}...");
 			data = null;
-			foreach (var adapter_i in MatToDataAdapters) {
+			foreach (var adapter_i in SecondaryAdapters) {
 				// TODO logs & errors
 				if (!adapter_i.TryAdaptMaterial(mat, descriptors, out data))
 					continue;
@@ -98,42 +90,54 @@ namespace Kawashirov.MaterialCombining {
 			return false;
 		}
 
-		protected virtual void ProcessRenderer(Renderer renderer, Mesh mesh, int slot, Material mat) {
+		// Возвращает true, если слот был добавлен в группу
+		protected virtual MaterialSlotItem ProcessRenderer(RendererGroup group_r, int slot, Material mat) {
 			// Если известно, что материал не поддаётся адаптации, 
 			// то дальнейшие проверки не имеют смысла.
 			if (unadaptable.Contains(mat))
-				return;
+				return null;
+
+			var (renderer, mesh) = (group_r.renderer, group_r.meshOriginal);
 
 			// В первую очередь спрашиваем фильтры.
 			if (Filters.Any(f => f.CheckExclude(renderer, mesh, slot, mat)))
-				return;
+				return null;
 			if (!Filters.Any(f => f.CheckInclude(renderer, mesh, slot, mat)))
-				return;
+				return null;
 
 			if (TryGetMaterialGroup(mat, out var group)) {
 				var item = new MaterialSlotItem(group, renderer, slot, mesh, mat);
-				if (!item.EnsureSlotsConsistent(false))
-					return;
-				if (!item.EnsureUV2D(false))
-					return;
+				if (!item.EnsureSlotsConsistent(item.meshOriginal, false))
+					return null;
+				if (!item.EnsureUV2D(item.meshOriginal, false))
+					return null;
 				group.items.Add(item);
+				return item;
 			}
+
+			return null;
 		}
 
 		protected virtual void ProcessRenderer(Renderer renderer) {
-			var mesh = GetMesh(renderer);
-			if (mesh == null)
+			var group_r = new RendererGroup(this, renderers.Count, renderer);
+			if (group_r.GetMesh(renderer) == null) {
+				LogWarning($"Renderer {renderer} doesn't have mesh? Skip.", renderer);
 				return;
+			}
 			var slots = renderer.sharedMaterials;
 			for (var i = 0; i < slots.Length; ++i) {
-				ProcessRenderer(renderer, mesh, i, slots[i]);
+				var item = ProcessRenderer(group_r, i, slots[i]);
+				if (item != null)
+					group_r.Add(item);
 				// TODO better logs & exceptions
 			}
+			if (group_r.items.Count > 0)
+				renderers.Add(group_r);
 		}
 
 		protected virtual void FilterGroupAndAdapt() {
 			Log($"Searching renderers to combine materials on...");
-			materials = new Dictionary<Material, MaterialSlotGroup>();
+			materials.Clear();
 			unadaptable.Clear();
 			foreach (var renderer in CollectRenderers()) {
 				ProcessRenderer(renderer);
@@ -157,7 +161,7 @@ namespace Kawashirov.MaterialCombining {
 				yield return null;
 			}
 			var sum = materials.Values.Select(g => g.IslandsCount()).Sum();
-			MaterialSlotGroup.ResetBuffers(); // Больше не понадобятся.
+			MaterialSlotGroup.ResetBuffers(); // Пока не понадобятся.
 			Log($"Got {sum} UV islands total from {materials.Count} materials.");
 			yield return null;
 		}
@@ -292,13 +296,13 @@ namespace Kawashirov.MaterialCombining {
 
 			for (var islands_i = 0; islands_i < group.islandsAtlas.Count; ++islands_i) {
 				var island_source = group.islandsPadded[islands_i]; // pixel coords
-				var island_target = group.islandsAtlas[islands_i]; // 0..1 coords
+				var island_atlas = group.islandsAtlas[islands_i]; // 0..1 coords
 				var vec_source = island_source.ToVector4Norm(src_tex_size.x, src_tex_size.y);
-				var vec_target = island_target.ToVector4();
+				var vec_atlas = island_atlas.ToVector4();
 				mat_blit.SetVector("_SourceRect", vec_source);
-				mat_blit.SetVector("_TargetRect", vec_target);
+				mat_blit.SetVector("_TargetRect", vec_atlas);
 				mat_blit.SetTexture("_TargetTex", tex_dst1);
-				Log($"Blitting {mat_original}/{dsc_name}/{islands_i}: {island_source}/{vec_source} -> {vec_target}");
+				Log($"Blitting {mat_original}/{dsc_name}/{islands_i}: {island_source}/{vec_source} -> {vec_atlas}");
 				var capture = false; // descriptor.isNormal && data.dstTex.Any(t => t != Texture2D.normalTexture);
 				try {
 					if (capture)
@@ -432,11 +436,12 @@ namespace Kawashirov.MaterialCombining {
 				Texture2D png_asset;
 				do {
 					png_asset = AtlasReImportPNG(path_png, true); // final
+					Selection.SetActiveObjectWithContext(png_asset, this);
 					yield return null;
 				} while (png_asset == null);
 
 				descriptor.atlasTexture = png_asset;
-				TargetTextures = TargetTextures.Append(png_asset).ToArray();
+				AtlasTextures = AtlasTextures.Append(png_asset).ToArray();
 			} finally {
 				if (tex_dst1 != null)
 					RenderTexture.ReleaseTemporary(tex_dst1); // DestroyImmediate(tex_dst1);
@@ -446,7 +451,7 @@ namespace Kawashirov.MaterialCombining {
 		}
 
 		protected virtual IEnumerator AtlasBake() {
-			TargetTextures = new Texture2D[0];
+			AtlasTextures = new Texture2D[0];
 			var shader = Shader.Find("Kawashirov/MaterialCombiner/BlitCopy");
 			try {
 				mat_blit = new Material(shader);
@@ -463,36 +468,54 @@ namespace Kawashirov.MaterialCombining {
 		}
 
 		public virtual Material ConvertMaterial(Material original) {
-			foreach (var target in TargetMaterials) {
-				if (DataToMatAdapter.IsCompatible(original, target))
-					return target;
+			foreach (var mat_atlas_ext in AtlasMaterials) {
+				if (MainAdapter.IsCompatible(original, mat_atlas_ext))
+					return mat_atlas_ext;
 			}
 
-			var new_target = DataToMatAdapter.MakeNewTarget(original);
-			foreach (var target in TargetMaterials) {
+			var mat_atlas = MainAdapter.MakeNewAtlasMaterial(original);
+			foreach (var mat_atlas_ext in AtlasMaterials) {
 				// Может получиться так, что новый 
-				if (DataToMatAdapter.IsCompatible(new_target, target)) {
-					DestroyImmediate(new_target);
-					return target;
+				if (MainAdapter.IsCompatible(mat_atlas, mat_atlas_ext)) {
+					DestroyImmediate(mat_atlas);
+					return mat_atlas_ext;
 				}
 			}
-			new_target.name = $"SavedTextureAtlas_{TargetMaterials.Length}";
-			var path_target = $"Assets/{new_target.name}.mat"; // TODO
-			AssetDatabase.CreateAsset(new_target, path_target);
-			Log($"Saved new atlas material {new_target} as \"{path_target}\"", new_target);
-			TargetMaterials = TargetMaterials.Append(new_target).ToArray();
-			return new_target;
+			mat_atlas.name = $"SavedTextureAtlas_{AtlasMaterials.Length}";
+			var mat_atlas_path = $"Assets/{mat_atlas.name}.mat"; // TODO
+			AssetDatabase.CreateAsset(mat_atlas, mat_atlas_path);
+			Log($"Saved new atlas material {mat_atlas} as \"{mat_atlas_path}\"", mat_atlas);
+			AtlasMaterials = AtlasMaterials.Append(mat_atlas).ToArray();
+			return mat_atlas;
 		}
 
 		protected virtual void ConvertMaterials() {
-			TargetMaterials = new Material[0];
+			AtlasMaterials = new Material[0];
 			foreach (var group in materials.Values) {
 				group.matAtlas = ConvertMaterial(group.matOriginal);
 				Log($"Converted orignal {group.matOriginal} -> atlas {group.matAtlas}.");
 			}
 		}
 
-		protected virtual IEnumerator ApplyMatAndUV() {
+		protected virtual IEnumerator AtlasApply() {
+			var items_c = materials.Values.Sum(g => g.items.Count);
+			Log($"Applying UV transforms to {items_c} temp mat slot meshes...");
+			foreach (var mat_group in materials.Values) {
+				mat_group.ApplyMatAndUV();
+				// yield return null;
+			}
+			yield return null;
+			Log($"Applied UV transforms to {items_c} temp mat slot meshes, processing {renderers.Count} renderers...");
+			foreach (var r_group in renderers) {
+				r_group.RecombineMeshes();
+				r_group.SetMeshAtlas();
+				r_group.ApplyMaterials();
+				Selection.SetActiveObjectWithContext(r_group.renderer, this);
+				// yield return null;
+			}
+			// yield return null;
+			AtlasMeshes = renderers.Select(rg => rg.meshAtlas).ToArray();
+			Log($"Applied atlas to {materials.Count} materials, {items_c} slots, generated {AtlasMeshes.Length} meshes.");
 			yield return null;
 		}
 
@@ -534,7 +557,7 @@ namespace Kawashirov.MaterialCombining {
 			yield return null;
 
 			// И применить на меши.
-			var task_apply = ApplyMatAndUV();
+			var task_apply = AtlasApply();
 			while (task_apply.MoveNext())
 				yield return task_apply.Current;
 

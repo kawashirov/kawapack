@@ -129,7 +129,9 @@ namespace Kawashirov.MaterialCombining {
 
 		/* abstract API */
 
-		protected abstract Shader GetDefaultTargetShader();
+		protected abstract Shader GetDefaultAtlasShader();
+
+		public abstract Shader EnsureAtlasShader();
 
 		protected abstract IEnumerable<DataChannelDescriptor> YieldDescriptors();
 
@@ -161,7 +163,7 @@ namespace Kawashirov.MaterialCombining {
 
 		// Должен создать новый материал (и настроить его),
 		// на основе данного оригинала (не изменяя его)
-		public abstract Material MakeNewTarget(Material original);
+		public abstract Material MakeNewAtlasMaterial(Material original);
 
 	}
 }

@@ -1,22 +1,29 @@
 #if UNITY_EDITOR
 using System;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 
+using Object = UnityEngine.Object;
+
 namespace Kawashirov.MaterialCombining {
-	public readonly struct MaterialSlotItem {
-		public readonly MaterialSlotGroup parent;
+	public class MaterialSlotItem {
+		public readonly MaterialSlotGroup matGroup;
 		public readonly Renderer renderer;
 		public readonly int slot;
-		public readonly Mesh mesh;
-		public readonly Material original;
+		public readonly Mesh meshOriginal;
+		public readonly Material matOriginal;
 
-		public MaterialSlotItem(MaterialSlotGroup parent, Renderer renderer, int slot, Mesh mesh, Material original) {
-			this.parent = parent;
+		public Mesh meshUnique = null; // С.м. комменты в RendererGroup
+		public Material matAtlas = null;
+
+		public MaterialSlotItem(MaterialSlotGroup matGroup, Renderer renderer, int slot, Mesh meshOriginal, Material matOriginal) {
+			this.matGroup = matGroup;
 			this.renderer = renderer;
 			this.slot = slot;
-			this.mesh = mesh;
-			this.original = original;
+			this.meshOriginal = meshOriginal;
+			this.matOriginal = matOriginal;
 		}
 
 		public static VertexAttribute UVIndxToAttrib(int uv_idx) {
@@ -33,24 +40,24 @@ namespace Kawashirov.MaterialCombining {
 			};
 		}
 
-		public bool EnsureSlotsConsistent(bool except) {
+		public bool EnsureSlotsConsistent(Mesh mesh, bool except) {
 			if (slot < mesh.subMeshCount)
 				return true;
 			var msg = $"{this}: Only have {mesh.subMeshCount} material slots!";
 			if (except)
 				throw new Exception(msg + " This shouldn't happened.");
-			parent.parent.LogWarning(msg + " This slot will be skipped.");
+			matGroup.parent.LogWarning(msg + " This slot will be skipped.");
 			return false;
 		}
 
-		public bool EnsureUV2D(bool except) {
-			var uv_idx = parent.adapted.uvIndex;
+		public bool EnsureUV2D(Mesh mesh, bool except) {
+			var uv_idx = matGroup.adapted.uvIndex;
 			var attr = UVIndxToAttrib(uv_idx);
 			if (!mesh.HasVertexAttribute(attr)) {
 				var msg = $"{this}: The material requires UV №{uv_idx}, but the mesh have no this UV layer!";
 				if (except)
 					throw new Exception(msg + " This shouldn't happened.");
-				parent.parent.LogWarning(msg + " This slot will be skipped.");
+				matGroup.parent.LogWarning(msg + " This slot will be skipped.");
 				return false;
 			}
 
@@ -59,15 +66,31 @@ namespace Kawashirov.MaterialCombining {
 				var msg = $"{this}: The material requires 2D UV №{uv_idx}, but this UV layer have dimension of {dim}!";
 				if (except)
 					throw new Exception(msg);
-				parent.parent.LogWarning(msg + " This slot will be skipped.");
+				matGroup.parent.LogWarning(msg + " This slot will be skipped.");
 				return false;
 			}
 
 			return true;
 		}
 
+		public Mesh MakeUniqueMesh() {
+			Assert.IsNull(meshUnique);
+			// Хитровыебанный способ отсоединить одну сабмеш от другой - скомбинировать только одну меш.
+			meshUnique = new Mesh() { name = $"Tmp_{matGroup.parent.gameObject.name}_{meshOriginal.name}" };
+			var combine = new CombineInstance() { mesh = meshOriginal, subMeshIndex = slot };
+			meshUnique.CombineMeshes(new CombineInstance[1] { combine }, false, false, false);
+			MeshUtility.Optimize(meshUnique);
+			Assert.IsTrue(meshUnique.subMeshCount == 1);
+			return meshUnique;
+		}
+
+		public void DestroyUniqueMesh() {
+			if (meshUnique != null)
+				Object.DestroyImmediate(meshUnique);
+		}
+
 		public override string ToString()
-			=> $"MaterialSlotItem({parent}, {renderer}, {slot}, {mesh}, {original})";
+			=> $"MaterialSlotItem({matGroup}, {renderer}, {slot}, {meshOriginal}, {matOriginal})";
 	}
 }
 #endif

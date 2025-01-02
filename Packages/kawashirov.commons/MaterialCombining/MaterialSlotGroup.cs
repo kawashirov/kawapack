@@ -1,8 +1,11 @@
 #if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Algolia.Search.Models.Common;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Kawashirov.MaterialCombining {
 	public class MaterialSlotGroup {
@@ -40,6 +43,8 @@ namespace Kawashirov.MaterialCombining {
 			items = new List<MaterialSlotItem>(1);
 		}
 
+		public int IslandsCount() => islandsOriginal.Count;
+
 		public static void ResetBuffers() {
 			BUFFER_INDICES.Clear();
 			BUFFER_INDICES.Capacity = 1;
@@ -55,6 +60,16 @@ namespace Kawashirov.MaterialCombining {
 				MeshTopology.Points => 1,
 				_ => fallback
 			};
+		}
+
+		public void CheckIndiciesCount(ref int steps, MeshTopology topology, int count) {
+			if (count % steps != 0) {
+				steps = count;
+				parent.LogWarning(
+					$"{this}: have topology={topology} by {steps} indicies, " +
+					$"but have {count} total indicies!"
+				);
+			}
 		}
 
 		public void CalcTexSize() {
@@ -106,25 +121,22 @@ namespace Kawashirov.MaterialCombining {
 			// но в среднем чуть хуже чем O(n). Скорее всего O(nlogn), но мне лень считать.
 		}
 
-		protected virtual void FindUVIslands(MaterialSlotItem item) {
-			item.EnsureSlotsConsistent(true);
-			item.EnsureUV2D(true);
+		protected virtual void CalcIslands(MaterialSlotItem item) {
+			var mesh = item.meshOriginal;
 
-			item.mesh.GetUVs(0, BUFFER_UV);
+			item.EnsureSlotsConsistent(mesh, true);
+			item.EnsureUV2D(mesh, true);
 
-			var topology = item.mesh.GetTopology(item.slot);
-			var steps = TopologyToSteps(topology, BUFFER_INDICES.Count);
-
+			BUFFER_UV.Clear();
 			BUFFER_INDICES.Clear();
-			item.mesh.GetIndices(BUFFER_INDICES, item.slot);
-			if (BUFFER_INDICES.Count % steps != 0) {
-				steps = 1;
-				parent.LogWarning(
-					$"{this}: have topology={topology} by {steps} indices, " +
-					$"but have {BUFFER_INDICES.Count} total idices!"
-				);
-			}
+			mesh.GetUVs(adapted.uvIndex, BUFFER_UV);
+			mesh.GetIndices(BUFFER_INDICES, item.slot);
 
+			var topology = mesh.GetTopology(item.slot);
+			var steps = TopologyToSteps(topology, BUFFER_INDICES.Count);
+			CheckIndiciesCount(ref steps, topology, BUFFER_INDICES.Count);
+
+			var st = adapted.texST;
 			for (var i = 0; i < BUFFER_INDICES.Count; i += steps) {
 				var v_idx = BUFFER_INDICES[i];
 				var uv = BUFFER_UV[v_idx];
@@ -133,20 +145,24 @@ namespace Kawashirov.MaterialCombining {
 					v_idx = BUFFER_INDICES[i + j];
 					island_raw = island_raw.ExpandByUVPoint(BUFFER_UV[v_idx]);
 				}
-				var island_px = island_raw.TransformST(adapted.texST).ToTexCoords(textureSize).RoundToInt();
+				var island_px = island_raw.TransformST(st).ToTexCoords(textureSize).RoundToInt();
 				// parent.Log($"{this}: PushUVIsland: {island_px}");
 				PushUVIsland(island_px);
 			}
+
+			BUFFER_UV.Clear();
+			BUFFER_INDICES.Clear();
 		}
 
 		public virtual void CalcIslands() {
 			parent.Log($"Searching UV islands for {matOriginal} on {items.Count} slots...");
+
 			islandsOriginal.Clear();
 			debugUVPushes = 0;
 			debugUVIters = 0;
-			foreach (var item in items) {
-				FindUVIslands(item);
-			}
+			foreach (var item in items)
+				CalcIslands(item);
+
 			islandsOriginal.TrimExcess();
 			var count = islandsOriginal.Count;
 			var islandsOriginal_l = string.Join("\n", islandsOriginal.Select((isl, idx) => $"- №{idx}: {isl}"));
@@ -165,8 +181,109 @@ namespace Kawashirov.MaterialCombining {
 			islandsAtlas.TrimExcess();
 		}
 
-		public int IslandsCount() {
-			return islandsOriginal.Count;
+		public virtual void ApplyMatAndUV(MaterialSlotItem item) {
+			var mesh = item.MakeUniqueMesh();
+			Selection.SetActiveObjectWithContext(mesh, parent);
+
+			item.EnsureSlotsConsistent(mesh, true);
+			item.EnsureUV2D(mesh, true);
+
+			BUFFER_UV.Clear();
+			BUFFER_INDICES.Clear();
+			mesh.GetUVs(adapted.uvIndex, BUFFER_UV);
+			mesh.GetIndices(BUFFER_INDICES, 0);
+
+			var topology = mesh.GetTopology(0);
+			var steps = TopologyToSteps(topology, BUFFER_INDICES.Count);
+			CheckIndiciesCount(ref steps, topology, BUFFER_INDICES.Count);
+
+			var adapted_st = adapted.texST;
+
+			Assert.IsTrue(islandsOriginal.Count == islandsPadded.Count);
+			Assert.IsTrue(islandsOriginal.Count == islandsAtlas.Count);
+
+			var map_idx_to_isl = new int[BUFFER_UV.Count];
+			for (var i = 0; i < BUFFER_UV.Count; ++i)
+				map_idx_to_isl[i] = -1; // маркер 
+
+			// В одном цикле нельзя, т.к. индексы часто общие между соседними примитивами 
+			// и изменение BUFFER_UV ломает поиск островов.
+			// Также, все примитивы одного индекса должны пренадлежать одному острову, 
+			// так что разрывов быть не должно.
+			for (var i = 0; i < BUFFER_INDICES.Count; i += steps) {
+				var island_idx = -1;
+				// Формируем остров.
+				var island_raw = UVIsland.singual;
+				for (var j = 0; j < steps; j++) {
+					var v_idx = BUFFER_INDICES[i + j];
+					if (map_idx_to_isl[v_idx] != -1) {
+						// Один из индексов мы уже нашли, значит и другие принадлежат к этому же острову.
+						// Можно пропустить дальнейший поиск.
+						island_idx = map_idx_to_isl[v_idx];
+						break;
+					}
+					var uv = BUFFER_UV[v_idx];
+					island_raw = island_raw.ExpandByUVPoint(uv);
+				}
+
+				if (island_idx == -1) {
+					// Ни один из индексов не был найден до этого, 
+					// так что считерить не получится и будем искать.
+					// Округление до целого не обязательно.
+					var island_px = island_raw.TransformST(adapted_st).ToTexCoords(textureSize);
+					// Поиск такого острова, в который быполностью поместился бы сформированый.
+					for (island_idx = 0; island_idx < islandsOriginal.Count; ++island_idx)
+						// Точности в 0.1 пикселя должно быть более чем достаточно.
+						if (islandsOriginal[island_idx].Inside(island_px, 0.1f))
+							break;
+					// Такой должен быть всегда т.к. в CalcIslands тот же алгоритм.
+					Assert.IsTrue(island_idx < islandsOriginal.Count,
+						$"Can't find matching island for \n{island_raw},\n{island_px}\n" +
+						$"across {islandsOriginal.Count} islands at {item.meshOriginal}, {item.renderer}.\n" +
+						$"BUFFER_INDICES={BUFFER_INDICES.Count}, BUFFER_UV={BUFFER_UV.Count}, steps={steps}");
+				}
+
+				// Запоминаем найденый остров.
+				for (var j = 0; j < steps; j++) {
+					map_idx_to_isl[BUFFER_INDICES[i + j]] = island_idx;
+				}
+			}
+
+			// К каждому индексу применяем преобразование его острова.
+			for (var i = 0; i < BUFFER_UV.Count; ++i) {
+				var island_idx = map_idx_to_isl[i];
+				Assert.IsFalse(island_idx == -1);
+				if (island_idx == -1)
+					// Для этого индекса не найден остров. Такое может быть 
+					// если меш "не оптимизирована" и на ней есть "мёртвые" индексы.
+					continue;
+
+				var island_ppx = islandsPadded[island_idx]; // px coords
+				var island_atlas = islandsAtlas[island_idx]; // 0..1 coords
+
+				var uv = BUFFER_UV[i];
+				// original 0..1 -> scale/offset 0..1 -> original tex px
+				uv.x = (uv.x * adapted_st.x + adapted_st.z) * textureSize.x;
+				uv.y = (uv.y * adapted_st.y + adapted_st.w) * textureSize.y;
+				// original tex px -> window 0..1 -> atlas 0..1
+				uv = island_ppx.InverseLerp(uv);
+				uv = island_atlas.Lerp(uv);
+				// для отладки
+				// uv.x = island_atlas.umin * 0.5f + island_atlas.umax * 0.5f;
+				// uv.y = island_atlas.vmin * 0.5f + island_atlas.vmax * 0.5f;
+				BUFFER_UV[i] = uv;
+			}
+
+			mesh.SetUVs(adapted.uvIndex, BUFFER_UV);
+
+			BUFFER_UV.Clear();
+			BUFFER_INDICES.Clear();
+		}
+
+		public virtual void ApplyMatAndUV() {
+			foreach (var item in items)
+				ApplyMatAndUV(item);
+
 		}
 
 	}

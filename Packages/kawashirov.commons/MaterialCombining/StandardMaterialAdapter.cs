@@ -63,23 +63,23 @@ namespace Kawashirov.MaterialCombining {
 			}
 		}
 
-		protected override Shader GetDefaultTargetShader() {
+		protected override Shader GetDefaultAtlasShader() {
 			return Workflow switch {
 				WorkflowMode.Specular => Shader.Find(SHADER_NAME_SPECULAR),
 				WorkflowMode.Metallic => Shader.Find(SHADER_NAME_METALLIC),
 				// WorkflowMode.Dielectric => Shader.Find(SHADER_NAME_DIELECTRIC),
-				_ => throw new Exception()
+				_ => null
 			};
 		}
 
-		protected virtual Shader EnsureTargetShader() {
+		public override Shader EnsureAtlasShader() {
 			if (OverrideShader != null) {
 				return OverrideShader;
 			}
 
-			var target_sahder = GetDefaultTargetShader();
-			if (target_sahder != null) {
-				return target_sahder;
+			var atlas_shader = GetDefaultAtlasShader();
+			if (atlas_shader != null) {
+				return atlas_shader;
 			}
 
 			throw new Exception();
@@ -285,12 +285,12 @@ namespace Kawashirov.MaterialCombining {
 			}
 		}
 
-		public virtual void ApplyTargetAlbedo(Material mat) {
+		protected virtual void ApplyAtlasAlbedo(Material mat) {
 			SetTextureDesc(mat, "_MainTex", descAlbedo);
 			mat.SetColor("_Color", Color.white);
 		}
 
-		public virtual void ApplyTargetWhateverGloss(Material mat) {
+		protected virtual void ApplyAtlasWhateverGloss(Material mat) {
 			if (descMetalSmooth != null && descMetalSmooth.atlasTexture != null) {
 				SetTextureNoST(mat, "_MetallicGlossMap", descMetalSmooth.atlasTexture);
 				SetTextureNoST(mat, "_SpecGlossMap", null);
@@ -315,7 +315,7 @@ namespace Kawashirov.MaterialCombining {
 		}
 
 
-		public virtual void ApplyTargetNormal(Material mat) {
+		protected virtual void ApplyAtlasNormal(Material mat) {
 			if (descNormal != null && descNormal.atlasTexture != null) {
 				SetTextureNoST(mat, "_BumpMap", descNormal.atlasTexture);
 				mat.EnableKeyword("_NORMALMAP");
@@ -326,7 +326,7 @@ namespace Kawashirov.MaterialCombining {
 			mat.SetFloat("_BumpScale", 1);
 		}
 
-		public virtual void ApplyTargetEmission(Material mat) {
+		protected virtual void ApplyAtlasEmission(Material mat) {
 			if (descEmission != null && descEmission.atlasTexture != null) {
 				SetTextureNoST(mat, "_EmissionMap", descEmission.atlasTexture);
 				mat.SetColor("_EmissionColor", Color.white);
@@ -373,40 +373,40 @@ namespace Kawashirov.MaterialCombining {
 			return true;
 		}
 
-		protected virtual Material InstantiateNewTarget(Material original) {
-			var target = Instantiate(original);
-			target.parent = null;
-			target.shader = EnsureTargetShader();
-			return target;
+		protected virtual Material InstantiateNewAtlasMaterial(Material original) {
+			var atlas = Instantiate(original);
+			atlas.parent = null;
+			atlas.shader = EnsureAtlasShader();
+			return atlas;
 		}
 
-		public override Material MakeNewTarget(Material original) {
-			var target = Instantiate(original);
-			target.parent = null;
+		public override Material MakeNewAtlasMaterial(Material original) {
+			var atlas = Instantiate(original);
+			atlas.parent = null;
 
-			ApplyTargetAlbedo(target);
+			ApplyAtlasAlbedo(atlas);
 
 			// _Cutoff matters
 
-			ApplyTargetWhateverGloss(target);
+			ApplyAtlasWhateverGloss(atlas);
 
 			// _SpecularHighlights, _GlossyReflections matters
 
-			ApplyTargetNormal(target);
+			ApplyAtlasNormal(atlas);
 
 			// TODO _Parallax, _ParallaxMap
 
 			// TODO _OcclusionStrength, _OcclusionMap
 
-			ApplyTargetEmission(target);
+			ApplyAtlasEmission(atlas);
 
 			// Reset unsupported
-			SetTextureNoST(target, "_DetailMask", null);
-			SetTextureNoST(target, "_DetailAlbedoMap", null);
-			target.SetFloat("_DetailNormalMapScale", 1);
-			SetTextureNoST(target, "_DetailNormalMap", null);
-			target.SetFloat("_UVSec", 0);
-			return target;
+			SetTextureNoST(atlas, "_DetailMask", null);
+			SetTextureNoST(atlas, "_DetailAlbedoMap", null);
+			atlas.SetFloat("_DetailNormalMapScale", 1);
+			SetTextureNoST(atlas, "_DetailNormalMap", null);
+			atlas.SetFloat("_UVSec", 0);
+			return atlas;
 		}
 	}
 }
