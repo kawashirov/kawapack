@@ -1,4 +1,4 @@
-#if UNITY_EDITOR && KAWA_DEBUG
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEditor;
 using System.Linq;
@@ -12,6 +12,45 @@ namespace Kawashirov {
 			"Packages/kawashirov.vrc.worlds",
 			"Packages/kawashirov.vrc.avatars"
 		};
+
+		private static readonly BuildTargetGroup[] BuildTargets = new BuildTargetGroup[]{
+			BuildTargetGroup.Standalone, BuildTargetGroup.Android
+		};
+		private static readonly string[] DebugDefines = new string[] {
+			"KAWA_DEBUG", "UNITY_ASSERTIONS"
+		};
+
+
+		public static bool DefinesDiffers(string[] old_defines, string[] new_defines) {
+			if (old_defines.Length == new_defines.Length &&
+				old_defines.Zip(new_defines, (x, y) => string.Equals(x, y)).All(x => x))
+				return false;
+			var old_s = string.Join("\n", old_defines);
+			var new_s = string.Join("\n", old_defines);
+			Debug.LogWarning($"Changing defines from:\n\n{old_s}\n\nto:\n\n{new_s}");
+			return true;
+		}
+
+		[MenuItem("Kawashirov/Internals/Enable Debug")]
+		public static void EnableDebug() {
+			foreach (var target in BuildTargets) {
+				PlayerSettings.GetScriptingDefineSymbolsForGroup(target, out var old_defines);
+				var new_defines = old_defines.Concat(DebugDefines).Distinct().ToArray();
+				if (DefinesDiffers(old_defines, new_defines))
+					PlayerSettings.SetScriptingDefineSymbolsForGroup(target, new_defines);
+			}
+		}
+
+		[MenuItem("Kawashirov/Internals/Disable Debug")]
+		public static void DisableDebug() {
+			foreach (var target in BuildTargets) {
+				PlayerSettings.GetScriptingDefineSymbolsForGroup(target, out var old_defines);
+				var new_defines = old_defines.Except(DebugDefines).Distinct().ToArray();
+				if (DefinesDiffers(old_defines, new_defines)) {
+					PlayerSettings.SetScriptingDefineSymbolsForGroup(target, new_defines);
+				}
+			}
+		}
 
 		public static bool IsUnityObjectClass(MonoImporter importer) {
 			var script = importer.GetScript();
@@ -41,7 +80,9 @@ namespace Kawashirov {
 			return icon;
 		}
 
+#if KAWA_DEBUG
 		[MenuItem("Kawashirov/Internals/Reapply Icons")]
+#endif
 		public static void ReapplyIcons() {
 			var icon_general = LoadIcon(KawaIconGUID, nameof(KawaIconGUID));
 			var icon_file = LoadIcon(KawaFileIconGUID, nameof(KawaFileIconGUID));
