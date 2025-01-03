@@ -22,12 +22,25 @@ namespace Kawashirov.MaterialCombining {
 
 		/* Serializables */
 
-		[Tooltip("Standard (Specular) vs Standard vs Standard (Dielectric)")]
+		[Tooltip("Standard (Specular) vs Standard")] //  vs Standard (Dielectric)
 		public WorkflowMode Workflow = WorkflowMode.Metallic;
 		public GlossMode Gloss = GlossMode.GlossAndSmoothness;
 
 		[Tooltip("Optional: Replace the shader of altas materials to this one. Must be compatible with this Adapter.")]
 		public Shader OverrideShader;
+
+		[Header("Data Textures Options")]
+		public bool AlbedoEnable = true;
+		public float AlbedoScale = 1;
+
+		public bool GlossEnable = true;
+		public float GlossScale = 1;
+
+		public bool NormalEnable = true;
+		public float NormalScale = 1;
+
+		public bool EmissionEnable = true;
+		public float EmissionScale = 1;
 
 		[Header("Compatibility Options")]
 		[Tooltip("If checked, all Shaders will be assumed supported with respect to ExcludeKeywords and IncludeKeywords")]
@@ -47,11 +60,11 @@ namespace Kawashirov.MaterialCombining {
 
 		/**/
 
-		protected DataChannelDescriptor descAlbedo = null;
-		protected DataChannelDescriptor descSpecSmooth = null;
-		protected DataChannelDescriptor descMetalSmooth = null;
-		protected DataChannelDescriptor descNormal = null;
-		protected DataChannelDescriptor descEmission = null;
+		protected DataTexDesc descAlbedo = null;
+		protected DataTexDesc descSpecSmooth = null;
+		protected DataTexDesc descMetalSmooth = null;
+		protected DataTexDesc descNormal = null;
+		protected DataTexDesc descEmission = null;
 
 		public static string GlossModeToChannels(GlossMode mode) {
 			if (mode == GlossMode.GlossOnly) {
@@ -85,50 +98,55 @@ namespace Kawashirov.MaterialCombining {
 			throw new Exception();
 		}
 
-		protected override IEnumerable<DataChannelDescriptor> YieldDescriptors(Func<string, bool> predicate) {
-			if (predicate(DATACH_ALBEDO)) {
-				yield return descAlbedo = new DataChannelDescriptor(this, DATACH_ALBEDO) {
+		protected override IEnumerable<DataTexDesc> YieldDescriptors() {
+			if (AlbedoEnable) {
+				yield return descAlbedo = new DataTexDesc(this, DATACH_ALBEDO) {
 					bgTexture = Texture2D.blackTexture,
 					textureChannels = "RGBA",
 					bgColor = Color.black,
-					alphaIsTransparency = true, isNormal = false, sRGB = true, HDR = false
+					alphaIsTransparency = true, isNormal = false, sRGB = true, HDR = false,
+					scaleFactor = AlbedoScale
 				};
 			}
 
-			if (Workflow == WorkflowMode.Specular && predicate(DATACH_SPECMOOTH)) {
-				yield return descSpecSmooth = new DataChannelDescriptor(this, DATACH_SPECMOOTH) {
+			if (GlossEnable && Workflow == WorkflowMode.Specular) {
+				yield return descSpecSmooth = new DataTexDesc(this, DATACH_SPECMOOTH) {
 					bgTexture = Texture2D.blackTexture,
 					textureChannels = GlossModeToChannels(Gloss),
 					bgColor = Color.black, // 0 metall, 0 smooth
-					alphaIsTransparency = false, isNormal = false, sRGB = false, HDR = false
+					alphaIsTransparency = false, isNormal = false, sRGB = false, HDR = false,
+					scaleFactor = GlossScale
 				};
 
-			} else if (Workflow == WorkflowMode.Metallic && predicate(DATACH_METALSMOOTH)) {
-				yield return descMetalSmooth = new DataChannelDescriptor(this, DATACH_METALSMOOTH) {
+			} else if (GlossEnable && Workflow == WorkflowMode.Metallic) {
+				yield return descMetalSmooth = new DataTexDesc(this, DATACH_METALSMOOTH) {
 					bgTexture = Texture2D.blackTexture,
 					textureChannels = GlossModeToChannels(Gloss),
 					bgColor = Color.black, // 0 metall, 0 smooth
-					alphaIsTransparency = false, isNormal = false, sRGB = false, HDR = false
+					alphaIsTransparency = false, isNormal = false, sRGB = false, HDR = false,
+					scaleFactor = GlossScale
 				};
 			}
 
-			if (predicate(DATACH_NORMAL)) {
-				yield return descNormal = new DataChannelDescriptor(this, DATACH_NORMAL) {
+			if (NormalEnable) {
+				yield return descNormal = new DataTexDesc(this, DATACH_NORMAL) {
 					bgTexture = Texture2D.normalTexture,
 					// Карта нормалей в Unity использует RGBA, 
 					// т.к. G и A каналы имеют лучшее качество с блочной компрессией
 					textureChannels = "RGBA",
 					bgColor = Color.white,
-					alphaIsTransparency = false, isNormal = true, sRGB = false, HDR = false
+					alphaIsTransparency = false, isNormal = true, sRGB = false, HDR = false,
+					scaleFactor = NormalScale
 				};
 			}
 
-			if (predicate(DATACH_EMISSION)) {
-				yield return descEmission = new DataChannelDescriptor(this, DATACH_EMISSION) {
+			if (EmissionEnable) {
+				yield return descEmission = new DataTexDesc(this, DATACH_EMISSION) {
 					bgTexture = Texture2D.blackTexture,
 					textureChannels = "RGB1",
 					bgColor = Color.black,
-					alphaIsTransparency = false, isNormal = false, sRGB = false, HDR = true
+					alphaIsTransparency = false, isNormal = false, sRGB = false, HDR = true,
+					scaleFactor = EmissionScale
 				};
 			}
 		}
@@ -167,14 +185,14 @@ namespace Kawashirov.MaterialCombining {
 		protected Vector4 MaterialToST(Material mat)
 			=> GetTextureST(mat, "_MainTex", new Vector4(1, 1, 0, 0));
 
-		protected virtual DataChannel GetAlbedoDC(Material mat) {
+		protected virtual DataTex GetAlbedoDC(Material mat) {
 			var main_tex = GetTexture2D(mat, "_MainTex", Texture2D.whiteTexture);
 			var main_color = GetColor(mat, "_Color", Color.white);
-			return new DataChannel(mat, descAlbedo)
+			return new DataTex(mat, descAlbedo)
 				.SetTexRGBA(main_tex).SetColor(main_color);
 		}
 
-		protected virtual void ConfigureSmooth(Material mat, DataChannel dc, Texture2D gloss_tex_raw, Texture2D gloss_tex) {
+		protected virtual void ConfigureSmooth(Material mat, DataTex dc, Texture2D gloss_tex_raw, Texture2D gloss_tex) {
 			// "Smoothness" множитель это разные проперти, в зависимости от наличия или отсутсвия _MetallicGlossMap
 			// См DoSpecularMetallicArea() в StandardShaderGUI.cs reference
 			var smoothness_scale = GetScalar(mat, gloss_tex_raw != null ? "_GlossMapScale" : "_Glossiness", 0);
@@ -191,8 +209,8 @@ namespace Kawashirov.MaterialCombining {
 
 		}
 
-		protected virtual DataChannel GetSpecularDC(Material mat) {
-			var dc = new DataChannel(mat, descSpecSmooth);
+		protected virtual DataTex GetSpecularDC(Material mat) {
+			var dc = new DataTex(mat, descSpecSmooth);
 
 			// У "Specular" множитель не применяется к текстуре. Либо то, либо другое.
 			var specular_tex_raw = GetTexture2D(mat, "_SpecGlossMap", null);
@@ -209,8 +227,8 @@ namespace Kawashirov.MaterialCombining {
 			return dc;
 		}
 
-		protected virtual DataChannel GetMetallicDC(Material mat) {
-			var dc = new DataChannel(mat, descMetalSmooth);
+		protected virtual DataTex GetMetallicDC(Material mat) {
+			var dc = new DataTex(mat, descMetalSmooth);
 
 			// У "Metallic" множитель не применяется к текстуре. Либо то, либо другое.
 			var metallic_tex_raw = GetTexture2D(mat, "_MetallicGlossMap", null);
@@ -227,14 +245,14 @@ namespace Kawashirov.MaterialCombining {
 			return dc;
 		}
 
-		protected virtual DataChannel GetNormalMapDC(Material mat) {
+		protected virtual DataTex GetNormalMapDC(Material mat) {
 			var bumpmap_tex = GetTexture2D(mat, "_BumpMap", Texture2D.normalTexture);
 			var bumpmap_scale = GetScalar(mat, "_BumpScale", 1);
-			return new DataChannel(mat, descNormal)
+			return new DataTex(mat, descNormal)
 				.SetTexRGBA(bumpmap_tex).SetColor(Color.white * bumpmap_scale);
 		}
 
-		protected virtual DataChannel GetEmissionDC(Material mat) {
+		protected virtual DataTex GetEmissionDC(Material mat) {
 			// Для "Emission" имеет значение globalIlluminationFlags
 			var emission_tex = Texture2D.blackTexture;
 			var emission_color = Color.black;
@@ -243,11 +261,11 @@ namespace Kawashirov.MaterialCombining {
 				emission_color = GetColor(mat, "_EmissionColor", Color.black);
 				emission_color.a = 1;
 			}
-			return new DataChannel(mat, descEmission)
+			return new DataTex(mat, descEmission)
 				.SetTexRGB(emission_tex).SetWhiteAlpha().SetColor(emission_color);
 		}
 
-		protected virtual IEnumerable<DataChannel> YieldDataChannels(Material mat, List<DataChannelDescriptor> descriptors) {
+		protected virtual IEnumerable<DataTex> YieldDataTexs(Material mat, List<DataTexDesc> descriptors) {
 			if (this.descriptors == descriptors) {
 				// Если ref на список совпадает, значит это наш список.
 				if (descAlbedo != null)
@@ -277,10 +295,10 @@ namespace Kawashirov.MaterialCombining {
 			}
 		}
 
-		public override bool TryAdaptMaterial(Material mat, List<DataChannelDescriptor> descriptors, out DataAdapted data) {
+		public override bool TryAdaptMaterial(Material mat, List<DataTexDesc> descriptors, out DataAdapted data) {
 			if (CanAdaptMaterial(mat)) {
 				data = new DataAdapted(this,
-					YieldDataChannels(mat, descriptors).ToList(),
+					YieldDataTexs(mat, descriptors).ToList(),
 					MaterialToST(mat),
 					0
 				);

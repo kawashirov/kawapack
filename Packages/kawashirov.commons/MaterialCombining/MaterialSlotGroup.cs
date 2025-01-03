@@ -22,6 +22,7 @@ namespace Kawashirov.MaterialCombining {
 		public readonly DataAdapted adapted;
 		public readonly List<MaterialSlotItem> items;
 
+		public int alignPx = 8;
 		public float epsilonPx = 8;
 		public float paddingPx = 8;
 		public Vector2Int textureSize = Vector2Int.zero;
@@ -35,9 +36,9 @@ namespace Kawashirov.MaterialCombining {
 
 		public Material matAtlas = null;
 
-		public MaterialSlotGroup(MaterialCombiner parent, Material mat, DataAdapted adapted) {
+		public MaterialSlotGroup(MaterialCombiner parent, Material matOriginal, DataAdapted adapted) {
 			this.parent = parent;
-			this.matOriginal = mat;
+			this.matOriginal = matOriginal;
 			this.adapted = adapted;
 			items = new List<MaterialSlotItem>(1);
 		}
@@ -77,7 +78,7 @@ namespace Kawashirov.MaterialCombining {
 				parent.LogWarning($"No texture size for {matOriginal}, there is no data textures!");
 			} else {
 				var ldata = adapted.data.OrderByDescending(d => d.LargestTexSize().sqrMagnitude).First();
-				var desc_name = ldata.descriptor.name;
+				var desc_name = ldata.desc.name;
 				var ts = textureSize = ldata.LargestTexSize();
 				// parent.Log($"Detected size for {matOriginal}: {ts.x}x{ts.y} from data \"{desc_name}\".");
 			}
@@ -172,7 +173,7 @@ namespace Kawashirov.MaterialCombining {
 
 			islandsPadded.Clear();
 			islandsPadded.Capacity = count;
-			islandsPadded.AddRange(islandsOriginal.Select(i => i.Expand(paddingPx)));
+			islandsPadded.AddRange(islandsOriginal.Select(i => i.Expand(paddingPx).Align(alignPx)));
 			islandsPadded.TrimExcess();
 
 			islandsAtlas.Clear();

@@ -1,19 +1,14 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Collections;
-
-
-#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
-#endif
 
 namespace Kawashirov.SceneBuilding {
-	public class SaveBuildingSceneAction : BaseBuildingAction {
-#if UNITY_EDITOR
+	public class SaveBuildingSceneSBA : BaseSBA {
 		public bool ActivateThisScene = true;
 		public bool EnsureOtherScenesUnloaded = true;
 
@@ -29,7 +24,7 @@ namespace Kawashirov.SceneBuilding {
 
 		public void OpenOriginal(bool unload) {
 			if (string.IsNullOrWhiteSpace(OriginalScenePath)) {
-				Debug.LogError($"Can't open original scene, there is no {nameof(OriginalScenePath)} set.", this);
+				LogError($"Can't open original scene, there is no {nameof(OriginalScenePath)} set.");
 			}
 			var original_scene_path = OriginalScenePath;
 
@@ -37,43 +32,42 @@ namespace Kawashirov.SceneBuilding {
 			var is_active = EditorSceneManager.GetActiveScene() == building_scene;
 			Scene original_scene;
 			try {
-				Debug.Log($"Opening original scene \"{original_scene_path}\"...", this);
+				Log($"Opening original scene \"{original_scene_path}\"...");
 				original_scene = EditorSceneManager.OpenScene(original_scene_path, OpenSceneMode.Additive);
 			} catch (ArgumentException exc) {
-				Debug.LogException(exc);
-				Debug.LogError($"Failed to open original scene \"{original_scene_path}\": {exc}", this);
-				return;
+				LogException($"Failed to open original scene \"{original_scene_path}\"", exc);
+				throw exc;
 			}
 
 			if (is_active) {
-				Debug.Log($"Activating original scene \"{original_scene_path}\"...", this);
+				Log($"Activating original scene \"{original_scene_path}\"...");
 				EditorSceneManager.SetActiveScene(original_scene);
 			}
 
 			if (unload) {
-				Debug.Log($"Unloading building scene \"{original_scene_path}\"...", this);
+				Log($"Unloading building scene \"{original_scene_path}\"...");
 				var op = EditorSceneManager.UnloadSceneAsync(building_scene);
-				op.completed += a => Debug.Log($"Unloaded building scene \"{original_scene_path}\".");
+				op.completed += a => Log($"Unloaded building scene \"{original_scene_path}\".");
 			}
 		}
 
-		public override void RunSync() {
+		public override void RunSync(BuildingScenario scenario) {
 			var scene = gameObject.scene;
 			var original_scene_path = OriginalScenePath = scene.path;
 			EditorUtility.SetDirty(this);
 			var building_scene_path = GetBuildingPath(scene);
-			Debug.Log($"Selected building scene path: \"{building_scene_path}\".", this);
+			Log($"Selected building scene path: \"{building_scene_path}\".");
 
 			if (ActivateThisScene) {
-				Debug.Log($"Activating current scene...", this);
+				LogDebug($"Activating current scene...");
 				EditorSceneManager.SetActiveScene(scene);
 			}
 
 			var scenes_to_unload = new List<Scene>();
 			for (var i = 0; i < EditorSceneManager.loadedRootSceneCount; ++i) {
-				
+
 				var whatever_scene = EditorSceneManager.GetSceneAt(i);
-				// Debug.Log($"Scene #{i} path: \"{whatever_scene.path}\"", this);
+				// Log($"Scene #{i} path: \"{whatever_scene.path}\"");
 				if (EnsureOtherScenesUnloaded && whatever_scene != scene) {
 					// Если требуется отгрузить вообще все сцены, кроме текущей. 
 					scenes_to_unload.Add(scene);
@@ -84,41 +78,39 @@ namespace Kawashirov.SceneBuilding {
 				}
 			}
 			foreach (var scene_to_unload in scenes_to_unload) {
-				Debug.Log($"Found that building scene \"{building_scene_path}\" already opened, closing...", this);
+				LogDebug($"Found that building scene \"{building_scene_path}\" already opened, closing...");
 				// EditorSceneManager.UnloadSceneAsync(scene_to_unload);
 				if (EditorSceneManager.CloseScene(scene_to_unload, true)) {
-					Debug.Log($"Closed old building scene \"{building_scene_path}\".", this);
+					LogDebug($"Closed old building scene \"{building_scene_path}\".");
 				} else {
-					Debug.LogError($"Old building scene \"{building_scene_path}\" can't be closed for some reason.", this);
+					LogError($"Old building scene \"{building_scene_path}\" can't be closed for some reason.");
 				}
 			}
 
 			// Теперь можно снести старую сцену сборки
-			Debug.Log($"Removing old building scene \"{building_scene_path}\"...", this);
+			LogDebug($"Removing old building scene \"{building_scene_path}\"...");
 			var del_result = FileUtil.DeleteFileOrDirectory(building_scene_path);
-			Debug.Log($"Removed old building scene \"{building_scene_path}\": {del_result}", this);
+			LogDebug($"Removed old building scene \"{building_scene_path}\": {del_result}");
 
 			// Теперь можно сохранить эту сцену на место сцены сборки
 			if (!EditorSceneManager.SaveScene(scene, building_scene_path)) {
-				var msg = $"Failed to save building scene: \"{building_scene_path}\"";
-				Debug.LogError(msg, this);
-				throw new FailedToSaveBuildingScene(msg);
+				ThrowException(new FailedToSaveBuildingScene($"Failed to save building scene: \"{building_scene_path}\""));
 			}
 			EditorSceneManager.MarkSceneDirty(scene);
-			Debug.Log($"Scene saved as building to new location \"{building_scene_path}\".", this);
+			Log($"Scene saved as building to new location \"{building_scene_path}\".");
 
 			// И подгрузить оригинал на менеджер сцен
-			Debug.Log($"Adding back original scene \"{original_scene_path}\"...", this);
+			LogDebug($"Adding back original scene \"{original_scene_path}\"...");
 			EditorSceneManager.OpenScene(original_scene_path, OpenSceneMode.AdditiveWithoutLoading);
-			Debug.Log($"Added back original scene \"{original_scene_path}\".", this);
+			LogDebug($"Added back original scene \"{original_scene_path}\".");
 		}
 
-		[CustomEditor(typeof(SaveBuildingSceneAction), true)]
-		public class SaveBuildingSceneActionEditor : BaseBuildingActionEditor {
+		[CustomEditor(typeof(SaveBuildingSceneSBA), true)]
+		public class SaveBuildingSceneSBAEditor : BaseSBAEditor {
 			public override bool ShowIKnowWhatIamDoing() => true;
 
 			public override void BuildingActionGUI() {
-				var target = this.target as SaveBuildingSceneAction;
+				var target = this.target as SaveBuildingSceneSBA;
 				if (!target)
 					return;
 
@@ -142,10 +134,8 @@ namespace Kawashirov.SceneBuilding {
 						}
 					}
 				}
-
-				IKnowWhatIamDoingGUI();
 			}
 		}
-#endif
 	}
 }
+#endif

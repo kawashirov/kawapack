@@ -1,34 +1,28 @@
-using System;
-using System.Collections;
-using UnityEngine;
-
 #if UNITY_EDITOR
-using UnityEditor;
-#endif
+using System.Collections;
 
 namespace Kawashirov.SceneBuilding {
-	public class RunBakeryAction : BaseBuildingAction {
-#if UNITY_EDITOR
-		public override IEnumerator RunAsync() {
+	public class RunBakerySBA : BaseSBA {
+		public override IEnumerator RunAsync(BuildingScenario scenario) {
 #if BAKERY_INCLUDED
-			Debug.Log($"Running bakery...", this);
+			Log($"Running bakery...");
 			var storage = ftRenderLightmap.FindRenderSettingsStorage();
 			var bakery = ftRenderLightmap.instance != null ? ftRenderLightmap.instance : new ftRenderLightmap();
 			bakery.LoadRenderSettings();
 			bakery.unloadScenesInDeferredMode = false;
 			bakery.RenderButton(false);
+			yield return null;
 			var loops = 0;
 			while (ftRenderLightmap.bakeInProgress) {
 				++loops;
 				yield return null;
 			}
-			Debug.Log($"Bakery done: {loops} loops", this);
+			Log($"Bakery done: {loops} loops");
 			yield break;
 #else // BAKERY_INCLUDED
-			Debug.LogError("Bakery not found", this);
-			throw new Exception("Bakery not found");
+			ThrowException(new Exception("Bakery not found"));
 #endif // BAKERY_INCLUDED
 		}
-#endif // UNITY_EDITOR
 	}
 }
+#endif // UNITY_EDITOR

@@ -5,11 +5,12 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace Kawashirov.MaterialCombining {
-	public class DataChannelDescriptor : IEquatable<DataChannelDescriptor> {
+	public class DataTexDesc : IEquatable<DataTexDesc> {
+		// Data Texture Descriptor
 		public readonly AbstractMaterialAdapter parent;
 		public readonly string name; // "Albedo", "Normal", ...
 
-		public int scaleFactor = 1;
+		public float scaleFactor = 1;
 
 		public Texture2D bgTexture = Texture2D.whiteTexture;
 		public string textureChannels = "RGBA"; // TODO
@@ -21,12 +22,12 @@ namespace Kawashirov.MaterialCombining {
 
 		public Texture2D atlasTexture = null;
 
-		public DataChannelDescriptor(AbstractMaterialAdapter parent, string name) {
+		public DataTexDesc(AbstractMaterialAdapter parent, string name) {
 			this.parent = parent;
 			this.name = name;
 		}
 
-		public bool Equals(DataChannelDescriptor other) => other != null && string.Equals(name, other.name);
+		public bool Equals(DataTexDesc other) => other != null && string.Equals(name, other.name);
 		public override int GetHashCode() => name.GetHashCode();
 	}
 }

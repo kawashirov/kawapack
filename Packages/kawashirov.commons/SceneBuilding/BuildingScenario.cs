@@ -1,33 +1,28 @@
-using System;
-using UnityEngine;
-using Unity.EditorCoroutines.Editor;
-using System.Collections;
-
-
-
 #if UNITY_EDITOR
+using System;
+using System.Collections;
+using UnityEngine;
 using UnityEditor;
-#endif
+using Unity.EditorCoroutines.Editor;
 
 namespace Kawashirov.SceneBuilding {
-	public class BuildingScenario : MonoBehaviour {
-#if UNITY_EDITOR
+	public class BuildingScenario : KawaEditorBehaviour {
 
 		[HideInInspector] public BuildingStatus status = BuildingStatus.NotStarted;
-		public BaseBuildingAction[] Actions;
+		public BaseSBA[] Actions;
 
 		public void ResetScenarioStatus() {
 			status = BuildingStatus.NotStarted;
 			EditorUtility.SetDirty(this);
 		}
 
-		protected IEnumerator RunActionSafe(int i, BaseBuildingAction action, bool progress_gui, string title) {
+		protected IEnumerator RunActionSafe(int i, BaseSBA action, bool progress_gui, string title) {
 			if (action == null) {
-				Debug.LogWarning($"Building action #{i} is empty, skip!", this);
+				LogWarning($"Building action #{i} is empty, skip!");
 				yield break;
 			}
 			if (!action.enabled || !action.gameObject.activeInHierarchy) {
-				Debug.LogWarning($"Building action #{i} is not active/enabled, skip!", this);
+				LogWarning($"Building action #{i} is not active/enabled, skip!");
 				yield break;
 			}
 			if (progress_gui) {
@@ -36,25 +31,22 @@ namespace Kawashirov.SceneBuilding {
 				if (EditorUtility.DisplayCancelableProgressBar(title, info, progress))
 					throw new CancelBuilding();
 			}
-			Debug.Log($"Running Building action #{i} {action.GetType()} {action}...", this);
-			var task = action.RunAsync();
-			// C# момент, нельзя просто взять и запустить.
-			// yield return action.Run();
+			Log($"Running Building action #{i} {action.GetType()} {action}...");
+			var task = action.RunAsync(this);
 			while (true) {
-				bool move_next;
+				// C# момент, нельзя просто взять и запустить.	
+				// Cannot yield a value in the body of a try block with a catch clause CS1626
 				try {
-					move_next = task.MoveNext();
-					if (!move_next)
+					if (!task.MoveNext())
 						break;
 				} catch (Exception exc) {
-					Debug.LogException(exc, this);
-					Debug.LogError($"Building action #{i} {action.GetType()} failed: {exc}", this);
+					LogException($"Building action #{i} {action.GetType()} failed: {exc}", exc, this);
 					throw exc;
 				}
 				yield return task.Current;
 			}
 
-			Debug.Log($"Building action #{i} {action.GetType()} success!", this);
+			Log($"Building action #{i} {action.GetType()} success!");
 		}
 
 		protected IEnumerator RunActionsSafe(bool progress_gui) {
@@ -69,6 +61,7 @@ namespace Kawashirov.SceneBuilding {
 				yield return RunActionSafe(i, action, progress_gui, title);
 			}
 			status = BuildingStatus.Success;
+			EditorUtility.SetDirty(this);
 		}
 
 		public IEnumerator RunScenario(bool progress_gui) {
@@ -102,8 +95,7 @@ namespace Kawashirov.SceneBuilding {
 		}
 
 		[CustomEditor(typeof(BuildingScenario), true)]
-		public class BaseBuildingActionEditor : Editor {
-			protected bool IKnowWhatIamDoing = false;
+		public class BaseBuildingActionEditor : KawaEditorBehaviourEditor {
 
 			public virtual void BuildingScenarioStatusGUI(BuildingScenario target) {
 				var prev_color = GUI.color;
@@ -144,16 +136,16 @@ namespace Kawashirov.SceneBuilding {
 					}
 				}
 
-				IKnowWhatIamDoing = GUILayout.Toggle(IKnowWhatIamDoing, "I know what I am doing");
 			}
+
+			public override bool ShowIKnowWhatIamDoing() => true;
 
 			public override void OnInspectorGUI() {
 				DrawDefaultInspector();
 				BuildingScenarioGUI();
+				IKnowWhatIamDoingGUI();
 			}
 		}
-
-
-#endif
 	}
 }
+#endif

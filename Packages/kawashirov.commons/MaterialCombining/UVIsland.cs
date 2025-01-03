@@ -103,6 +103,16 @@ namespace Kawashirov.MaterialCombining {
 			umax + value, vmax + value
 		);
 
+		private static float Align(float value, int align, bool up) {
+			var rem = value % align;
+			return rem == 0 ? value : up ? value + (align - rem) : value - rem;
+		}
+
+		public UVIsland Align(int value) => new UVIsland(
+			Align(umin, value, false), Align(vmin, value, false),
+			Align(umax, value, true), Align(vmax, value, true)
+		);
+
 		public UVIsland TransformST(Vector4 st) => new UVIsland(
 			// Применить _ST преобразование к острову, аналог TRANSFORM_TEX в шейдерах
 			umin * st.x + st.z, vmin * st.y + st.w,

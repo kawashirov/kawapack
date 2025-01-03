@@ -8,7 +8,7 @@ using UnityEngine.Rendering;
 namespace Kawashirov.MaterialCombining {
 	public abstract class AbstractMaterialAdapter : KawaEditorBehaviour {
 		[NonSerialized] public MaterialCombiner combiner;
-		protected readonly List<DataChannelDescriptor> descriptors = new List<DataChannelDescriptor>();
+		protected readonly List<DataTexDesc> descriptors = new List<DataTexDesc>();
 
 		/* libarary methods */
 
@@ -106,7 +106,7 @@ namespace Kawashirov.MaterialCombining {
 			return default_;
 		}
 
-		protected static void SetTextureDesc(Material mat, string prop_name, DataChannelDescriptor desc) {
+		protected static void SetTextureDesc(Material mat, string prop_name, DataTexDesc desc) {
 			mat.SetTexture(prop_name, (desc != null && desc.atlasTexture != null) ? desc.atlasTexture : null);
 			mat.SetTextureScale(prop_name, Vector2.one);
 			mat.SetTextureOffset(prop_name, Vector2.zero);
@@ -124,14 +124,14 @@ namespace Kawashirov.MaterialCombining {
 
 		public abstract Shader EnsureAtlasShader();
 
-		protected abstract IEnumerable<DataChannelDescriptor> YieldDescriptors(Func<string, bool> predicate);
+		protected abstract IEnumerable<DataTexDesc> YieldDescriptors();
 
 		// Первичная настройка адаптера. Вызывается только для "главного" адаптера, 
 		// т.е. для того, которому предстоит собрать атласный материал.
 		// Предикат определяет, нужно ли атлассировать эту текстуру, т.е. некоторые можно игнорировать.
-		public virtual List<DataChannelDescriptor> InitDescriptors(Func<string, bool> predicate) {
+		public virtual List<DataTexDesc> InitDescriptors() {
 			descriptors.Clear();
-			descriptors.AddRange(YieldDescriptors(predicate));
+			descriptors.AddRange(YieldDescriptors());
 			return descriptors;
 		}
 
@@ -140,7 +140,7 @@ namespace Kawashirov.MaterialCombining {
 		// Но если из другого, то адаптеру придется подумать как адаптировать этот канал.
 		// Или проигнорировать его, тогда там будут данные по-умолчанию.
 		// Возвращает true и data, если адаптер понимает данный материал и смог его адаптировать.
-		public abstract bool TryAdaptMaterial(Material mat, List<DataChannelDescriptor> descriptors, out DataAdapted data);
+		public abstract bool TryAdaptMaterial(Material mat, List<DataTexDesc> descriptors, out DataAdapted data);
 
 		public virtual bool DiffFloat(Material left, Material right, string name) {
 			if (!left.HasFloat(name) && !right.HasFloat(name))

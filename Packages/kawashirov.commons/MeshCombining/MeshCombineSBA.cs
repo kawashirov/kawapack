@@ -1,15 +1,11 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Kawashirov.SceneBuilding;
-using System.Linq;
-
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace Kawashirov.MeshCombining {
-	public class MeshCombineBuildingAction : BaseBuildingAction {
-#if UNITY_EDITOR
+	public class MeshCombineSBA : BaseSBA {
 		[Tooltip("Run only eanbled mesh combiners, ignore disabled")]
 		public bool OnlyEnabled = true;
 		[Tooltip("Grab and apply literaly every mesh combiner on scene")]
@@ -36,18 +32,18 @@ namespace Kawashirov.MeshCombining {
 			}
 		}
 
-		public override void RunSync() {
-			Debug.Log($"Searching combiners to run...", this);
+		public override void RunSync(BuildingScenario scenario) {
+			Log($"Searching combiners to run...");
 			var combiners = GetCombiners();
-			Debug.Log($"Found {combiners.Count}, running...", this);
+			Log($"Found {combiners.Count}, running...");
 			foreach (var combiner in combiners) {
-				Debug.Log($"Running combiner at {combiner.gameObject.KawaGetFullPath()}...", combiner);
+				Log($"Running combiner at {combiner.gameObject.KawaGetFullPath()}...", combiner);
 				combiner.Run();
 			}
-			Debug.Log($"Done {combiners.Count} combiners.", this);
+			Log($"Done {combiners.Count} combiners.");
 		}
 
-		// TODO MeshCombineBuildingActionEditor
-#endif
+		// TODO MeshCombineSBAEditor
 	}
 }
+#endif

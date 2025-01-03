@@ -1,17 +1,24 @@
 ﻿using System;
 using UnityEngine;
 using Kawashirov.Refreshables;
+using System.Diagnostics;
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
+using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
+using System.Linq;
 
 namespace Kawashirov {
 	[ExecuteAlways]
 	public abstract class KawaEditorBehaviour : MonoBehaviour, IRefreshable {
 #if UNITY_EDITOR
+
+		[HideInInspector]
+		[Tooltip("Provide more info messages")]
+		public bool DebugMode = false;
 
 		/* EditorBehaviour "API" (mostly shortcuts) */
 
@@ -24,6 +31,19 @@ namespace Kawashirov {
 				path = $"<i>@ {override_context.KawaGetFullPath()}</i>\n{path}";
 
 			return $"[{type_name}] {message}\n{path}";
+		}
+
+		[HideInCallstack]
+		[Conditional("UNITY_ASSERTIONS")]
+		public void LogAssert(bool condition, string message, Object override_context = null) {
+			if (!condition)
+				Debug.Log(FormatForLog(message, override_context, out var context), context);
+		}
+
+		[HideInCallstack]
+		public void LogDebug(string message, Object override_context = null) {
+			if (DebugMode)
+				Debug.Log(FormatForLog(message, override_context, out var context), context);
 		}
 
 		[HideInCallstack]
@@ -86,8 +106,39 @@ namespace Kawashirov {
 
 		[CustomEditor(typeof(KawaEditorBehaviour), true)]
 		public class KawaEditorBehaviourEditor : Editor {
+			protected bool IKnowWhatIamDoing = false;
+			protected SerializedProperty DebugMode = null;
+
+			public virtual void OnEnable() {
+				DebugMode = serializedObject.FindProperty(nameof(DebugMode));
+				Debug.LogWarning($"DebugMode={DebugMode}");
+			}
+
+			public virtual bool ShowIKnowWhatIamDoing() => true;
+			public virtual bool ShowDebugMode() => false;
+
+			public virtual void IKnowWhatIamDoingGUI() {
+				if (ShowIKnowWhatIamDoing()) {
+					IKnowWhatIamDoing = GUILayout.Toggle(IKnowWhatIamDoing, "I know what I am doing");
+				}
+			}
+
+			public virtual void DebugModeGUI() {
+				if (DebugMode == null)
+					return;
+				if (IKnowWhatIamDoing || ShowDebugMode() || DebugMode.hasMultipleDifferentValues || DebugMode.boolValue) {
+					EditorGUI.BeginChangeCheck();
+					EditorGUILayout.PropertyField(DebugMode);
+					if (EditorGUI.EndChangeCheck()) {
+						serializedObject.ApplyModifiedProperties();
+					}
+				}
+			}
+
 			public override void OnInspectorGUI() {
 				DrawDefaultInspector();
+				DebugModeGUI();
+				IKnowWhatIamDoingGUI();
 				this.BehaviourRefreshGUI();
 			}
 		}

@@ -8,7 +8,7 @@ namespace Kawashirov.MaterialCombining {
 
 		public readonly AbstractMaterialAdapter adapter;
 
-		public readonly List<DataChannel> data;
+		public readonly List<DataTex> data;
 
 		// _ST (Tiling Offset) преобразование из материала.
 		// Материал может иметь только одно такое преобразование и атлас расчитывается согласно ему.
@@ -18,7 +18,7 @@ namespace Kawashirov.MaterialCombining {
 		// Материал может использовать только один UV слой и атлас расчитывается согласно ему.
 		public readonly int uvIndex;
 
-		public DataAdapted(AbstractMaterialAdapter adapter, List<DataChannel> data, Vector4 texST, int uvIndex) {
+		public DataAdapted(AbstractMaterialAdapter adapter, List<DataTex> data, Vector4 texST, int uvIndex) {
 			this.adapter = adapter;
 			this.data = data;
 			this.texST = texST;
