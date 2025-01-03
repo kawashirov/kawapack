@@ -42,6 +42,18 @@ namespace Kawashirov {
 		}
 
 		[HideInCallstack]
+		public void ThrowException(Exception exc, Object override_context = null) {
+			Debug.LogError(FormatForLog(exc.Message, override_context, out var context), context);
+			throw exc;
+		}
+
+		[HideInCallstack]
+		public void ThrowException(Func<string, Exception> constructor, string message, Object override_context = null) {
+			Debug.LogError(FormatForLog(message, override_context, out var context), context);
+			throw constructor(message);
+		}
+
+		[HideInCallstack]
 		public void LogException(Exception exception, Object override_context = null) {
 			var context = override_context != null ? override_context : this;
 			Debug.LogException(exception, context);
@@ -51,7 +63,7 @@ namespace Kawashirov {
 		public void LogException(string message, Exception exception, Object override_context = null) {
 			var msg = FormatForLog(message, override_context, out var context);
 			Debug.LogException(exception, context);
-			Debug.LogError(msg, context);
+			Debug.LogError(msg + "\n\n" + exception.Message, context);
 		}
 
 		public void SetDirty() => EditorUtility.SetDirty(this);
