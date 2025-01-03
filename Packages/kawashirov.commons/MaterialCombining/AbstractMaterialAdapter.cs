@@ -6,17 +6,8 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace Kawashirov.MaterialCombining {
-	/**
-		Этот класс преобразует настройки материала в универсальные DataChannelы.
-		Комбайнер Материалов комбинирует именно DataChannelы.
-
-		Получается Так:
-		"Material 1" -(Adapter A)-> List<DataChannel> - \
-		"Material 2" -(Adapter B)-> List<DataChannel> - - -> MaterialCombiner -> List<DataChannel> -> "Atlassed Material"
-		"Material 3" -(Adapter C)-> List<DataChannel> - /
-
-	*/
 	public abstract class AbstractMaterialAdapter : KawaEditorBehaviour {
+		[NonSerialized] public MaterialCombiner combiner;
 		protected readonly List<DataChannelDescriptor> descriptors = new List<DataChannelDescriptor>();
 
 		/* libarary methods */
@@ -133,11 +124,14 @@ namespace Kawashirov.MaterialCombining {
 
 		public abstract Shader EnsureAtlasShader();
 
-		protected abstract IEnumerable<DataChannelDescriptor> YieldDescriptors();
+		protected abstract IEnumerable<DataChannelDescriptor> YieldDescriptors(Func<string, bool> predicate);
 
-		public virtual List<DataChannelDescriptor> InitDescriptors() {
+		// Первичная настройка адаптера. Вызывается только для "главного" адаптера, 
+		// т.е. для того, которому предстоит собрать атласный материал.
+		// Предикат определяет, нужно ли атлассировать эту текстуру, т.е. некоторые можно игнорировать.
+		public virtual List<DataChannelDescriptor> InitDescriptors(Func<string, bool> predicate) {
 			descriptors.Clear();
-			descriptors.AddRange(YieldDescriptors());
+			descriptors.AddRange(YieldDescriptors(predicate));
 			return descriptors;
 		}
 

@@ -85,15 +85,17 @@ namespace Kawashirov.MaterialCombining {
 			throw new Exception();
 		}
 
-		protected override IEnumerable<DataChannelDescriptor> YieldDescriptors() {
-			yield return descAlbedo = new DataChannelDescriptor(this, DATACH_ALBEDO) {
-				bgTexture = Texture2D.blackTexture,
-				textureChannels = "RGBA",
-				bgColor = Color.black,
-				alphaIsTransparency = true, isNormal = false, sRGB = true, HDR = false
-			};
+		protected override IEnumerable<DataChannelDescriptor> YieldDescriptors(Func<string, bool> predicate) {
+			if (predicate(DATACH_ALBEDO)) {
+				yield return descAlbedo = new DataChannelDescriptor(this, DATACH_ALBEDO) {
+					bgTexture = Texture2D.blackTexture,
+					textureChannels = "RGBA",
+					bgColor = Color.black,
+					alphaIsTransparency = true, isNormal = false, sRGB = true, HDR = false
+				};
+			}
 
-			if (Workflow == WorkflowMode.Specular) {
+			if (Workflow == WorkflowMode.Specular && predicate(DATACH_SPECMOOTH)) {
 				yield return descSpecSmooth = new DataChannelDescriptor(this, DATACH_SPECMOOTH) {
 					bgTexture = Texture2D.blackTexture,
 					textureChannels = GlossModeToChannels(Gloss),
@@ -101,7 +103,7 @@ namespace Kawashirov.MaterialCombining {
 					alphaIsTransparency = false, isNormal = false, sRGB = false, HDR = false
 				};
 
-			} else if (Workflow == WorkflowMode.Metallic) {
+			} else if (Workflow == WorkflowMode.Metallic && predicate(DATACH_METALSMOOTH)) {
 				yield return descMetalSmooth = new DataChannelDescriptor(this, DATACH_METALSMOOTH) {
 					bgTexture = Texture2D.blackTexture,
 					textureChannels = GlossModeToChannels(Gloss),
@@ -110,21 +112,25 @@ namespace Kawashirov.MaterialCombining {
 				};
 			}
 
-			yield return descNormal = new DataChannelDescriptor(this, DATACH_NORMAL) {
-				bgTexture = Texture2D.normalTexture,
-				// Карта нормалей в Unity использует RGBA, 
-				// т.к. G и A каналы имеют лучшее качество с блочной компрессией
-				textureChannels = "RGBA",
-				bgColor = Color.white,
-				alphaIsTransparency = false, isNormal = true, sRGB = false, HDR = false
-			};
+			if (predicate(DATACH_NORMAL)) {
+				yield return descNormal = new DataChannelDescriptor(this, DATACH_NORMAL) {
+					bgTexture = Texture2D.normalTexture,
+					// Карта нормалей в Unity использует RGBA, 
+					// т.к. G и A каналы имеют лучшее качество с блочной компрессией
+					textureChannels = "RGBA",
+					bgColor = Color.white,
+					alphaIsTransparency = false, isNormal = true, sRGB = false, HDR = false
+				};
+			}
 
-			yield return descEmission = new DataChannelDescriptor(this, DATACH_EMISSION) {
-				bgTexture = Texture2D.blackTexture,
-				textureChannels = "RGB1",
-				bgColor = Color.black,
-				alphaIsTransparency = false, isNormal = false, sRGB = false, HDR = true
-			};
+			if (predicate(DATACH_EMISSION)) {
+				yield return descEmission = new DataChannelDescriptor(this, DATACH_EMISSION) {
+					bgTexture = Texture2D.blackTexture,
+					textureChannels = "RGB1",
+					bgColor = Color.black,
+					alphaIsTransparency = false, isNormal = false, sRGB = false, HDR = true
+				};
+			}
 		}
 
 		protected virtual bool CanAdaptMaterial(Material mat) {

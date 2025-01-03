@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Algolia.Search.Models.Common;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -74,13 +73,13 @@ namespace Kawashirov.MaterialCombining {
 
 		public void CalcTexSize() {
 			if (adapted.data.Count < 1) {
-				textureSize = Vector2Int.zero;
-				parent.LogWarning($"Texture size for {matOriginal} is 0, there is no data!");
+				textureSize = Vector2Int.one;
+				parent.LogWarning($"No texture size for {matOriginal}, there is no data textures!");
 			} else {
 				var ldata = adapted.data.OrderByDescending(d => d.LargestTexSize().sqrMagnitude).First();
 				var desc_name = ldata.descriptor.name;
 				var ts = textureSize = ldata.LargestTexSize();
-				parent.Log($"Texture size for {matOriginal} is {ts.x}x{ts.y} from data \"{desc_name}\".");
+				// parent.Log($"Detected size for {matOriginal}: {ts.x}x{ts.y} from data \"{desc_name}\".");
 			}
 		}
 
@@ -138,12 +137,11 @@ namespace Kawashirov.MaterialCombining {
 
 			var st = adapted.texST;
 			for (var i = 0; i < BUFFER_INDICES.Count; i += steps) {
-				var v_idx = BUFFER_INDICES[i];
-				var uv = BUFFER_UV[v_idx];
-				var island_raw = new UVIsland(uv);
-				for (var j = 1; j < steps; j++) {
-					v_idx = BUFFER_INDICES[i + j];
-					island_raw = island_raw.ExpandByUVPoint(BUFFER_UV[v_idx]);
+				var island_raw = UVIsland.singual;
+				for (var j = 0; j < steps; j++) {
+					var v_idx = BUFFER_INDICES[i + j];
+					var uv = BUFFER_UV[v_idx];
+					island_raw = island_raw.ExpandByUVPoint(uv);
 				}
 				var island_px = island_raw.TransformST(st).ToTexCoords(textureSize).RoundToInt();
 				// parent.Log($"{this}: PushUVIsland: {island_px}");
@@ -165,10 +163,12 @@ namespace Kawashirov.MaterialCombining {
 
 			islandsOriginal.TrimExcess();
 			var count = islandsOriginal.Count;
+			/*
 			var islandsOriginal_l = string.Join("\n", islandsOriginal.Select((isl, idx) => $"- №{idx}: {isl}"));
 			parent.Log($"Found {count} UV islands on {matOriginal} " +
 				$"for {debugUVPushes} pushes, {debugUVIters} iterations:" +
 				$"\n{islandsOriginal_l}");
+			*/
 
 			islandsPadded.Clear();
 			islandsPadded.Capacity = count;
@@ -281,11 +281,19 @@ namespace Kawashirov.MaterialCombining {
 		}
 
 		public virtual void ApplyMatAndUV() {
-			foreach (var item in items)
-				ApplyMatAndUV(item);
-
+			for (var i = 0; i < items.Count; i++) {
+				var item = items[i];
+				try {
+					ApplyMatAndUV(item);
+				} catch (Exception exc) {
+					parent.LogException($"Failed to {nameof(ApplyMatAndUV)} for group {matOriginal}, item №{i}: {item}", exc);
+					throw exc;
+				}
+			}
 		}
 
+		public override string ToString() =>
+			$"{nameof(MaterialSlotGroup)}({matOriginal})";
 	}
 }
 #endif

@@ -89,8 +89,8 @@ namespace Kawashirov.MaterialCombining {
 				Object.DestroyImmediate(meshUnique);
 		}
 
-		public override string ToString()
-			=> $"MaterialSlotItem({matGroup}, {renderer}, {slot}, {meshOriginal}, {matOriginal})";
+		public override string ToString() =>
+			$"{nameof(MaterialSlotItem)}({matGroup}, {renderer}, {slot}, {meshOriginal}, {matOriginal})";
 	}
 }
 #endif
