@@ -194,7 +194,7 @@ namespace Kawashirov.MaterialCombining {
 
 		public virtual void ApplyMatAndUV(MaterialSlotItem item) {
 			var mesh = item.MakeUniqueMesh();
-			Selection.SetActiveObjectWithContext(mesh, combiner);
+			combiner.SelectFocus(mesh);
 
 			item.EnsureSlotsConsistent(mesh, true);
 			item.EnsureUV2D(mesh, true);

@@ -11,6 +11,8 @@ using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
+using Object = UnityEngine.Object;
+
 namespace Kawashirov.MaterialCombining {
 	public class MaterialCombiner : KawaEditorBehaviour {
 		public const string SHADER_GUID = "fcbb4213b7350534397157f990cd24b7";
@@ -74,6 +76,16 @@ namespace Kawashirov.MaterialCombining {
 		protected RenderTexture texRT1 = null;
 		protected RenderTexture texRT2 = null;
 		public string sceneDir = null;
+
+		public object SelectFocus(Object obj) {
+			if (obj == null)
+				return null;
+			Selection.SetActiveObjectWithContext(obj, this);
+			var view = SceneView.lastActiveSceneView;
+			if (view != null && (obj is GameObject || obj is Component))
+				view.FrameSelected(false, true);
+			return null;
+		}
 
 		protected virtual void InitChecks() {
 			if (MainAdapter == null) {
@@ -260,8 +272,7 @@ namespace Kawashirov.MaterialCombining {
 			foreach (var group in materials.Values) {
 				group.CalcIslands();
 				if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
-					Selection.SetActiveObjectWithContext(group.matOriginal, this);
-					yield return null;
+					yield return SelectFocus(group.matOriginal);
 					sw.Restart();
 				}
 			}
@@ -291,15 +302,11 @@ namespace Kawashirov.MaterialCombining {
 				atlas_tex = new Texture2D(1, 1, format, false);
 				dull_tex = islands.Select(x => x.isl.MakeDullTex(format)).ToArray();
 				// https://docs.unity3d.com/2022.3/Documentation/ScriptReference/Texture2D.PackTextures.html
-				if (MoreInfo) {
-					Selection.SetActiveObjectWithContext(atlas_tex, this);
-					yield return null;
-				}
+				if (MoreInfo)
+					yield return SelectFocus(atlas_tex);
 				var results = atlas_tex.PackTextures(dull_tex, 0, MaxAtlasSize);
-				if (MoreInfo) {
-					Selection.SetActiveObjectWithContext(atlas_tex, this);
-					yield return null;
-				}
+				if (MoreInfo)
+					yield return SelectFocus(atlas_tex);
 				atlasSize = new Vector2Int(atlas_tex.width, atlas_tex.height);
 				var islands_str = "";
 				// Размеры и индексы islands[], dull_tex[] и results[] совпадают.
@@ -458,7 +465,7 @@ namespace Kawashirov.MaterialCombining {
 			LogDebug($"Blitting \"{desc.name}\" default background...");
 			Graphics.Blit(desc.bgTexture, texRT2, matBlit);
 			(texRT1, texRT2) = (texRT2, texRT1); // swap buffers
-			Selection.SetActiveObjectWithContext(texRT1, this);
+			SelectFocus(texRT1);
 		}
 
 		protected virtual void AtlasBlitGroup(DataTexDesc desc, MaterialGroup group) {
@@ -510,7 +517,7 @@ namespace Kawashirov.MaterialCombining {
 						ExternalGPUProfiler.EndGPUCapture();
 				}
 				(texRT1, texRT2) = (texRT2, texRT1); // swap buffers
-				Selection.SetActiveObjectWithContext(texRT1, this);
+				SelectFocus(texRT1);
 				// break;
 			}
 		}
@@ -525,7 +532,7 @@ namespace Kawashirov.MaterialCombining {
 				tex_temp.ReadPixels(new Rect(0, 0, atlasSize.x, atlasSize.y), 0, 0, true);
 				tex_temp.Apply();
 				EditorUtility.SetDirty(tex_temp);
-				Selection.SetActiveObjectWithContext(tex_temp, this);
+				SelectFocus(tex_temp);
 			} finally {
 				RenderTexture.active = prev_active;
 			}
@@ -542,7 +549,7 @@ namespace Kawashirov.MaterialCombining {
 
 			var png_asset = AssetDatabase.LoadAssetAtPath<Texture2D>(path_png);
 			if (png_asset != null)
-				Selection.SetActiveObjectWithContext(png_asset, this);
+				SelectFocus(png_asset);
 			return png_asset;
 		}
 
@@ -575,7 +582,7 @@ namespace Kawashirov.MaterialCombining {
 			}
 			LogDebug($"Configuring {importer} at \"{path}\"...");
 
-			Selection.SetActiveObjectWithContext(importer, this);
+			SelectFocus(importer);
 			AtlasConfigureImporter(desc, path, importer);
 
 			AssetDatabase.WriteImportSettingsIfDirty(path);
@@ -597,23 +604,20 @@ namespace Kawashirov.MaterialCombining {
 				texRT2 = AtlasMakeRT(desc);
 				LogDebug($"For atlassing \"{dsc_name}\": Created temp buffers: {texRT1}, {texRT2}");
 				if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
-					Selection.SetActiveObjectWithContext(texRT1, this);
-					yield return null;
+					yield return SelectFocus(texRT1);
 					sw.Reset();
 				}
 
 				AtlasBlitBackground(desc);
 				if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
-					Selection.SetActiveObjectWithContext(texRT1, this);
-					yield return null;
+					yield return SelectFocus(texRT1);
 					sw.Reset();
 				}
 
 				foreach (var group in materials.Values) {
 					AtlasBlitGroup(desc, group);
 					if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
-						Selection.SetActiveObjectWithContext(texRT1, this);
-						yield return null;
+						yield return SelectFocus(texRT1);
 						sw.Reset();
 					}
 				}
@@ -625,8 +629,7 @@ namespace Kawashirov.MaterialCombining {
 				texRT2 = null;
 			}
 			if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
-				Selection.SetActiveObjectWithContext(texRT1, this);
-				yield return null;
+				yield return SelectFocus(texRT1);
 				sw.Reset();
 			}
 		}
@@ -695,8 +698,7 @@ namespace Kawashirov.MaterialCombining {
 			var tex_temp = AtlasRTToTexture2D(desc, texRT1);
 
 			if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
-				Selection.SetActiveObjectWithContext(tex_temp, this);
-				yield return null;
+				yield return SelectFocus(tex_temp);
 				sw.Reset();
 			}
 
@@ -756,8 +758,7 @@ namespace Kawashirov.MaterialCombining {
 			AtlasTextures = AtlasTextures.Append(asset_tex).ToArray();
 
 			if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
-				Selection.SetActiveObjectWithContext(asset_tex, this);
-				yield return null;
+				yield return SelectFocus(asset_tex);
 				sw.Reset();
 			}
 
@@ -861,8 +862,7 @@ namespace Kawashirov.MaterialCombining {
 			foreach (var r_group in renderers) {
 				r_group.AtlasApply();
 				if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
-					Selection.SetActiveObjectWithContext(r_group.renderer, this);
-					yield return null;
+					yield return SelectFocus(r_group.renderer);
 					sw.Reset();
 				}
 			}
