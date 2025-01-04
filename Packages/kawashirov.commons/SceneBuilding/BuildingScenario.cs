@@ -18,20 +18,20 @@ namespace Kawashirov.SceneBuilding {
 
 		protected IEnumerator RunActionSafe(int i, BaseSBA action, bool progress_gui, string title) {
 			if (action == null) {
-				LogWarning($"Building action #{i} is empty, skip!");
+				LogWarning($"Building action №{i} is empty, skip!");
 				yield break;
 			}
 			if (!action.enabled || !action.gameObject.activeInHierarchy) {
-				LogWarning($"Building action #{i} is not active/enabled, skip!");
+				LogWarning($"Building action №{i} is not active/enabled, skip!");
 				yield break;
 			}
 			if (progress_gui) {
 				var progress = (i + 1f) / (Actions.Length + 1f);
-				var info = $"Running #{i} {action.GetType()} {action}...";
+				var info = $"Running №{i} {action.GetType()} {action}...";
 				if (EditorUtility.DisplayCancelableProgressBar(title, info, progress))
 					throw new CancelBuilding();
 			}
-			Log($"Running Building action #{i} {action.GetType()} {action}...");
+			Log($"Running Building action №{i} {action.GetType()} {action}...");
 			var task = action.RunAsync(this);
 			while (true) {
 				// C# момент, нельзя просто взять и запустить.	
@@ -40,13 +40,13 @@ namespace Kawashirov.SceneBuilding {
 					if (!task.MoveNext())
 						break;
 				} catch (Exception exc) {
-					LogException($"Building action #{i} {action.GetType()} failed: {exc}", exc, this);
+					LogException($"Building action №{i} {action.GetType()} failed: {exc}", exc, this);
 					throw exc;
 				}
 				yield return task.Current;
 			}
 
-			Log($"Building action #{i} {action.GetType()} success!");
+			Log($"Building action №{i} {action.GetType()} success!");
 		}
 
 		protected IEnumerator RunActionsSafe(bool progress_gui) {
@@ -58,7 +58,9 @@ namespace Kawashirov.SceneBuilding {
 			// TODO call prepares
 			for (var i = 0; i < Actions.Length; ++i) {
 				var action = Actions[i];
-				yield return RunActionSafe(i, action, progress_gui, title);
+				var task = RunActionSafe(i, action, progress_gui, title);
+				while (task.MoveNext())
+					yield return task.Current;
 			}
 			status = BuildingStatus.Success;
 			EditorUtility.SetDirty(this);
@@ -67,24 +69,21 @@ namespace Kawashirov.SceneBuilding {
 		public IEnumerator RunScenario(bool progress_gui) {
 			status = BuildingStatus.Running;
 			EditorUtility.SetDirty(this);
-
-			// C# момент, нельзя просто взять и запустить.
-			// yield return RunActionsSafe(progress_gui);
 			var task = RunActionsSafe(progress_gui);
 			while (true) {
-				bool move_next;
+				// C# момент, нельзя просто взять и запустить.	
+				// Cannot yield a value in the body of a try block with a catch clause CS1626
 				try {
-					move_next = task.MoveNext();
-					if (!move_next)
+					if (!task.MoveNext())
 						break;
 				} catch (Exception exc) {
 					if (exc is CancelBuilding) {
 						status = BuildingStatus.Cancelled;
-						Debug.LogError($"Building cancelled.", this);
+						Debug.LogError($"Building scenario cancelled.", this);
 					} else {
 						status = BuildingStatus.Failed;
 						Debug.LogException(exc, this);
-						Debug.LogError($"Building failed: {exc}", this);
+						Debug.LogError($"Building scenario failed: {exc}", this);
 					}
 				} finally {
 					if (progress_gui)

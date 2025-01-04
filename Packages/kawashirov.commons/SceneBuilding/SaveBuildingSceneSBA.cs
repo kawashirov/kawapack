@@ -11,6 +11,7 @@ namespace Kawashirov.SceneBuilding {
 	public class SaveBuildingSceneSBA : BaseSBA {
 		public bool ActivateThisScene = true;
 		public bool EnsureOtherScenesUnloaded = true;
+		public bool DeleteSceneSubDirectory = true;
 
 		[HideInInspector] public string OriginalScenePath;
 
@@ -32,7 +33,7 @@ namespace Kawashirov.SceneBuilding {
 			var is_active = EditorSceneManager.GetActiveScene() == building_scene;
 			Scene original_scene;
 			try {
-				Log($"Opening original scene \"{original_scene_path}\"...");
+				LogDebug($"Opening original scene \"{original_scene_path}\"...");
 				original_scene = EditorSceneManager.OpenScene(original_scene_path, OpenSceneMode.Additive);
 			} catch (ArgumentException exc) {
 				LogException($"Failed to open original scene \"{original_scene_path}\"", exc);
@@ -40,7 +41,7 @@ namespace Kawashirov.SceneBuilding {
 			}
 
 			if (is_active) {
-				Log($"Activating original scene \"{original_scene_path}\"...");
+				LogDebug($"Activating original scene \"{original_scene_path}\"...");
 				EditorSceneManager.SetActiveScene(original_scene);
 			}
 
@@ -56,7 +57,7 @@ namespace Kawashirov.SceneBuilding {
 			var original_scene_path = OriginalScenePath = scene.path;
 			EditorUtility.SetDirty(this);
 			var building_scene_path = GetBuildingPath(scene);
-			Log($"Selected building scene path: \"{building_scene_path}\".");
+			LogDebug($"Selected building scene path: \"{building_scene_path}\".");
 
 			if (ActivateThisScene) {
 				LogDebug($"Activating current scene...");
@@ -65,9 +66,8 @@ namespace Kawashirov.SceneBuilding {
 
 			var scenes_to_unload = new List<Scene>();
 			for (var i = 0; i < EditorSceneManager.loadedRootSceneCount; ++i) {
-
 				var whatever_scene = EditorSceneManager.GetSceneAt(i);
-				// Log($"Scene #{i} path: \"{whatever_scene.path}\"");
+				LogDebug($"Scene №{i} path: \"{whatever_scene.path}\"");
 				if (EnsureOtherScenesUnloaded && whatever_scene != scene) {
 					// Если требуется отгрузить вообще все сцены, кроме текущей. 
 					scenes_to_unload.Add(scene);
@@ -91,6 +91,17 @@ namespace Kawashirov.SceneBuilding {
 			LogDebug($"Removing old building scene \"{building_scene_path}\"...");
 			var del_result = FileUtil.DeleteFileOrDirectory(building_scene_path);
 			LogDebug($"Removed old building scene \"{building_scene_path}\": {del_result}");
+
+			if (DeleteSceneSubDirectory) {
+				var path_1 = Path.GetDirectoryName(building_scene_path);
+				var path_2 = Path.GetFileNameWithoutExtension(building_scene_path);
+				var building_scene_directory = FileUtil.GetLogicalPath($"{path_1}/{path_2}");
+				LogDebug($"Removing old building scene dub-directory \"{building_scene_directory}\"...");
+				var del_result_2 = FileUtil.DeleteFileOrDirectory(building_scene_directory);
+				LogDebug($"Removed old building scene dub-directory \"{building_scene_directory}\": {del_result_2}");
+			}
+
+			AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
 
 			// Теперь можно сохранить эту сцену на место сцены сборки
 			if (!EditorSceneManager.SaveScene(scene, building_scene_path)) {
