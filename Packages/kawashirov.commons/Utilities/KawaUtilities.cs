@@ -166,7 +166,9 @@ namespace Kawashirov {
 		public static string KawaGetFullPath(this Object obj) {
 			// В основном используется для логов, что бы точно знать где именно контекстный объект
 			// Пытается найти максимально подробный путь к объектам.
-			if (obj is GameObject gobj) {
+			if (obj == null) {
+				return obj is not null ? $"<object {obj.GetType().Name} destroyed>" : "<null>";
+			} else if (obj is GameObject gobj) {
 				return KawaGetFullPath_GameObject(gobj);
 			} else if (obj is Component component) {
 				return KawaGetFullPath_Component(component);
