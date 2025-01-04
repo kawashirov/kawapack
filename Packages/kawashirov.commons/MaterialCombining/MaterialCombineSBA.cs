@@ -40,8 +40,8 @@ namespace Kawashirov.SceneBuilding {
 			var combiners = GetCombiners();
 			Log($"Found {combiners.Count}, running...");
 			foreach (var combiner in combiners) {
-				if (DebugMode)
-					combiner.DebugMode = true;
+				if (debugMode)
+					combiner.debugMode = true;
 				Log($"Running combiner {combiner}...", combiner);
 				var task = combiner.Run();
 				while (true) {

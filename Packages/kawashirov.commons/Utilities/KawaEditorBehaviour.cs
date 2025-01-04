@@ -16,9 +16,8 @@ namespace Kawashirov {
 	public abstract class KawaEditorBehaviour : MonoBehaviour, IRefreshable {
 #if UNITY_EDITOR
 
-		[HideInInspector]
-		[Tooltip("Provide more info messages")]
-		public bool DebugMode = false;
+		[NonSerialized]
+		public bool debugMode = false;
 
 		/* EditorBehaviour "API" (mostly shortcuts) */
 
@@ -42,7 +41,7 @@ namespace Kawashirov {
 
 		[HideInCallstack]
 		public void LogDebug(string message, Object override_context = null) {
-			if (DebugMode)
+			if (debugMode)
 				Debug.Log(FormatForLog(message, override_context, out var context), context);
 		}
 
@@ -107,12 +106,6 @@ namespace Kawashirov {
 		[CustomEditor(typeof(KawaEditorBehaviour), true)]
 		public class KawaEditorBehaviourEditor : Editor {
 			protected bool IKnowWhatIamDoing = false;
-			protected SerializedProperty DebugMode = null;
-
-			public virtual void OnEnable() {
-				DebugMode = serializedObject.FindProperty(nameof(DebugMode));
-				Debug.LogWarning($"DebugMode={DebugMode}");
-			}
 
 			public virtual bool ShowIKnowWhatIamDoing() => true;
 			public virtual bool ShowDebugMode() => false;
@@ -124,13 +117,13 @@ namespace Kawashirov {
 			}
 
 			public virtual void DebugModeGUI() {
-				if (DebugMode == null)
-					return;
-				if (IKnowWhatIamDoing || ShowDebugMode() || DebugMode.hasMultipleDifferentValues || DebugMode.boolValue) {
+				var debugMode = targets.OfType<KawaEditorBehaviour>().Any(b => b.debugMode);
+				if (debugMode || IKnowWhatIamDoing || ShowDebugMode()) {
 					EditorGUI.BeginChangeCheck();
-					EditorGUILayout.PropertyField(DebugMode);
+					debugMode = GUILayout.Toggle(debugMode, "Debug mode");
 					if (EditorGUI.EndChangeCheck()) {
-						serializedObject.ApplyModifiedProperties();
+						foreach (var b in targets.OfType<KawaEditorBehaviour>())
+							b.debugMode = debugMode;
 					}
 				}
 			}
