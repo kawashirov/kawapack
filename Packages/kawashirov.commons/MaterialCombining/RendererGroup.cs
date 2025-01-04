@@ -81,13 +81,6 @@ namespace Kawashirov.MaterialCombining {
 			meshAtlas.RecalculateBounds();
 			meshAtlas.UploadMeshData(false);
 			meshAtlas.MarkModified();
-
-			var mesh_atlas_path = $"{combiner.sceneDir}/{meshAtlas.name}.asset";
-			if (combiner.UniqueAssetNames)
-				mesh_atlas_path = AssetDatabase.GenerateUniqueAssetPath(mesh_atlas_path);
-			AssetDatabase.CreateAsset(meshAtlas, mesh_atlas_path);
-
-			meshAtlas.MarkModified();
 		}
 
 		public virtual void SetMeshAtlas() {
@@ -126,11 +119,20 @@ namespace Kawashirov.MaterialCombining {
 			}
 		}
 
+		public virtual void SaveMesh() {
+			if (meshAtlas == null)
+				return;
+			var mesh_atlas_path = $"{combiner.sceneDir}/{meshAtlas.name}.asset";
+			if (combiner.UniqueAssetNames)
+				mesh_atlas_path = AssetDatabase.GenerateUniqueAssetPath(mesh_atlas_path);
+			AssetDatabase.CreateAsset(meshAtlas, mesh_atlas_path);
+			meshAtlas.MarkModified();
+		}
+
 		public virtual void AtlasApply() {
 			RecombineMeshes();
 			SetMeshAtlas();
 			ApplyMaterials();
-
 		}
 	}
 }

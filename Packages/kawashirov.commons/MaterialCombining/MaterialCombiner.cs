@@ -866,6 +866,27 @@ namespace Kawashirov.MaterialCombining {
 					sw.Reset();
 				}
 			}
+
+			AssetDatabase.StartAssetEditing();
+			try {
+				foreach (var r_group in renderers) {
+					if (r_group.meshAtlas == null)
+						continue;
+					r_group.SaveMesh();
+					if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
+						yield return SelectFocus(r_group.meshAtlas);
+						sw.Reset();
+					}
+				}
+			} finally {
+				AssetDatabase.StopAssetEditing();
+			}
+			AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+			if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
+				yield return null;
+				sw.Reset();
+			}
+
 			AtlasMeshes = renderers.Select(rg => rg.meshAtlas).UnityNotNull().ToArray();
 			Log($"Applied atlas to {materials.Count} materials, {items_c} slots, generated {AtlasMeshes.Length} meshes.");
 			yield return null;
