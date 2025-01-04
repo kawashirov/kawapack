@@ -23,6 +23,8 @@ namespace Kawashirov.MaterialCombining {
 		public readonly Renderer renderer;
 		public readonly Dictionary<int, MaterialSlotItem> items;
 		public Mesh meshOriginal;
+
+		// Может получиться null.
 		public Mesh meshAtlas;
 
 		public RendererGroup(MaterialCombiner combiner, int index, Renderer renderer) {
@@ -48,40 +50,49 @@ namespace Kawashirov.MaterialCombining {
 			items[item.slot] = item;
 		}
 
-		public virtual Mesh RecombineMeshes() {
+		public virtual void RecombineMeshes() {
+			// Может вернуть null, если ни один слот не был модифицирован, 
+			// тогда и в создании новой меши нету смысла.
 			var N = meshOriginal.subMeshCount;
 			var combine = new CombineInstance[N];
+			var have_unique = false;
 			for (var i = 0; i < N; i++) {
 				var cmb_i = new CombineInstance();
-				if (items.TryGetValue(i, out var meshMod)) {
-					Assert.IsTrue(meshMod.meshOriginal == meshOriginal);
-					var cmb_mesh = meshMod.meshUnique;
-					Assert.IsTrue(cmb_mesh.subMeshCount == 1);
-					cmb_i.mesh = cmb_mesh;
+				if (items.TryGetValue(i, out var item) && item.meshUnique != null) {
+					Assert.IsTrue(item.meshOriginal == meshOriginal);
+					Assert.IsTrue(item.meshUnique.subMeshCount == 1);
+					cmb_i.mesh = item.meshUnique;
 					cmb_i.subMeshIndex = 0;
+					have_unique = true;
 				} else {
 					cmb_i.mesh = meshOriginal;
 					cmb_i.subMeshIndex = i;
 				}
 				combine[i] = cmb_i;
 			}
+			if (!have_unique)
+				return;
+
 			meshAtlas = new Mesh();
 			meshAtlas.name = $"Atlas_{combiner.gameObject.name}_mesh_{index}_{meshOriginal.name}";
 			meshAtlas.CombineMeshes(combine, false, false, false);
+			Assert.IsTrue(meshAtlas.subMeshCount == N);
 			MeshUtility.Optimize(meshAtlas);
 			meshAtlas.RecalculateBounds();
-			Assert.IsTrue(meshAtlas.subMeshCount == N);
+			meshAtlas.UploadMeshData(false);
+			meshAtlas.MarkModified();
 
 			var mesh_atlas_path = $"{combiner.sceneDir}/{meshAtlas.name}.asset";
 			if (combiner.UniqueAssetNames)
 				mesh_atlas_path = AssetDatabase.GenerateUniqueAssetPath(mesh_atlas_path);
 			AssetDatabase.CreateAsset(meshAtlas, mesh_atlas_path);
 
-			return meshAtlas;
+			meshAtlas.MarkModified();
 		}
 
 		public virtual void SetMeshAtlas() {
-			Assert.IsNotNull(meshAtlas);
+			if (meshAtlas == null)
+				return;
 			if (renderer is MeshRenderer mesh_renderer) {
 				if (mesh_renderer.TryGetComponent<MeshFilter>(out var filter)) {
 					filter.sharedMesh = meshAtlas;
@@ -95,13 +106,18 @@ namespace Kawashirov.MaterialCombining {
 		}
 
 		public virtual void ApplyMaterials() {
+			if (meshAtlas == null)
+				return;
 			var materials = renderer.sharedMaterials;
 			var N = Mathf.Min(materials.Length, meshAtlas.subMeshCount, items.Count);
 			var changed = false;
 			for (var i = 0; i < N; i++) {
 				if (items.TryGetValue(i, out var item)) {
-					materials[i] = items[i].matGroup.matAtlas;
-					changed = true;
+					var matAtlas = item.matGroup.matAtlas;
+					if (matAtlas != null) {
+						materials[i] = item.matGroup.matAtlas;
+						changed = true;
+					}
 				}
 			}
 			if (changed) {
@@ -114,6 +130,7 @@ namespace Kawashirov.MaterialCombining {
 			RecombineMeshes();
 			SetMeshAtlas();
 			ApplyMaterials();
+
 		}
 	}
 }

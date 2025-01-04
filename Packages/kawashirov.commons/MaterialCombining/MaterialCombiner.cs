@@ -115,6 +115,7 @@ namespace Kawashirov.MaterialCombining {
 			var scene_path_phys = FileUtil.GetPhysicalPath(sceneDir);
 			if (!Directory.Exists(scene_path_phys))
 				Directory.CreateDirectory(scene_path_phys);
+			AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
 		}
 
 		protected virtual void InitData() {
@@ -547,8 +548,8 @@ namespace Kawashirov.MaterialCombining {
 
 		protected virtual void AtlasConfigureImporter(DataTexDesc desc, string path, TextureImporter importer) {
 			importer.textureType = desc.isNormal ? TextureImporterType.NormalMap : TextureImporterType.Default;
+			importer.sRGBTexture = desc.sRGB;
 			importer.alphaIsTransparency = desc.alphaIsTransparency;
-			importer.mipMapsPreserveCoverage = desc.alphaIsTransparency;
 
 			importer.mipmapEnabled = true;
 			importer.streamingMipmaps = true;
@@ -632,7 +633,7 @@ namespace Kawashirov.MaterialCombining {
 
 		protected virtual IEnumerator AtlasBakeSave(DataTexDesc desc) {
 			var desc_name = desc.name;
-			var ext = desc.sRGB ? "png" : "exr";
+			var ext = desc.EXR ? "exr" : "png";
 			var asset_path = $"{sceneDir}/Atlas_{gameObject.name}_tex_{desc_name}.{ext}";
 			if (UniqueAssetNames)
 				asset_path = AssetDatabase.GenerateUniqueAssetPath(asset_path);
@@ -655,8 +656,9 @@ namespace Kawashirov.MaterialCombining {
 			var sw = Stopwatch.StartNew();
 			Texture2D dull_tex = null;
 			try {
-				dull_tex = new Texture2D(4, 4);
-				var dull_data = desc.sRGB ? dull_tex.EncodeToPNG() : dull_tex.EncodeToEXR();
+				var dull_fmt = desc.EXR ? TextureFormat.RGBAHalf : TextureFormat.RGBA32;
+				dull_tex = new Texture2D(4, 4, dull_fmt, 0, desc.EXR);
+				var dull_data = desc.EXR ? dull_tex.EncodeToEXR() : dull_tex.EncodeToPNG();
 				File.WriteAllBytes(FileUtil.GetPhysicalPath(asset_path), dull_data);
 			} catch (Exception exc) {
 				LogException($"Failed to save dull texture for \"{desc_name}\" as \"{asset_path}\".", exc);
@@ -709,9 +711,9 @@ namespace Kawashirov.MaterialCombining {
 
 			// Теперь кодируем Texture2D -> byte[].
 			byte[] data = null;
-			int data_length = 0;
+			var data_length = 0;
 			try {
-				data = desc.sRGB ? tex_temp.EncodeToPNG() : tex_temp.EncodeToEXR();
+				data = desc.EXR ? tex_temp.EncodeToEXR() : tex_temp.EncodeToPNG();
 				data_length = data.Length;
 			} catch (Exception exc) {
 				LogException($"Failed to encode {tex_temp} for \"{desc_name}\" as PNG.", exc);
@@ -824,9 +826,14 @@ namespace Kawashirov.MaterialCombining {
 		protected virtual void ConvertMaterials() {
 			AtlasMaterials = new Material[0];
 			var report = new List<string>(materials.Count);
-			foreach (var group in materials.Values) {
-				group.matAtlas = ConvertMaterial(group.matOriginal);
-				report.Add($"- {group.matOriginal} -> {group.matAtlas}.");
+			foreach (var mat_group in materials.Values) {
+				if (mat_group.matOriginal != null) {
+					mat_group.matAtlas = ConvertMaterial(mat_group.matOriginal);
+				} else {
+					mat_group.matAtlas = null;
+					LogWarning($"One of groups have no {nameof(mat_group.matOriginal)}... Destroyed? Skip.");
+				}
+				report.Add($"- {mat_group.matOriginal} -> {mat_group.matAtlas}.");
 			}
 			Log($"Converted {report.Count} materials:\n" + string.Join("\n", report));
 		}
@@ -836,6 +843,8 @@ namespace Kawashirov.MaterialCombining {
 			Log($"Applying UV transforms to {items_c} temp mat slot meshes...");
 			var sw = Stopwatch.StartNew();
 			foreach (var mat_group in materials.Values) {
+				if (mat_group.matAtlas == null)
+					continue;
 				mat_group.ApplyMatAndUV();
 				if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
 					yield return null;
@@ -857,7 +866,7 @@ namespace Kawashirov.MaterialCombining {
 					sw.Reset();
 				}
 			}
-			AtlasMeshes = renderers.Select(rg => rg.meshAtlas).ToArray();
+			AtlasMeshes = renderers.Select(rg => rg.meshAtlas).UnityNotNull().ToArray();
 			Log($"Applied atlas to {materials.Count} materials, {items_c} slots, generated {AtlasMeshes.Length} meshes.");
 			yield return null;
 		}

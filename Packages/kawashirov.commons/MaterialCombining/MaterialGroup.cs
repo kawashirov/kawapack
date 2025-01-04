@@ -25,7 +25,7 @@ namespace Kawashirov.MaterialCombining {
 		public int alignPx = 8;
 		public float epsilonPx = 8;
 		public float paddingPx = 8;
-		public Vector2Int textureSize = Vector2Int.zero;
+		public Vector2Int textureSize = Vector2Int.one;
 
 		public readonly List<UVIsland> islandsOriginal = new List<UVIsland>(); // tex coords (by textureSize)
 		public readonly List<UVIsland> islandsPadded = new List<UVIsland>(); // tex coords (by textureSize)
@@ -34,6 +34,7 @@ namespace Kawashirov.MaterialCombining {
 		public int debugUVPushes = 0;
 		public int debugUVIters = 0;
 
+		// Может быть null если что-то пошло не так и не получилось заатласить это.
 		public Material matAtlas = null;
 
 		public MaterialGroup(MaterialCombiner combiner, Material matOriginal, DataAdapted adapted) {
@@ -73,13 +74,22 @@ namespace Kawashirov.MaterialCombining {
 		}
 
 		public void CalcTexSize() {
+			var min_size = Mathf.Max(combiner.IslandsPaddingPx, combiner.IslandsEpsilonPx);
+			var rem_size = min_size % combiner.IslandsAlignPx;
+			if (min_size != 0)
+				min_size += combiner.IslandsAlignPx - rem_size;
+
 			if (adapted.data.Count < 1) {
-				textureSize = Vector2Int.one;
+				textureSize = Vector2Int.one * min_size;
 				combiner.LogWarning($"No texture size for {matOriginal}, there is no data textures!");
 			} else {
 				var ldata = adapted.data.OrderByDescending(d => d.LargestTexSize().sqrMagnitude).First();
 				var desc_name = ldata.desc.name;
-				var ts = textureSize = ldata.LargestTexSize();
+				var ts = ldata.LargestTexSize();
+				// TODO это может вызвать диспропорцию
+				ts.x = Mathf.Max(ts.x, min_size);
+				ts.y = Mathf.Max(ts.y, min_size);
+				textureSize = ts;
 				combiner.LogDebug($"Detected size for {matOriginal}: {ts.x}x{ts.y} from data \"{desc_name}\".");
 			}
 		}

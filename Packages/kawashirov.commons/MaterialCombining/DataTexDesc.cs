@@ -18,7 +18,7 @@ namespace Kawashirov.MaterialCombining {
 		public bool alphaIsTransparency = false;
 		public bool isNormal = false;
 		public bool sRGB = true;
-		public bool HDR = false;
+		public bool EXR = false;
 
 		public Texture2D atlasTexture = null;
 

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -99,10 +100,10 @@ namespace Kawashirov.MaterialCombining {
 		protected virtual float GetScalar(Material mat, string prop_name, float default_) {
 			if (GetCommon(mat, prop_name, out var shader, out var prop_index, out var prop_type))
 				return default_;
-			if (prop_type == ShaderPropertyType.Float)
+			if (prop_type == ShaderPropertyType.Float || prop_type == ShaderPropertyType.Range)
 				return mat.GetFloat(prop_name);
 			if (prop_type == ShaderPropertyType.Int)
-				return mat.GetInteger(prop_name);
+				return mat.GetInt(prop_name);
 			return default_;
 		}
 
@@ -122,6 +123,17 @@ namespace Kawashirov.MaterialCombining {
 			// Можно использовать в MakeNewAtlasMaterial
 			foreach (var tex_name in mat.GetTexturePropertyNames())
 				mat.SetTexture(tex_name, null);
+		}
+
+		protected static MaterialGlobalIlluminationFlags DefaultMaterialGlobalIlluminationFlags() {
+			// See MaterialEditor.EmissionEnabledProperty()
+			var lm = Lightmapping.lightingSettingsDefaults;
+			try {
+				lm = Lightmapping.lightingSettings;
+			} catch (Exception) {
+				// suppress "Please assign it to an existing asset or a new instance"
+			}
+			return lm.realtimeGI ? MaterialGlobalIlluminationFlags.RealtimeEmissive : (lm.bakedGI ? MaterialGlobalIlluminationFlags.BakedEmissive : MaterialGlobalIlluminationFlags.None);
 		}
 
 		/* abstract API */
@@ -156,6 +168,26 @@ namespace Kawashirov.MaterialCombining {
 			var left_v = left.GetFloat(name);
 			var right_v = right.GetFloat(name);
 			return !Mathf.Approximately(left_v, right_v);
+		}
+
+		public bool DiffCommons(Material left, Material right, bool gi, bool instancing) {
+			if (left.renderQueue != right.renderQueue)
+				return true;
+
+			if (left.doubleSidedGI != right.doubleSidedGI)
+				return true;
+
+			if (gi) {
+				var em_left = left.globalIlluminationFlags & MaterialGlobalIlluminationFlags.AnyEmissive;
+				var em_right = right.globalIlluminationFlags & MaterialGlobalIlluminationFlags.AnyEmissive;
+				if (em_left != em_right)
+					return true;
+			}
+
+			if (instancing && left.enableInstancing != right.enableInstancing)
+				return true;
+
+			return false;
 		}
 
 		// Должен сравнить два материала на совместимость, согласно настройкам этого адаптера.

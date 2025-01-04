@@ -96,6 +96,10 @@ namespace Kawashirov.MaterialCombining {
 		private static float WeightSqr(Texture2D tex) => 1f * tex.width * tex.height;
 		public float WeightSqr() => dstTex.Select(WeightSqr).Max();
 
+		public override string ToString() =>
+			$"{nameof(DataTex)}(desc={desc?.name}, dstTex=({dstTex[0]}, {dstTex[1]}, {dstTex[2]}, {dstTex[3]}), " +
+			$"dstCh=({dstCh[0]}, {dstCh[1]}, {dstCh[2]}, {dstCh[3]}), color={color})";
+
 	}
 }
 #endif

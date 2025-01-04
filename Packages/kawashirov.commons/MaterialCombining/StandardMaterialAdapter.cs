@@ -42,6 +42,9 @@ namespace Kawashirov.MaterialCombining {
 		public bool EmissionEnable = true;
 		public float EmissionScale = 1;
 
+		public bool InstancingMatters = false;
+		public bool GIFlagsMatters = false;
+
 		[Header("Compatibility Options")]
 		[Tooltip("If checked, all Shaders will be assumed supported with respect to ExcludeKeywords and IncludeKeywords")]
 		public bool AssumeCompatible = false;
@@ -104,8 +107,8 @@ namespace Kawashirov.MaterialCombining {
 					bgTexture = Texture2D.blackTexture,
 					textureChannels = "RGBA",
 					bgColor = Color.black,
-					alphaIsTransparency = true, isNormal = false, sRGB = true, HDR = false,
-					scaleFactor = AlbedoScale
+					scaleFactor = AlbedoScale,
+					sRGB = true, alphaIsTransparency = true,
 				};
 			}
 
@@ -114,8 +117,8 @@ namespace Kawashirov.MaterialCombining {
 					bgTexture = Texture2D.blackTexture,
 					textureChannels = GlossModeToChannels(Gloss),
 					bgColor = Color.black, // 0 metall, 0 smooth
-					alphaIsTransparency = false, isNormal = false, sRGB = true, HDR = false,
-					scaleFactor = GlossScale
+					scaleFactor = GlossScale,
+					sRGB = false,
 				};
 
 			} else if (GlossEnable && Workflow == WorkflowMode.Metallic) {
@@ -123,8 +126,8 @@ namespace Kawashirov.MaterialCombining {
 					bgTexture = Texture2D.blackTexture,
 					textureChannels = GlossModeToChannels(Gloss),
 					bgColor = Color.black, // 0 metall, 0 smooth
-					alphaIsTransparency = false, isNormal = false, sRGB = true, HDR = false,
-					scaleFactor = GlossScale
+					scaleFactor = GlossScale,
+					sRGB = false,
 				};
 			}
 
@@ -135,8 +138,8 @@ namespace Kawashirov.MaterialCombining {
 					// т.к. G и A каналы имеют лучшее качество с блочной компрессией
 					textureChannels = "RGBA",
 					bgColor = Color.white,
-					alphaIsTransparency = false, isNormal = true, sRGB = true, HDR = false,
-					scaleFactor = NormalScale
+					scaleFactor = NormalScale,
+					sRGB = false, isNormal = true,
 				};
 			}
 
@@ -145,8 +148,8 @@ namespace Kawashirov.MaterialCombining {
 					bgTexture = Texture2D.blackTexture,
 					textureChannels = "RGB1",
 					bgColor = Color.black,
-					alphaIsTransparency = false, isNormal = false, sRGB = false, HDR = true,
-					scaleFactor = EmissionScale
+					scaleFactor = EmissionScale,
+					sRGB = false, EXR = true,
 				};
 			}
 		}
@@ -297,11 +300,7 @@ namespace Kawashirov.MaterialCombining {
 
 		public override bool TryAdaptMaterial(Material mat, List<DataTexDesc> descriptors, out DataAdapted data) {
 			if (CanAdaptMaterial(mat)) {
-				data = new DataAdapted(this,
-					YieldDataTexs(mat, descriptors).ToList(),
-					MaterialToST(mat),
-					0
-				);
+				data = new DataAdapted(this, YieldDataTexs(mat, descriptors).ToList(), MaterialToST(mat), 0);
 				return true;
 			} else {
 				data = null;
@@ -354,17 +353,20 @@ namespace Kawashirov.MaterialCombining {
 			if (descEmission != null && descEmission.atlasTexture != null) {
 				SetTextureNoST(mat, "_EmissionMap", descEmission.atlasTexture);
 				mat.SetColor("_EmissionColor", Color.white);
-				mat.globalIlluminationFlags = MaterialEditor.FixupEmissiveFlag(Color.white, mat.globalIlluminationFlags);
+				mat.globalIlluminationFlags = DefaultMaterialGlobalIlluminationFlags();
 				mat.EnableKeyword("_EMISSION");
 			} else {
 				SetTextureNoST(mat, "_EmissionMap", null);
 				mat.SetColor("_EmissionColor", Color.black);
-				mat.globalIlluminationFlags = MaterialEditor.FixupEmissiveFlag(Color.black, mat.globalIlluminationFlags);
+				mat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.EmissiveIsBlack;
 				mat.DisableKeyword("_EMISSION");
 			}
 		}
 
 		public override bool IsCompatible(Material left, Material right) {
+			if (DiffCommons(left, right, GIFlagsMatters, InstancingMatters))
+				return false;
+
 			// See Standard.shader, StandardSpecular.shader
 			if (DiffFloat(left, right, "_Mode"))
 				return false;
@@ -408,6 +410,9 @@ namespace Kawashirov.MaterialCombining {
 			var atlas = Instantiate(original);
 			atlas.parent = null;
 			RemoveAllTextures(atlas);
+			if (!InstancingMatters)
+				atlas.enableInstancing = true;
+			atlas.globalIlluminationFlags = MaterialEditor.FixupEmissiveFlag(Color.white, atlas.globalIlluminationFlags);
 
 			ApplyAtlasAlbedo(atlas);
 

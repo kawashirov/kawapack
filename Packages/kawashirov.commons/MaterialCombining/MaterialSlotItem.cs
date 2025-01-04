@@ -16,8 +16,9 @@ namespace Kawashirov.MaterialCombining {
 		public readonly Mesh meshOriginal;
 		public readonly Material matOriginal;
 
-		public Mesh meshUnique = null; // С.м. комменты в RendererGroup
-		public Material matAtlas = null;
+		// С.м. комменты в RendererGroup. Может быть null, если материал не удалось сконверить, 
+		// а следовательно применить UV мофдификации, а следовательно создать новцю меш. 
+		public Mesh meshUnique = null;
 
 		public MaterialSlotItem(MaterialGroup matGroup, Renderer renderer, int slot, Mesh meshOriginal, Material matOriginal) {
 			combiner = matGroup.combiner;
