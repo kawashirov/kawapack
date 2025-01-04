@@ -25,7 +25,7 @@ namespace Kawashirov.MeshCombining {
 			this.id = id;
 			indexMRG = mrg_index;
 			indexSMG = smg_index;
-			logToken = $"MeshCombine {id}/#{mrg_index}/#{smg_index}";
+			logToken = $"MeshCombine {id}/№{mrg_index}/№{smg_index}";
 			this.material = material;
 			sources = new List<SubMeshInfo>();
 			tmpMesh = new Mesh { name = $"Temp_{id}_{mrg_index}_{smg_index}" };

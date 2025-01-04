@@ -64,7 +64,7 @@ namespace Kawashirov.MeshCombining {
 			for (var i = 0; i < groups.Count; ++i) {
 				var group = groups[i];
 				var items = string.Join("\n", group.sources.Select(mr => mr.gameObject.KawaGetFullPath()));
-				Debug.Log($"{logToken}: Group #{i}:\n{items}");
+				Debug.Log($"{logToken}: Group №{i}:\n{items}");
 				// TODO убрать это
 			}
 			*/

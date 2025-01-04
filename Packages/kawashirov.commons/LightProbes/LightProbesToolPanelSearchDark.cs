@@ -510,7 +510,7 @@ namespace Kawashirov.LightProbesTools {
 				}
 				var data = darkProbes[i];
 				if (newBakedProbes[data.index] != data.probe) {
-					throw new InvalidOperationException($"Probe #{data.index} mismatch between LightmapSettings.lightProbes.bakedProbes and analysisDisplayProbes!");
+					throw new InvalidOperationException($"Probe №{data.index} mismatch between LightmapSettings.lightProbes.bakedProbes and analysisDisplayProbes!");
 				}
 				newBakedProbes[data.index] = FixDarkSingle_Iterative2(data);
 			}

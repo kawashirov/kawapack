@@ -121,7 +121,7 @@ namespace Kawashirov.LightProbesTools {
 				}
 				for (var i = 0; i < newPositions.Length; ++i) {
 					if (newPositions[i] != currentPositions[i]) {
-						Debug.LogWarning($"Position at #{i}/{newPositions.Length} of new and current LightProbes does not match.", this);
+						Debug.LogWarning($"Position at №{i}/{newPositions.Length} of new and current LightProbes does not match.", this);
 						return;
 					}
 				}

@@ -234,7 +234,7 @@ namespace Kawashirov {
 			}
 
 			if (match_mappings.Count > 1) {
-				var ms = string.Join(", ", match_mappings.Select(i => string.Format("#{0}", i)));
+				var ms = string.Join(", ", match_mappings.Select(i => string.Format("№{0}", i)));
 				LogWarning($"MeshRenderer match <b>{match_mappings.Count}</b> collider material mappings: <b>{ms}</b>! Only first one will be used!");
 			} else if (any_partial)
 				LogWarning($"MeshRenderer has both matching and missmatching materials for colliders!");

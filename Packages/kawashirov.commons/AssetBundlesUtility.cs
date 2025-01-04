@@ -138,7 +138,7 @@ namespace Kawashirov {
 					Debug.LogWarning($"AssetBundle from {load.path} contains multiple scenes:\n{scenes}", this);
 				}
 				for (var i = 0; i < scenePaths.Length; ++i) {
-					Debug.Log($"Loading Scene #{i} {scenePaths[i]} from AssetBundle from {load.path}...", this);
+					Debug.Log($"Loading Scene №{i} {scenePaths[i]} from AssetBundle from {load.path}...", this);
 					// EditorSceneManager.LoadSceneAsyncInPlayMode(scenePaths[i], new LoadSceneParameters(i == 0 ? LoadSceneMode.Single : LoadSceneMode.Additive));
 					SceneManager.LoadScene(Path.GetFileNameWithoutExtension(scenePaths[i]), i == 0 ? LoadSceneMode.Single : LoadSceneMode.Additive);
 				}

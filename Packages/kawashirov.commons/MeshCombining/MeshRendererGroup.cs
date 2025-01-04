@@ -31,7 +31,7 @@ namespace Kawashirov.MeshCombining {
 		public MeshRendererGroup(MeshCombineOp parent, int index_mrg, MeshRenderer init) {
 			this.parent = parent;
 			indexMRG = index_mrg;
-			logToken = $"MeshCombine {parent.ID}/#{index_mrg}";
+			logToken = $"MeshCombine {parent.ID}/№{index_mrg}";
 
 			sources = new List<MeshRenderer> { init };
 			materialGroups = new List<SubMeshGroup>();
@@ -131,7 +131,7 @@ namespace Kawashirov.MeshCombining {
 
 			mesh_filter = null;
 			mesh = null;
-			var log_token = $"{logToken}: Source #{source_index}";
+			var log_token = $"{logToken}: Source №{source_index}";
 
 			if (mesh_renderer == null) {
 				Debug.LogError($"{log_token}: MeshRenderer doesn't exist anymore!", targetMesh);
@@ -230,7 +230,7 @@ namespace Kawashirov.MeshCombining {
 			if (!GetFilterSafe(mesh_renderer, source_index, out var mesh_filter, out var mesh))
 				return;
 			var gobj = mesh_renderer.gameObject;
-			var log_token = $"{logToken}: Source #{source_index} Lightmap correction: ";
+			var log_token = $"{logToken}: Source №{source_index} Lightmap correction: ";
 
 			var has_uv0 = mesh.HasVertexAttribute(VertexAttribute.TexCoord0);
 			var has_uv1 = mesh.HasVertexAttribute(VertexAttribute.TexCoord1);
