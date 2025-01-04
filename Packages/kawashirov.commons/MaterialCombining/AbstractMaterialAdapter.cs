@@ -118,6 +118,12 @@ namespace Kawashirov.MaterialCombining {
 			mat.SetTextureOffset(prop_name, Vector2.zero);
 		}
 
+		protected static void RemoveAllTextures(Material mat) {
+			// Можно использовать в MakeNewAtlasMaterial
+			foreach (var tex_name in mat.GetTexturePropertyNames())
+				mat.SetTexture(tex_name, null);
+		}
+
 		/* abstract API */
 
 		protected abstract Shader GetDefaultAtlasShader();
@@ -156,7 +162,7 @@ namespace Kawashirov.MaterialCombining {
 		public abstract bool IsCompatible(Material left, Material right);
 
 		// Должен создать новый материал (и настроить его),
-		// на основе данного оригинала (не изменяя его)
+		// на основе данного оригинала (не изменяя его).
 		public abstract Material MakeNewAtlasMaterial(Material original);
 
 	}

@@ -66,11 +66,17 @@ namespace Kawashirov.MaterialCombining {
 				combine[i] = cmb_i;
 			}
 			meshAtlas = new Mesh();
-			meshAtlas.name = $"Atlas_{combiner.gameObject.name}_{index}_{meshOriginal.name}";
+			meshAtlas.name = $"Atlas_{combiner.gameObject.name}_mesh_{index}_{meshOriginal.name}";
 			meshAtlas.CombineMeshes(combine, false, false, false);
 			MeshUtility.Optimize(meshAtlas);
 			meshAtlas.RecalculateBounds();
 			Assert.IsTrue(meshAtlas.subMeshCount == N);
+
+			var mesh_atlas_path = $"{combiner.sceneDir}/{meshAtlas.name}.asset";
+			if (combiner.UniqueAssetNames)
+				mesh_atlas_path = AssetDatabase.GenerateUniqueAssetPath(mesh_atlas_path);
+			AssetDatabase.CreateAsset(meshAtlas, mesh_atlas_path);
+
 			return meshAtlas;
 		}
 
@@ -102,6 +108,12 @@ namespace Kawashirov.MaterialCombining {
 				renderer.sharedMaterials = materials;
 				EditorUtility.SetDirty(renderer);
 			}
+		}
+
+		public virtual void AtlasApply() {
+			RecombineMeshes();
+			SetMeshAtlas();
+			ApplyMaterials();
 		}
 	}
 }

@@ -9,7 +9,8 @@ using Object = UnityEngine.Object;
 
 namespace Kawashirov.MaterialCombining {
 	public class MaterialSlotItem {
-		public readonly MaterialSlotGroup matGroup;
+		public readonly MaterialCombiner combiner;
+		public readonly MaterialGroup matGroup;
 		public readonly Renderer renderer;
 		public readonly int slot;
 		public readonly Mesh meshOriginal;
@@ -18,7 +19,8 @@ namespace Kawashirov.MaterialCombining {
 		public Mesh meshUnique = null; // С.м. комменты в RendererGroup
 		public Material matAtlas = null;
 
-		public MaterialSlotItem(MaterialSlotGroup matGroup, Renderer renderer, int slot, Mesh meshOriginal, Material matOriginal) {
+		public MaterialSlotItem(MaterialGroup matGroup, Renderer renderer, int slot, Mesh meshOriginal, Material matOriginal) {
+			combiner = matGroup.combiner;
 			this.matGroup = matGroup;
 			this.renderer = renderer;
 			this.slot = slot;
@@ -44,9 +46,11 @@ namespace Kawashirov.MaterialCombining {
 			if (slot < mesh.subMeshCount)
 				return true;
 			var msg = $"{this}: Only have {mesh.subMeshCount} material slots!";
-			if (except)
-				throw new Exception(msg + " This shouldn't happened.");
-			matGroup.parent.LogWarning(msg + " This slot will be skipped.");
+			if (except) {
+				combiner.ThrowException(new Exception(msg + " This shouldn't happened."));
+			} else {
+				combiner.LogWarning(msg + " This slot will be skipped.");
+			}
 			return false;
 		}
 
@@ -55,18 +59,22 @@ namespace Kawashirov.MaterialCombining {
 			var attr = UVIndxToAttrib(uv_idx);
 			if (!mesh.HasVertexAttribute(attr)) {
 				var msg = $"{this}: The material requires UV №{uv_idx}, but the mesh have no this UV layer!";
-				if (except)
-					throw new Exception(msg + " This shouldn't happened.");
-				matGroup.parent.LogWarning(msg + " This slot will be skipped.");
+				if (except) {
+					combiner.ThrowException(new Exception(msg + " This shouldn't happened."));
+				} else {
+					combiner.LogWarning(msg + " This slot will be skipped.");
+				}
 				return false;
 			}
 
 			var dim = mesh.GetVertexAttributeDimension(attr);
 			if (dim != 2) {
 				var msg = $"{this}: The material requires 2D UV №{uv_idx}, but this UV layer have dimension of {dim}!";
-				if (except)
-					throw new Exception(msg);
-				matGroup.parent.LogWarning(msg + " This slot will be skipped.");
+				if (except) {
+					combiner.ThrowException(new Exception(msg + " This shouldn't happened."));
+				} else {
+					combiner.LogWarning(msg + " This slot will be skipped.");
+				}
 				return false;
 			}
 
@@ -76,7 +84,7 @@ namespace Kawashirov.MaterialCombining {
 		public Mesh MakeUniqueMesh() {
 			Assert.IsNull(meshUnique);
 			// Хитровыебанный способ отсоединить одну сабмеш от другой - скомбинировать только одну меш.
-			meshUnique = new Mesh() { name = $"Tmp_{matGroup.parent.gameObject.name}_{meshOriginal.name}" };
+			meshUnique = new Mesh() { name = $"Tmp_{matGroup.combiner.gameObject.name}_{meshOriginal.name}" };
 			var combine = new CombineInstance() { mesh = meshOriginal, subMeshIndex = slot };
 			meshUnique.CombineMeshes(new CombineInstance[1] { combine }, false, false, false);
 			MeshUtility.Optimize(meshUnique);

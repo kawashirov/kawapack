@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Kawashirov.MaterialCombining {
 	public class DataTexDesc : IEquatable<DataTexDesc> {
 		// Data Texture Descriptor
-		public readonly AbstractMaterialAdapter parent;
+		public readonly AbstractMaterialAdapter adapter;
 		public readonly string name; // "Albedo", "Normal", ...
 
 		public float scaleFactor = 1;
@@ -22,8 +22,8 @@ namespace Kawashirov.MaterialCombining {
 
 		public Texture2D atlasTexture = null;
 
-		public DataTexDesc(AbstractMaterialAdapter parent, string name) {
-			this.parent = parent;
+		public DataTexDesc(AbstractMaterialAdapter adapter, string name) {
+			this.adapter = adapter;
 			this.name = name;
 		}
 

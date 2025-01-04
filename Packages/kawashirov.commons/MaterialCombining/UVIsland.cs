@@ -33,6 +33,13 @@ namespace Kawashirov.MaterialCombining {
 			vmax = rect.yMax;
 		}
 
+		public UVIsland(Rect rect, float normalize) {
+			umin = rect.xMin / normalize;
+			vmin = rect.yMin / normalize;
+			umax = rect.xMax / normalize;
+			vmax = rect.yMax / normalize;
+		}
+
 		public static UVIsland FromPoints(ICollection<Vector2> points) {
 			return new UVIsland(
 				points.Select(v => v.x).Min(),

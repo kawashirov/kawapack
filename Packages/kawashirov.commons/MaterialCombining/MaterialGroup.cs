@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace Kawashirov.MaterialCombining {
-	public class MaterialSlotGroup {
+	public class MaterialGroup {
 		// Мета-данные по каждому материалу:
 		// - где он используется: на каких рендерерах, на каких слотах
 		// - каким адаптером преобразуется в каналы данных,
@@ -17,7 +17,7 @@ namespace Kawashirov.MaterialCombining {
 		private readonly static List<int> BUFFER_INDICES = new List<int>();
 		private readonly static List<Vector2> BUFFER_UV = new List<Vector2>();
 
-		public readonly MaterialCombiner parent;
+		public readonly MaterialCombiner combiner;
 		public readonly Material matOriginal;
 		public readonly DataAdapted adapted;
 		public readonly List<MaterialSlotItem> items;
@@ -36,8 +36,8 @@ namespace Kawashirov.MaterialCombining {
 
 		public Material matAtlas = null;
 
-		public MaterialSlotGroup(MaterialCombiner parent, Material matOriginal, DataAdapted adapted) {
-			this.parent = parent;
+		public MaterialGroup(MaterialCombiner combiner, Material matOriginal, DataAdapted adapted) {
+			this.combiner = combiner;
 			this.matOriginal = matOriginal;
 			this.adapted = adapted;
 			items = new List<MaterialSlotItem>(1);
@@ -65,7 +65,7 @@ namespace Kawashirov.MaterialCombining {
 		public void CheckIndiciesCount(ref int steps, MeshTopology topology, int count) {
 			if (count % steps != 0) {
 				steps = count;
-				parent.LogWarning(
+				combiner.LogWarning(
 					$"{this}: have topology={topology} by {steps} indicies, " +
 					$"but have {count} total indicies!"
 				);
@@ -75,16 +75,17 @@ namespace Kawashirov.MaterialCombining {
 		public void CalcTexSize() {
 			if (adapted.data.Count < 1) {
 				textureSize = Vector2Int.one;
-				parent.LogWarning($"No texture size for {matOriginal}, there is no data textures!");
+				combiner.LogWarning($"No texture size for {matOriginal}, there is no data textures!");
 			} else {
 				var ldata = adapted.data.OrderByDescending(d => d.LargestTexSize().sqrMagnitude).First();
 				var desc_name = ldata.desc.name;
 				var ts = textureSize = ldata.LargestTexSize();
-				// parent.Log($"Detected size for {matOriginal}: {ts.x}x{ts.y} from data \"{desc_name}\".");
+				combiner.LogDebug($"Detected size for {matOriginal}: {ts.x}x{ts.y} from data \"{desc_name}\".");
 			}
 		}
 
 		protected void PushUVIsland(UVIsland island_px) {
+			combiner.LogDebug($"{this}: PushUVIsland: {island_px}");
 			++debugUVPushes;
 			// Остров уже должен быть в пиксельных коордах.
 			if (islandsOriginal.Count < 1) {
@@ -145,7 +146,6 @@ namespace Kawashirov.MaterialCombining {
 					island_raw = island_raw.ExpandByUVPoint(uv);
 				}
 				var island_px = island_raw.TransformST(st).ToTexCoords(textureSize).RoundToInt();
-				// parent.Log($"{this}: PushUVIsland: {island_px}");
 				PushUVIsland(island_px);
 			}
 
@@ -154,7 +154,7 @@ namespace Kawashirov.MaterialCombining {
 		}
 
 		public virtual void CalcIslands() {
-			parent.Log($"Searching UV islands for {matOriginal} on {items.Count} slots...");
+			combiner.Log($"Searching UV islands for {matOriginal} on {items.Count} slots...");
 
 			islandsOriginal.Clear();
 			debugUVPushes = 0;
@@ -184,7 +184,7 @@ namespace Kawashirov.MaterialCombining {
 
 		public virtual void ApplyMatAndUV(MaterialSlotItem item) {
 			var mesh = item.MakeUniqueMesh();
-			Selection.SetActiveObjectWithContext(mesh, parent);
+			Selection.SetActiveObjectWithContext(mesh, combiner);
 
 			item.EnsureSlotsConsistent(mesh, true);
 			item.EnsureUV2D(mesh, true);
@@ -287,14 +287,14 @@ namespace Kawashirov.MaterialCombining {
 				try {
 					ApplyMatAndUV(item);
 				} catch (Exception exc) {
-					parent.LogException($"Failed to {nameof(ApplyMatAndUV)} for group {matOriginal}, item №{i}: {item}", exc);
+					combiner.LogException($"Failed to {nameof(ApplyMatAndUV)} for group {matOriginal}, item №{i}: {item}", exc);
 					throw exc;
 				}
 			}
 		}
 
 		public override string ToString() =>
-			$"{nameof(MaterialSlotGroup)}({matOriginal})";
+			$"{nameof(MaterialGroup)}({matOriginal})";
 	}
 }
 #endif

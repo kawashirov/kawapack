@@ -114,7 +114,7 @@ namespace Kawashirov.MaterialCombining {
 					bgTexture = Texture2D.blackTexture,
 					textureChannels = GlossModeToChannels(Gloss),
 					bgColor = Color.black, // 0 metall, 0 smooth
-					alphaIsTransparency = false, isNormal = false, sRGB = false, HDR = false,
+					alphaIsTransparency = false, isNormal = false, sRGB = true, HDR = false,
 					scaleFactor = GlossScale
 				};
 
@@ -123,7 +123,7 @@ namespace Kawashirov.MaterialCombining {
 					bgTexture = Texture2D.blackTexture,
 					textureChannels = GlossModeToChannels(Gloss),
 					bgColor = Color.black, // 0 metall, 0 smooth
-					alphaIsTransparency = false, isNormal = false, sRGB = false, HDR = false,
+					alphaIsTransparency = false, isNormal = false, sRGB = true, HDR = false,
 					scaleFactor = GlossScale
 				};
 			}
@@ -135,7 +135,7 @@ namespace Kawashirov.MaterialCombining {
 					// т.к. G и A каналы имеют лучшее качество с блочной компрессией
 					textureChannels = "RGBA",
 					bgColor = Color.white,
-					alphaIsTransparency = false, isNormal = true, sRGB = false, HDR = false,
+					alphaIsTransparency = false, isNormal = true, sRGB = true, HDR = false,
 					scaleFactor = NormalScale
 				};
 			}
@@ -407,6 +407,7 @@ namespace Kawashirov.MaterialCombining {
 		public override Material MakeNewAtlasMaterial(Material original) {
 			var atlas = Instantiate(original);
 			atlas.parent = null;
+			RemoveAllTextures(atlas);
 
 			ApplyAtlasAlbedo(atlas);
 
