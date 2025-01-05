@@ -4,125 +4,132 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 
 using Object = UnityEngine.Object;
 
 namespace Kawashirov.MeshCombining {
 	public class MeshRendererGroup {
-		public readonly MeshCombineOp parent;
+		public readonly MeshCombiner combiner;
 
 		// Эти 2 для логов и отладки
 		public readonly int indexMRG;
 		private readonly string logToken;
 
-		public readonly List<MeshRenderer> sources;
-		public readonly List<SubMeshGroup> materialGroups;
-		public readonly Mesh targetMesh;
+		public readonly List<MeshRenderer> originals;
+		protected readonly List<SubMeshGroup> matGroups;
+		protected bool isLightmapped = false;
 
-		public MeshFilter targetMeshFilter = null; //  in CreateTarget
-		public MeshRenderer targetMeshRenderer = null; // in CreateTarget
+		protected Mesh cmbMesh; // in PrepareCombinedGObj
+		protected MeshFilter cmbMeshFilter = null; // in PrepareCombinedGObj
+		protected MeshRenderer cmbMeshRenderer = null; // in PrepareCombinedGObj
 
 		protected float maxScaleInLightmap = 0;
 		protected int lightmapTableSize = 0;
 
 		public List<Object> tempObjectsDestroyLater;
 
-		public MeshRendererGroup(MeshCombineOp parent, int index_mrg, MeshRenderer init) {
-			this.parent = parent;
+		public MeshRendererGroup(MeshCombiner parent, int index_mrg) {
+			combiner = parent;
 			indexMRG = index_mrg;
-			logToken = $"MeshCombine {parent.ID}/№{index_mrg}";
+			logToken = $"{parent.gameObject.name}/№{index_mrg}";
 
-			sources = new List<MeshRenderer> { init };
-			materialGroups = new List<SubMeshGroup>();
-			targetMesh = new Mesh { name = $"CombinedGroup_{parent.ID}_{index_mrg}" };
-			targetMesh.MarkDynamic();
+			originals = new List<MeshRenderer>();
+			matGroups = new List<SubMeshGroup>();
 
 			tempObjectsDestroyLater = new List<Object>();
 		}
 
-		protected virtual bool Equals(MeshRenderer x, MeshRenderer y) {
+		protected virtual bool MatchSimilarButDifferent(MeshRenderer x, MeshRenderer y) {
 			// Должны быть разные объекты, но с теме же характеристиками.
-			return x != y && parent.mre.Equals(x, y);
+			return x != y && combiner.IsSimilar(x, y);
 		}
 
 		public virtual bool Match(MeshRenderer mr) {
 			// Тут пока так. 
-			// На всякий случай проверяем с каждым объектом, да бы обнвружить баги в MeshRendererEquality
-			var eq = parent.mre;
-			var eq_count = sources.Where(s => Equals(s, mr)).Count();
-			if (eq_count == sources.Count) {
+			// Мы сравниваем меш с каждой в группе, не смотря на то, что можно было бы и
+			// с любой одной, просто что бы однаружить возможные баги в IsSimilar.
+			var eq_count = originals.Where(s => MatchSimilarButDifferent(s, mr)).Count();
+			if (eq_count == originals.Count) {
 				return true;
 			} else if (eq_count == 0) {
 				return false;
 			} else {
 				// Подробный баг-репорт
 				var mr_str = mr.gameObject.KawaGetFullPath();
-				var matched = sources.Where(s => Equals(s, mr)).ToList();
+				var matched = originals.Where(s => MatchSimilarButDifferent(s, mr)).ToList();
 				var matched_str = string.Join("\n", matched.Select(x => x.gameObject.KawaGetFullPath()));
-				var miss_str = string.Join("\n", sources.Except(matched).Select(x => x.gameObject.KawaGetFullPath()));
-				var msg1 = $"{logToken}: Matches {mr_str} with {eq_count} of {sources.Count} renderers, but must be all or nothing.";
-				var msg2 = $"{msg1}\nMatched objects: {matched_str}\nMiss-matched objects: {miss_str}";
-				Debug.LogError(msg2, mr);
-				throw new Exception(msg1);
+				var miss_str = string.Join("\n", originals.Except(matched).Select(x => x.gameObject.KawaGetFullPath()));
+				var msg = $"{logToken}: Matches {mr_str} with {eq_count} of {originals.Count} renderers, but must be all or nothing.\n" +
+					$"\n\tMatched objects:\n{matched_str}\n\tMiss-matched objects:\n{miss_str}";
+				combiner.ThrowException(new Exception(msg), mr);
+				return false;
 			}
 		}
 
-		protected virtual void CreateTarget() {
-			Debug.Log($"{logToken}: Creatig target objects...");
-			var gobj = new GameObject($"CombinedGroup_{indexMRG}");
+		public virtual void Add(MeshRenderer mr) {
+			originals.Add(mr);
+			isLightmapped |= combiner.IsLightmapped(mr);
+		}
+
+		protected virtual void PrepareCombinedGObj() {
+			combiner.LogDebug($"{logToken}: Preparing combined objects...");
+			var gobj = new GameObject($"CmbGroup_{indexMRG}");
+
+			cmbMesh = new Mesh { name = $"Cmb_{combiner.gameObject.name}_group_{indexMRG}" };
 
 			var transform = gobj.transform;
-			transform.SetParent(parent.Target.transform, false);
+			transform.SetParent(combiner.GetContainer().transform, false);
 			transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
 			transform.localScale = Vector3.one;
 
-			targetMeshFilter = gobj.AddComponent<MeshFilter>();
-			targetMeshFilter.sharedMesh = targetMesh;
+			cmbMeshFilter = gobj.AddComponent<MeshFilter>();
+			cmbMeshFilter.sharedMesh = cmbMesh;
 
-			targetMeshRenderer = gobj.AddComponent<MeshRenderer>();
-			Debug.Log($"{logToken}: Created target objects: {gobj.KawaGetFullPath()}", gobj);
+			cmbMeshRenderer = gobj.AddComponent<MeshRenderer>();
+			combiner.Log($"{logToken}: Prepared combined objects: {cmbMeshFilter}, {cmbMeshRenderer}", cmbMeshRenderer);
 		}
 
-		protected virtual void ConfigureTarget() {
-			var gobj = targetMeshRenderer.gameObject;
-			Debug.Log($"{logToken}: Configuring target MeshRenderer: {gobj.KawaGetFullPath()}", gobj);
+		protected virtual void ConfigureCombined() {
+			var gobj = cmbMeshRenderer.gameObject;
+			combiner.LogDebug($"{logToken}: Configuring combined mesh renderer...", gobj);
 
 			// Копирование настроек MeshRenderer c любого из группы (они должны быть одинаковые у всех)
-			var reference = sources.First();
+			var reference = originals.First();
 
-			targetMeshRenderer.shadowCastingMode = reference.shadowCastingMode;
-			targetMeshRenderer.receiveShadows = reference.receiveShadows;
-			targetMeshRenderer.motionVectorGenerationMode = reference.motionVectorGenerationMode;
+			cmbMeshRenderer.shadowCastingMode = reference.shadowCastingMode;
+			cmbMeshRenderer.receiveShadows = reference.receiveShadows;
+			cmbMeshRenderer.motionVectorGenerationMode = reference.motionVectorGenerationMode;
 
 			var flags = GameObjectUtility.GetStaticEditorFlags(reference.gameObject);
-			GameObjectUtility.SetStaticEditorFlags(gobj, flags & MeshRendererEquality.MASK);
+			GameObjectUtility.SetStaticEditorFlags(gobj, flags & MeshCombiner.STATIC_EQ_MASK);
 
-			targetMeshRenderer.receiveGI = reference.receiveGI;
+			cmbMeshRenderer.receiveGI = reference.receiveGI;
 
-			targetMeshRenderer.lightProbeUsage = reference.lightProbeUsage;
-			targetMeshRenderer.reflectionProbeUsage = reference.reflectionProbeUsage;
-			targetMeshRenderer.probeAnchor = reference.probeAnchor;
+			cmbMeshRenderer.lightProbeUsage = reference.lightProbeUsage;
+			cmbMeshRenderer.reflectionProbeUsage = reference.reflectionProbeUsage;
+			cmbMeshRenderer.probeAnchor = reference.probeAnchor;
 
-			targetMeshRenderer.allowOcclusionWhenDynamic = reference.allowOcclusionWhenDynamic;
+			cmbMeshRenderer.allowOcclusionWhenDynamic = reference.allowOcclusionWhenDynamic;
 
 			// Кроме scaleInLightmap, для него используем наибольшее значение, 
 			// т.к. все остальные будут перескейлены 
-			targetMeshRenderer.scaleInLightmap = maxScaleInLightmap;
+			cmbMeshRenderer.scaleInLightmap = maxScaleInLightmap;
 
-			Debug.Log($"{logToken}: Configured target MeshRenderer: {gobj.KawaGetFullPath()}", gobj);
+			combiner.LogDebug($"{logToken}: Configured combined mesh renderer.", gobj);
 		}
 
 		// Является ли эта группа лайтмапируемой (да, если хотя бы один, но на самом деле они все)
-		protected virtual bool IsLightmapped() => sources.Any(mr => parent.mre.IsLightmapped(mr));
+		protected virtual bool IsLightmapped() => originals.Any(mr => combiner.IsLightmapped(mr));
 
-		protected void FindTableSize() {
+		protected void LightmapFindTableSize() {
 			// Пока что используем простой алгоритм упаковки.
 			// Разбиваем UV квадрат на сетку из квадратиков и каждую меш переносим в него.
 			var table_size = 0;
-			while (table_size * table_size < sources.Count)
+			while (table_size * table_size < originals.Count)
 				++table_size;
-			Debug.Log($"{logToken}: Using Lightmap UV packing table of size {table_size}...");
+			combiner.Log($"{logToken}: Using Lightmap UV packing table of size {table_size}...");
 			lightmapTableSize = table_size;
 		}
 
@@ -134,32 +141,31 @@ namespace Kawashirov.MeshCombining {
 			var log_token = $"{logToken}: Source №{source_index}";
 
 			if (mesh_renderer == null) {
-				Debug.LogError($"{log_token}: MeshRenderer doesn't exist anymore!", targetMesh);
+				combiner.LogWarning($"{log_token}: MeshRenderer doesn't exist anymore!");
 				return false;
 			}
-			var gobj = mesh_renderer.gameObject;
 
 			var shared_materials = mesh_renderer.sharedMaterials;
 			if (shared_materials == null || shared_materials.Length < 1) {
-				Debug.LogError($"{log_token}: MeshRenderer have no Materials at {gobj.KawaGetFullPath()}", mesh_renderer);
+				combiner.LogWarning($"{log_token}: MeshRenderer have no Materials!", mesh_renderer);
 				return false;
 			}
 
-			if (!mesh_renderer.TryGetComponent<MeshFilter>(out mesh_filter) || mesh_filter == null) {
-				Debug.LogError($"{log_token}: There is no MeshFilter at {gobj.KawaGetFullPath()}", mesh_renderer);
+			if (!mesh_renderer.TryGetComponent(out mesh_filter) || mesh_filter == null) {
+				combiner.LogWarning($"{log_token}: There is no MeshFilter!", mesh_renderer);
 				return false;
 			}
 
 			mesh = mesh_filter.sharedMesh;
 			if (mesh == null) {
-				Debug.LogError($"{log_token}: MeshFilter have no Mesh at {gobj.KawaGetFullPath()}", mesh_filter);
+				combiner.LogWarning($"{log_token}: MeshFilter have no Mesh!", mesh_filter);
 				return false;
 			}
 
 			return true;
 		}
 
-		protected virtual void NormalizeBounds(List<Vector2> data) {
+		protected virtual void LightmapNormalizeBounds(List<Vector2> data) {
 			// Может получиться так, что данные на UV не помещаются в 0..1
 			// Обычно юнити лайтмапер с этим справляется, 
 			// но нам нужно привести это впорядок для корректной упаковки.
@@ -189,7 +195,7 @@ namespace Kawashirov.MeshCombining {
 			}
 		}
 
-		protected virtual void ApplyPadding(List<Vector2> data, float padding) {
+		protected virtual void LightmapApplyPadding(List<Vector2> data, float padding) {
 			// Может получиться так, что после перепаковки 
 			// острова из соседних ячеек сетки будут ссоприкасаться.
 			// Что бы этого не было добавляем отступы.
@@ -204,7 +210,7 @@ namespace Kawashirov.MeshCombining {
 			}
 		}
 
-		protected virtual void ApplyGrid(List<Vector2> data, int size, int gx, int gy) {
+		protected virtual void LightmapApplyGrid(List<Vector2> data, int size, int gx, int gy) {
 			// Преобразование сетки
 			var min_x = 1f * gx / size;
 			var min_y = 1f * gy / size;
@@ -218,25 +224,16 @@ namespace Kawashirov.MeshCombining {
 			}
 		}
 
-		protected static Vector4 Bounds(List<Vector2> data) {
-			var xmin = data.Select(v => v.x).Min();
-			var ymin = data.Select(v => v.y).Min();
-			var xmax = data.Select(v => v.x).Max();
-			var ymax = data.Select(v => v.y).Max();
-			return new Vector4(xmin, ymin, xmax, ymax);
-		}
-
-		protected virtual void ApplyLightmapCorrections(MeshRenderer mesh_renderer, int source_index) {
+		protected virtual void LightmapApplyCorrections(MeshRenderer mesh_renderer, int source_index) {
 			if (!GetFilterSafe(mesh_renderer, source_index, out var mesh_filter, out var mesh))
 				return;
-			var gobj = mesh_renderer.gameObject;
 			var log_token = $"{logToken}: Source №{source_index} Lightmap correction: ";
 
 			var has_uv0 = mesh.HasVertexAttribute(VertexAttribute.TexCoord0);
 			var has_uv1 = mesh.HasVertexAttribute(VertexAttribute.TexCoord1);
 
 			if (!has_uv0 && !has_uv1) {
-				Debug.LogWarning($"{log_token}: Mesh have no UV 0 or 1 at {gobj.KawaGetFullPath()}", mesh_filter);
+				combiner.LogWarning($"{log_token}: Mesh have no UV 0 or 1!", mesh_filter);
 				return;
 			}
 
@@ -245,7 +242,7 @@ namespace Kawashirov.MeshCombining {
 			if (has_uv1) {
 				var dim_uv1 = mesh.GetVertexAttributeDimension(VertexAttribute.TexCoord1);
 				if (dim_uv1 != 2) {
-					Debug.LogWarning($"{log_token}: Mesh have TexCoord1 dimension={dim_uv1} at {gobj.KawaGetFullPath()}", mesh_filter);
+					combiner.LogWarning($"{log_token}: Mesh have TexCoord1 dimension={dim_uv1}", mesh_filter);
 				} else {
 					mesh.GetUVs(1, data);
 				}
@@ -254,54 +251,54 @@ namespace Kawashirov.MeshCombining {
 			if (data.Count == 0 && has_uv0) {
 				var dim_uv0 = mesh.GetVertexAttributeDimension(VertexAttribute.TexCoord0);
 				if (dim_uv0 != 2) {
-					Debug.LogWarning($"{log_token}: Mesh have TexCoord0 dimension={dim_uv0} at {gobj.KawaGetFullPath()}", mesh_filter);
+					combiner.LogWarning($"{log_token}: Mesh have TexCoord0 dimension={dim_uv0}!", mesh_filter);
 				} else {
 					mesh.GetUVs(0, data);
 				}
 			}
 
 			if (data.Count < 1) {
-				Debug.LogError($"{log_token}: was not able to get UV data at {gobj.KawaGetFullPath()}", mesh_filter);
+				combiner.LogError($"{log_token}: was not able to get UV data!", mesh_filter);
 				return;
 			}
 
 			// Шаг 1: нормализация к 0..1
-			NormalizeBounds(data);
+			LightmapNormalizeBounds(data);
 
 			// Шаг 2: отступы
-			ApplyPadding(data, 0.1f);
+			LightmapApplyPadding(data, 0.1f);
 
 			// Шаг 3: перенос в квадрат
 			var gx = source_index % lightmapTableSize;
 			var gy = source_index / lightmapTableSize;
-			Debug.Log($"{log_token}: Grid coord is ({gx}, {gy}) for {gobj.KawaGetFullPath()}", mesh_filter);
-			ApplyGrid(data, lightmapTableSize, gx, gy);
+			combiner.Log($"{log_token}: Grid coord is ({gx}, {gy})!", mesh_filter);
+			LightmapApplyGrid(data, lightmapTableSize, gx, gy);
 
 			// Теперь кладём данные назад, но в копию меша.
 			var mesh_copy = Object.Instantiate(mesh);
 			tempObjectsDestroyLater.Add(mesh_copy);
-			mesh_copy.name = $"TmpCopy_{parent.ID}_{indexMRG}_{mesh.name}";
+			mesh_copy.name = $"TmpCopy_{combiner.gameObject.name}_{indexMRG}_{mesh.name}";
 			mesh_copy.SetUVs(1, data);
 			mesh_copy.MarkModified();
 			mesh_filter.sharedMesh = mesh_copy;
 		}
 
-		protected virtual void ApplyLightmapCorrections() {
+		protected virtual void LightmapApplyCorrections() {
 			// Мы не можем применять коррекцию LM UV во время комбинирования, 
 			// т.к. UV это свойство всей меши, а мы комбайним саб меши (слоты материалов)
 			// По этому нужно сначала применить скейлы и квадратную упаковку к LM UV, 
 			// а потом комбинировать. Ну и так тупо проще.
 
 			if (!IsLightmapped()) {
-				Debug.Log($"{logToken}: Assume is not light map able group. No UV corrections.");
+				combiner.LogDebug($"{logToken}: Assume is not light map able group. No UV corrections.", cmbMeshRenderer);
 				return;
 			}
 
-			FindTableSize();
+			LightmapFindTableSize();
 
-			for (var i = 0; i < sources.Count; ++i) {
-				var mesh_renderer = sources[i];
-				ApplyLightmapCorrections(mesh_renderer, i);
+			for (var i = 0; i < originals.Count; ++i) {
+				var mesh_renderer = originals[i];
+				LightmapApplyCorrections(mesh_renderer, i);
 			}
 		}
 
@@ -311,55 +308,46 @@ namespace Kawashirov.MeshCombining {
 
 			var shared_materials = mesh_renderer.sharedMaterials;
 
-			var src2world = mesh_renderer.transform.localToWorldMatrix;
-			var world2target = parent.Target.transform.worldToLocalMatrix;
-			var matrix = world2target * src2world;
+			var orig2world = mesh_renderer.transform.localToWorldMatrix;
+			var world2container = combiner.GetContainer().transform.worldToLocalMatrix;
+			var matrix = world2container * orig2world;
 
 			var n = Math.Min(mesh.subMeshCount, shared_materials.Length);
 			for (var i = 0; i < n; i++) {
 				var material = shared_materials[i];
 				var smi = new SubMeshInfo(mesh_renderer, mesh, i, matrix);
 				// TODO можно оптимизировать?
-				foreach (var smg in materialGroups) {
+				foreach (var smg in matGroups) {
 					if (smg.material == material) {
-						smg.sources.Add(smi);
+						smg.originals.Add(smi);
 						return;
 					}
 				}
-				materialGroups.Add(new SubMeshGroup(parent.ID, indexMRG, materialGroups.Count, material, smi));
+				matGroups.Add(new SubMeshGroup(this, indexMRG, matGroups.Count, material, smi));
 			}
 		}
 
 		protected virtual void GroupSubMeshes() {
-			Debug.Log($"{logToken}: Grouping sub meshes of {sources.Count} MeshRenderers...");
-			for (var i = 0; i < sources.Count; ++i) {
-				var mesh_renderer = sources[i];
-				GroupSubMeshes(mesh_renderer, i);
-			}
-			Debug.Log($"{logToken}: Grouped sub meshes to {materialGroups.Count} material groups.");
+			combiner.LogDebug($"{logToken}: Grouping sub meshes of {originals.Count} mesh renderers...");
+			for (var i = 0; i < originals.Count; ++i)
+				GroupSubMeshes(originals[i], i);
+			combiner.LogDebug($"{logToken}: Grouped sub meshes to {matGroups.Count} material groups.");
 		}
 
-		protected virtual void Combine() {
-			Debug.Log($"{logToken}: Combining...");
-			var apply_lm_corrections = IsLightmapped();
-			var cis = materialGroups.Select(smg => smg.CombineInstance()).ToArray();
-			targetMesh.CombineMeshes(cis, false, false, false); // TODO hasLightmapData
-			targetMesh.RecalculateBounds();
-			MeshUtility.Optimize(targetMesh);
-			targetMesh.MarkModified();
-			EditorUtility.SetDirty(targetMesh);
-			int mgc = materialGroups.Count, smc = targetMesh.subMeshCount;
-			if (mgc != smc) {
-				Debug.LogError($"{logToken}: material groups count {mgc} doesn't match combined sub mesh count {smc}.");
-			} else {
-				Debug.Log($"{logToken}: Combined into {smc} sub meshes / materials.");
-			}
-		}
-
-		protected virtual void ApplyMaterialsToTarget() {
-			targetMeshRenderer.sharedMaterials = materialGroups.Select(g => g.material).ToArray();
-			targetMeshRenderer.ResetLocalBounds();
-			targetMeshRenderer.ResetBounds();
+		protected virtual void CombineMaterialGroups() {
+			combiner.LogDebug($"{logToken}: Combining {matGroups} material groups...");
+			var cis = matGroups.Select(smg => smg.CombineInstance()).ToArray();
+			cmbMesh.CombineMeshes(cis, false, false, false); // TODO hasLightmapData
+			Assert.IsTrue(matGroups.Count == cmbMesh.subMeshCount, $"{matGroups.Count}, {cmbMesh.subMeshCount}");
+			MeshUtility.Optimize(cmbMesh);
+			cmbMesh.RecalculateBounds();
+			cmbMesh.MarkModified();
+			EditorUtility.SetDirty(cmbMesh);
+			// cmbMesh уже забинджен в MeshFilter
+			cmbMeshRenderer.sharedMaterials = matGroups.Select(g => g.material).ToArray();
+			cmbMeshRenderer.ResetLocalBounds();
+			cmbMeshRenderer.ResetBounds();
+			combiner.LogDebug($"{logToken}: Combined into {cmbMesh.subMeshCount} sub meshes / materials.");
 		}
 
 		protected virtual void RemoveOriginals(MeshRenderer mesh_renderer, int source_index) {
@@ -372,43 +360,38 @@ namespace Kawashirov.MeshCombining {
 		}
 
 		protected virtual void RemoveOriginals() {
-			Debug.Log($"{logToken}: Removing original mesh renderers...");
-			for (var i = 0; i < sources.Count; i++) {
-				var source = sources[i];
-				if (source != null)
-					RemoveOriginals(source, i);
+			combiner.Log($"{logToken}: Removing original mesh renderers...");
+			for (var i = 0; i < originals.Count; i++) {
+				var orig = originals[i];
+				if (orig != null)
+					RemoveOriginals(orig, i);
 			}
+			originals.Clear();
 		}
 
-		protected virtual void Destroy() {
-			foreach (var mat_group in materialGroups)
-				mat_group.Destroy();
+		protected virtual void DestroyTemp() {
+			foreach (var mat_group in matGroups)
+				mat_group.DestroyTemp();
 			foreach (var tmp in tempObjectsDestroyLater)
 				Object.DestroyImmediate(tmp);
-			// Поможем мусорщику
-			sources.Clear();
-			materialGroups.Clear();
+			matGroups.Clear();
 		}
 
 		public virtual void Process() {
-			Debug.Log($"{logToken}: Begin processing...");
+			combiner.Log($"{logToken}: Begin processing...");
 
-			maxScaleInLightmap = sources.Select(r => r.scaleInLightmap).Max();
+			maxScaleInLightmap = originals.Select(r => r.scaleInLightmap).Max();
 
-			CreateTarget();
-			ConfigureTarget();
-
-			// Лайтмап коррекция должна применяться до группировки, т.к. группы референсят меш объект
-			// и надо что бы они референсили копию с исправленым лайтмапом
-			ApplyLightmapCorrections();
-
+			PrepareCombinedGObj();
+			ConfigureCombined();
+			LightmapApplyCorrections();
+			// Лайтмап коррекция должна применяться до группировки, т.к. группы референсят 
+			// меш объект и надо что бы они референсили копию с исправленым лайтмапом.
 			GroupSubMeshes();
-
-			Combine();
-			ApplyMaterialsToTarget();
+			CombineMaterialGroups();
 			RemoveOriginals();
-			Destroy();
-			Debug.Log($"{logToken}: Processed.");
+			DestroyTemp();
+			combiner.Log($"{logToken}: Processed.");
 		}
 	}
 }

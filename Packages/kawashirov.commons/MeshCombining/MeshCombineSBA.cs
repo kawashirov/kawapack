@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Kawashirov.SceneBuilding;
+using System.Collections;
+using System;
 
 namespace Kawashirov.MeshCombining {
 	public class MeshCombineSBA : BaseSBA {
@@ -13,16 +15,16 @@ namespace Kawashirov.MeshCombining {
 
 		[Space]
 		[Tooltip("What combiners to run.\nUsed only if CombineEveryithingOnScene is off")]
-		public BaseMeshCombiner[] Combiners;
+		public MeshCombiner[] Combiners;
 		[Tooltip("Exclude those combiners.\nUseful when CombineEveryithingOnScene is on, but applies always.")]
-		public BaseMeshCombiner[] Except;
+		public MeshCombiner[] Except;
 
-		protected virtual List<BaseMeshCombiner> GetCombiners() {
+		protected virtual List<MeshCombiner> GetCombiners() {
 			var allow_disabled = !OnlyEnabled;
 			var except = Except.Distinct().UnityNotNull();
 			if (CombineEveryithingOnScene) {
 				return gameObject.scene.GetRootGameObjects()
-					.SelectMany(gobj => gobj.GetComponentsInChildren<BaseMeshCombiner>())
+					.SelectMany(gobj => gobj.GetComponentsInChildren<MeshCombiner>())
 					.Where(mc => allow_disabled || mc.enabled)
 					.Except(except).ToList();
 			} else {
@@ -32,15 +34,25 @@ namespace Kawashirov.MeshCombining {
 			}
 		}
 
-		public override void RunSync(BuildingScenario scenario) {
-			Log($"Searching combiners to run...");
+		public override IEnumerator RunAsync(BuildingScenario scenario) {
+			LogDebug($"Searching mesh combiners to run...");
 			var combiners = GetCombiners();
-			Log($"Found {combiners.Count}, running...");
+			Log($"Found mesh combiners {combiners.Count}, running...");
 			foreach (var combiner in combiners) {
-				Log($"Running combiner at {combiner.gameObject.KawaGetFullPath()}...", combiner);
-				combiner.Run();
+				Log($"Running mesh combiner {combiner}...", combiner);
+				var task = combiner.Run();
+				while (true) {
+					try {
+						if (!task.MoveNext())
+							break;
+					} catch (Exception exc) {
+						LogException($"Mesh combiner {combiner} failed!", exc, combiner);
+						throw exc;
+					}
+					yield return task.Current;
+				}
 			}
-			Log($"Done {combiners.Count} combiners.");
+			Log($"Done {combiners.Count} mesh combiners.");
 		}
 
 		// TODO MeshCombineSBAEditor
