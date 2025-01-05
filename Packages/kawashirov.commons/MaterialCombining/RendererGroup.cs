@@ -129,7 +129,7 @@ namespace Kawashirov.MaterialCombining {
 			meshAtlas.MarkModified();
 		}
 
-		public virtual void AtlasApply() {
+		public virtual void AtlasApplyMeshesAndMats() {
 			RecombineMeshes();
 			SetMeshAtlas();
 			ApplyMaterials();

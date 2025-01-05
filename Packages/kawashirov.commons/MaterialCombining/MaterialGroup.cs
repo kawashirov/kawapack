@@ -192,7 +192,7 @@ namespace Kawashirov.MaterialCombining {
 			islandsAtlas.TrimExcess();
 		}
 
-		public virtual void ApplyMatAndUV(MaterialSlotItem item) {
+		public virtual void AtlasApplyUV(MaterialSlotItem item) {
 			var mesh = item.MakeUniqueMesh();
 			combiner.SelectFocus(mesh);
 
@@ -291,13 +291,13 @@ namespace Kawashirov.MaterialCombining {
 			BUFFER_INDICES.Clear();
 		}
 
-		public virtual void ApplyMatAndUV() {
+		public virtual void AtlasApplyUV() {
 			for (var i = 0; i < items.Count; i++) {
 				var item = items[i];
 				try {
-					ApplyMatAndUV(item);
+					AtlasApplyUV(item);
 				} catch (Exception exc) {
-					combiner.LogException($"Failed to {nameof(ApplyMatAndUV)} for group {matOriginal}, item №{i}: {item}", exc);
+					combiner.LogException($"{nameof(AtlasApplyUV)} failed for group {matOriginal}, item №{i}: {item}", exc);
 					throw exc;
 				}
 			}

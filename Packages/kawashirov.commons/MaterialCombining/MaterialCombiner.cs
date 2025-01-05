@@ -52,11 +52,16 @@ namespace Kawashirov.MaterialCombining {
 		[Tooltip("Powers of 2 recommended (..., 1024, 2048, 4096, ...)")]
 		public int MaxAtlasSize = 1024;
 
+		[Tooltip("When checked, will select operating objects and interrupt more frequently for visual feedback.")]
+		public float MaxStallTime = 1;
+
+
+		[Header("Asset saving")]
+		public bool SaveMeshes = false;
+		public bool SaveMaterials = false;
+
 		[Tooltip("When checked, assets will not be overwriten, but new files with similar names will be created.")]
 		public bool UniqueAssetNames = false;
-
-		[Tooltip("When checked, will select operating objects and interrupt more frequently for visual feedback.")]
-		public bool MoreInfo = false;
 
 		[Header("Properties below are auto-generated")]
 		public Texture2D[] OriginalTextures;
@@ -66,6 +71,7 @@ namespace Kawashirov.MaterialCombining {
 		public Mesh[] AtlasMeshes;
 
 		/**/
+		public int stallTimeMS = 1000;
 		public List<DataTexDesc> descriptors;
 		protected readonly List<RendererGroup> renderers = new List<RendererGroup>();
 		protected readonly Dictionary<Material, MaterialGroup> materials = new Dictionary<Material, MaterialGroup>();
@@ -81,10 +87,16 @@ namespace Kawashirov.MaterialCombining {
 			if (obj == null)
 				return null;
 			Selection.SetActiveObjectWithContext(obj, this);
+			if (debugMode)
+				EditorGUIUtility.PingObject(obj);
 			var view = SceneView.lastActiveSceneView;
 			if (view != null && (obj is GameObject || obj is Component))
 				view.FrameSelected(false, true);
 			return null;
+		}
+
+		public bool ShouldYield(Stopwatch sw) {
+			return stallTimeMS == 0 || (sw != null && sw.ElapsedMilliseconds > stallTimeMS);
 		}
 
 		protected virtual void InitChecks() {
@@ -112,6 +124,8 @@ namespace Kawashirov.MaterialCombining {
 				ThrowException(new ArgumentOutOfRangeException(
 					$"{nameof(OnlyIncludeFilterTextures)} is ON and {nameof(FilterTextures)} has no elements!"));
 			}
+
+			stallTimeMS = MaxStallTime > 0 ? Mathf.RoundToInt(Mathf.Clamp(MaxStallTime, 1f / 60, 10f) * 1000) : 0;
 		}
 
 		protected virtual void InitSceneDir() {
@@ -131,14 +145,14 @@ namespace Kawashirov.MaterialCombining {
 		}
 
 		protected virtual void InitData() {
-
 			descriptors = MainAdapter.InitDescriptors();
 			if (descriptors.Count == 0) {
 				ThrowException(new ArgumentException(
 					$"{nameof(MainAdapter)} {MainAdapter} returned no data texture descriptors! Nothing to atlas!"));
 			}
 
-			Log($"Initialized {descriptors.Count} data channels desciptors materials.");
+			var desc_names = string.Join(", ", descriptors.Select(d => $"\"{d.name}\""));
+			Log($"Initialized {descriptors.Count} data channels desciptors materials: {desc_names}");
 		}
 
 		protected virtual List<Renderer> CollectRenderers() {
@@ -150,20 +164,21 @@ namespace Kawashirov.MaterialCombining {
 			if (all_renderers.Count < 1)
 				ThrowException(new ArgumentException($"Found no Renderers in given scope!"));
 
+			LogDebug($"Found {all_renderers.Count} total potential renderers...");
 			return all_renderers;
 		}
 
 		protected virtual bool TryAdaptMaterial(Material mat, out DataAdapted data) {
-			Log($"Adapting material {mat}...");
+			LogDebug($"Adapting material {mat}...");
 			data = null;
 			foreach (var adapter_i in SecondaryAdapters) {
 				// TODO logs & errors
 				if (!adapter_i.TryAdaptMaterial(mat, descriptors, out data))
 					continue;
-				Log($"Found adapter {data.adapter} for material {mat} with {data.data.Count} datas and transform {data.texST}.");
+				LogDebug($"Found adapter {data.adapter} for material {mat} with {data.data.Count} datas and transform {data.texST}.");
 				return true;
 			}
-			Log($"No adapter found for material {mat}, will be ignored.");
+			LogDebug($"No adapter found for material {mat}, will be ignored.");
 			data = null;
 			return false;
 		}
@@ -234,7 +249,8 @@ namespace Kawashirov.MaterialCombining {
 		}
 
 		protected virtual void FilterGroupAndAdapt() {
-			Log($"Searching renderers to combine materials on...");
+			var begin = Stopwatch.StartNew();
+			LogDebug($"Searching renderers to combine materials on...");
 			materials.Clear();
 			unadaptable.Clear();
 			var all_renderers = CollectRenderers();
@@ -250,28 +266,32 @@ namespace Kawashirov.MaterialCombining {
 					$"for atlas after checking {all_renderers.Count} renderers! Nothing to atlas."));
 			}
 
-			OriginalTextures = materials.Values.SelectMany(g => g.adapted.data).SelectMany(d => d.dstTex).Distinct().ToArray();
+			OriginalTextures = materials.Values.SelectMany(g => g.adapted.data)
+				.SelectMany(d => d.dstTex).Distinct().ToArray();
 			OriginalMaterials = materials.Keys.ToArray();
+			SetDirty();
 			unadaptable.Clear(); // Больше метки нам не понадобятся.
-			Log($"Gathered {materials.Count} materials and {slots} material slots from {renderers}/{all_renderers.Count} renderers.");
+			Log($"Gathered {materials.Count} materials and {slots} material slots " +
+				$"from {renderers}/{all_renderers.Count} renderers in {begin.Elapsed}.");
 		}
 
 		protected virtual void CalcMatSizes() {
+			var begin = Stopwatch.StartNew();
 			foreach (var group in materials.Values) {
 				group.CalcTexSize();
 			}
 			var sizes_s = string.Join("\n", materials.Values.Select(g =>
 				$"- {g.matOriginal}: {g.textureSize.x}x{g.textureSize.y} est size, {g.adapted.data.Count} data textures"
 			));
-			Log($"Detected texture sizes {materials.Count}:\n{sizes_s}");
+			Log($"Detected texture sizes {materials.Count} in {begin.Elapsed}:\n{sizes_s}");
 		}
 
 		protected virtual IEnumerator CalcUVIslands() {
-			Log($"Calculating UV islands on {materials.Count} materials...");
+			LogDebug($"Calculating UV islands on {materials.Count} materials...");
 			var sw = Stopwatch.StartNew();
 			foreach (var group in materials.Values) {
 				group.CalcIslands();
-				if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
+				if (ShouldYield(sw)) {
 					yield return SelectFocus(group.matOriginal);
 					sw.Restart();
 				}
@@ -285,30 +305,32 @@ namespace Kawashirov.MaterialCombining {
 				$"{g.debugUVPushes} pushes, {g.debugUVIters} iterations."
 			));
 			Log($"Got {sum} UV islands total from {materials.Count} materials:\n{islands_s}");
-			yield return null; // No MoreInfo
+			yield return null;
 		}
 
 		protected virtual IEnumerator CalcAtlasLayout_PackTextures() {
+			var begin = Stopwatch.StartNew();
 			Texture2D[] dull_tex = null;
 			Texture2D atlas_tex = null;
+			// (группа, расширеный остров в коордах ориг тексткры, номер острова в списке группы)
+			var islands = materials.Values.SelectMany(
+				grp => grp.islandsPadded.Select((isl, idx) => (grp, isl, idx))
+			).ToList();
+			Log($"Packing {islands.Count} islands total into the max {MaxAtlasSize}x{MaxAtlasSize} atlas " +
+				$"using {nameof(CalcAtlasLayout_PackTextures)}...");
+			var islands_str = "";
 			// Используем схему с фейковыми текстурами и Texture2D.PackTextures для вычисления лайаута.
 			try {
-				// (группа, расширеный остров в коордах ориг тексткры, номер острова в списке группы)
-				var islands = materials.Values.SelectMany(
-					grp => grp.islandsPadded.Select((isl, idx) => (grp, isl, idx))
-				).ToList();
-				Log($"Packing {islands.Count} islands total into the max {MaxAtlasSize}x{MaxAtlasSize} atlas...");
 				var format = TextureFormat.R8;
 				atlas_tex = new Texture2D(1, 1, format, false);
 				dull_tex = islands.Select(x => x.isl.MakeDullTex(format)).ToArray();
 				// https://docs.unity3d.com/2022.3/Documentation/ScriptReference/Texture2D.PackTextures.html
-				if (MoreInfo)
+				if (ShouldYield(null))
 					yield return SelectFocus(atlas_tex);
 				var results = atlas_tex.PackTextures(dull_tex, 0, MaxAtlasSize);
-				if (MoreInfo)
+				if (ShouldYield(null))
 					yield return SelectFocus(atlas_tex);
 				atlasSize = new Vector2Int(atlas_tex.width, atlas_tex.height);
-				var islands_str = "";
 				// Размеры и индексы islands[], dull_tex[] и results[] совпадают.
 				for (var i = 0; i < results.Length; ++i) {
 					var (grp, isl, idx) = islands[i];
@@ -317,7 +339,6 @@ namespace Kawashirov.MaterialCombining {
 					// var dt = dull_tex[i]; // ({dt}, {dt.width}x{dt.height})
 					islands_str += $"\n- №{i}: {grp.matOriginal}, №{idx}: {isl} -> {atlas_rect} -> {atlas_island}";
 				}
-				Log($"Packed {islands.Count} islands to {atlasSize.x}x{atlasSize.y} atlas: {islands_str}");
 			} finally {
 				if (dull_tex != null)
 					foreach (var dull in dull_tex)
@@ -326,9 +347,11 @@ namespace Kawashirov.MaterialCombining {
 				if (atlas_tex)
 					DestroyImmediate(atlas_tex);
 			}
-			if (MoreInfo) {
+			if (ShouldYield(null))
 				yield return null;
-			}
+			Log($"Packed {islands.Count} islands to {atlasSize.x}x{atlasSize.y} atlas " +
+				$"using {nameof(CalcAtlasLayout_PackTextures)} in {begin.Elapsed}:" +
+				islands_str);
 		}
 
 		protected bool CalcAtlasLayout_GenerateAtlas_Try(Vector2[] sizes, int size, List<Rect> results) {
@@ -347,12 +370,14 @@ namespace Kawashirov.MaterialCombining {
 		}
 
 		protected virtual IEnumerator CalcAtlasLayout_GenerateAtlas_Dense() {
+			var begin = Stopwatch.StartNew();
 			var islands = materials.Values.SelectMany(
 				grp => grp.islandsPadded.Select((isl, idx) => (grp, isl, idx))
 			).ToList();
-			Log($"Packing {islands.Count} islands total into the max {MaxAtlasSize}x{MaxAtlasSize} atlas...");
-			var sizes = islands.Select(x => x.isl.Size()).ToArray();
+			Log($"Packing {islands.Count} islands total into the max {MaxAtlasSize}x{MaxAtlasSize} atlas " +
+				$"using {nameof(CalcAtlasLayout_GenerateAtlas_Dense)}...");
 
+			var sizes = islands.Select(x => x.isl.Size()).ToArray();
 			var size = Mathf.NextPowerOfTwo(sizes.Select(
 				v => Mathf.RoundToInt(Mathf.Max(v.x, v.y))
 			).Max()) / 2; // Наибольшая степерь 2 в которую точно не поместится
@@ -362,7 +387,7 @@ namespace Kawashirov.MaterialCombining {
 				size = Mathf.Max(size + 1, Mathf.RoundToInt(size * 1.1f));
 				if (size >= int.MaxValue / 2)
 					ThrowException(new Exception($"Atlas size grow too big: {size}!"));
-				if (MoreInfo)
+				if (ShouldYield(null))
 					yield return null;
 			}
 			// Есть желание оптимизировать размер бинарным поиском, но он тупо не работает.
@@ -380,25 +405,30 @@ namespace Kawashirov.MaterialCombining {
 				islands_str += $"\n- №{i}: {grp.matOriginal}, №{idx}: {isl} -> {pack_rect} -> {atlas_island}";
 			}
 			Log($"Found packing of {islands.Count} islands in " +
-				$"{size_r}x{size_r} / {size}x{size} / {atlasSize.x}x{atlasSize.y} area: {islands_str}");
+				$"{size_r}x{size_r} / {size}x{size} / {atlasSize.x}x{atlasSize.y} area " +
+				$"using {nameof(CalcAtlasLayout_GenerateAtlas_Dense)} in {begin.Elapsed}:" +
+				islands_str);
 		}
 
 		protected virtual IEnumerator CalcAtlasLayout_GenerateAtlas_PerfectPow2() {
+			var begin = Stopwatch.StartNew();
 			var islands = materials.Values.SelectMany(
 				grp => grp.islandsPadded.Select((isl, idx) => (grp, isl, idx))
 			).ToList();
-			Log($"Packing {islands.Count} islands total into the max {MaxAtlasSize}x{MaxAtlasSize} atlas...");
-			var sizes = islands.Select(x => x.isl.Size()).ToArray();
+			Log($"Packing {islands.Count} islands total into the max {MaxAtlasSize}x{MaxAtlasSize} atlas " +
+				$"using {nameof(CalcAtlasLayout_GenerateAtlas_PerfectPow2)}...");
 
-			// Наибольшая степерь 2 в которую точно не поместится
-			var size = Mathf.NextPowerOfTwo(Mathf.CeilToInt(sizes.Select(v => Mathf.Max(v.x, v.y)).Max())) / 2;
+			var sizes = islands.Select(x => x.isl.Size()).ToArray();
+			var size = Mathf.NextPowerOfTwo(sizes.Select(v =>
+				Mathf.CeilToInt(Mathf.Max(v.x, v.y))
+			).Max()) / 2; // Наибольшая степерь 2 в которую точно не поместится
 
 			var results = new List<Rect>(sizes.Length);
 			while (!CalcAtlasLayout_GenerateAtlas_Try(sizes, size, results)) {
 				size *= 2;
 				if (size >= int.MaxValue / 4)
 					ThrowException(new Exception($"Atlas size grow too big: {size}!"));
-				if (MoreInfo)
+				if (ShouldYield(null))
 					yield return null;
 			}
 
@@ -413,7 +443,9 @@ namespace Kawashirov.MaterialCombining {
 				islands_str += $"\n- №{i}: {grp.matOriginal}, №{idx}: {isl} -> {pack_rect} -> {atlas_island}";
 			}
 			Log($"Found packing of {islands.Count} islands in " +
-				$"{size_r}x{size_r} / {size}x{size} / {atlasSize.x}x{atlasSize.y} area: {islands_str}");
+				$"{size_r}x{size_r} / {size}x{size} / {atlasSize.x}x{atlasSize.y} area " +
+				$"using {nameof(CalcAtlasLayout_GenerateAtlas_PerfectPow2)} in {begin.Elapsed}:" +
+				islands_str);
 		}
 
 		protected virtual RenderTexture AtlasMakeRT_(DataTexDesc desc) {
@@ -522,6 +554,51 @@ namespace Kawashirov.MaterialCombining {
 			}
 		}
 
+		protected virtual IEnumerator AtlasBakeNamed(DataTexDesc desc) {
+			var begin = Stopwatch.StartNew();
+			var dsc_name = desc.name;
+			texRT1 = null;
+			texRT2 = null;
+			EditorUtility.UnloadUnusedAssetsImmediate(true); // save ram
+			var sw = Stopwatch.StartNew();
+			try {
+				// var rt_desc = PrepareRTDescriptor(desc);
+				// tex_dst1 = new RenderTexture(rt_desc) { name = $"RT_{dsc_name}_A" };
+				// tex_dst2 = new RenderTexture(rt_desc) { name = $"RT_{dsc_name}_B" };
+				texRT1 = AtlasMakeRT(desc);
+				texRT2 = AtlasMakeRT(desc);
+				LogDebug($"For atlassing \"{dsc_name}\": Created temp buffers: {texRT1}, {texRT2}");
+				if (ShouldYield(sw)) {
+					yield return SelectFocus(texRT1);
+					sw.Reset();
+				}
+
+				AtlasBlitBackground(desc);
+				if (ShouldYield(sw)) {
+					yield return SelectFocus(texRT1);
+					sw.Reset();
+				}
+
+				foreach (var group in materials.Values) {
+					AtlasBlitGroup(desc, group);
+					if (ShouldYield(sw)) {
+						yield return SelectFocus(texRT1);
+						sw.Reset();
+					}
+				}
+			} finally {
+				// tex_dst2 больше не будет использоваться, а из tex_dst1 сохраним полученный атлас.
+				if (texRT2 != null)
+					RenderTexture.ReleaseTemporary(texRT2); // DestroyImmediate(tex_dst2);
+				texRT2 = null;
+			}
+			if (ShouldYield(sw)) {
+				yield return SelectFocus(texRT1);
+				sw.Reset();
+			}
+			Log($"Rendered everything for \"{dsc_name}\" in {begin.Elapsed}...");
+		}
+
 		protected virtual Texture2D AtlasRTToTexture2D(DataTexDesc desc, RenderTexture atlas) {
 			Assert.IsTrue(atlas.width == atlasSize.x, $"atlas.width={atlas.width}, atlasSize.x={atlasSize.x}");
 			Assert.IsTrue(atlas.height == atlasSize.y, $"atlas.width={atlas.height}, atlasSize.x={atlasSize.y}");
@@ -539,15 +616,15 @@ namespace Kawashirov.MaterialCombining {
 			return tex_temp;
 		}
 
-		protected virtual Texture2D AtlasReImportPNG(string path_png, bool compress) {
-			LogDebug($"(Re)importing (compress={compress}) \"{path_png}\"...");
+		protected virtual Texture2D AtlasReImportPNG(string path, bool compress) {
+			LogDebug($"(Re)importing (compress={compress}) \"{path}\"...");
 
 			var flags = ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport;
 			if (!compress)
 				flags |= ImportAssetOptions.ForceUncompressedImport;
-			AssetDatabase.ImportAsset(path_png, flags);
+			AssetDatabase.ImportAsset(path, flags);
 
-			var png_asset = AssetDatabase.LoadAssetAtPath<Texture2D>(path_png);
+			var png_asset = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
 			if (png_asset != null)
 				SelectFocus(png_asset);
 			return png_asset;
@@ -590,51 +667,8 @@ namespace Kawashirov.MaterialCombining {
 			return false; // no repeat
 		}
 
-		protected virtual IEnumerator AtlasBakeNamed(DataTexDesc desc) {
-			var dsc_name = desc.name;
-			texRT1 = null;
-			texRT2 = null;
-			EditorUtility.UnloadUnusedAssetsImmediate(true); // save ram
-			var sw = Stopwatch.StartNew();
-			try {
-				// var rt_desc = PrepareRTDescriptor(desc);
-				// tex_dst1 = new RenderTexture(rt_desc) { name = $"RT_{dsc_name}_A" };
-				// tex_dst2 = new RenderTexture(rt_desc) { name = $"RT_{dsc_name}_B" };
-				texRT1 = AtlasMakeRT(desc);
-				texRT2 = AtlasMakeRT(desc);
-				LogDebug($"For atlassing \"{dsc_name}\": Created temp buffers: {texRT1}, {texRT2}");
-				if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
-					yield return SelectFocus(texRT1);
-					sw.Reset();
-				}
-
-				AtlasBlitBackground(desc);
-				if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
-					yield return SelectFocus(texRT1);
-					sw.Reset();
-				}
-
-				foreach (var group in materials.Values) {
-					AtlasBlitGroup(desc, group);
-					if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
-						yield return SelectFocus(texRT1);
-						sw.Reset();
-					}
-				}
-				Log($"Rendered everything for \"{dsc_name}\"...");
-			} finally {
-				// tex_dst2 больше не будет использоваться, а из tex_dst1 сохраним полученный атлас.
-				if (texRT2 != null)
-					RenderTexture.ReleaseTemporary(texRT2); // DestroyImmediate(tex_dst2);
-				texRT2 = null;
-			}
-			if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
-				yield return SelectFocus(texRT1);
-				sw.Reset();
-			}
-		}
-
 		protected virtual IEnumerator AtlasBakeSave(DataTexDesc desc) {
+			var begin = Stopwatch.StartNew();
 			var desc_name = desc.name;
 			var ext = desc.EXR ? "exr" : "png";
 			var asset_path = $"{sceneDir}/Atlas_{gameObject.name}_tex_{desc_name}.{ext}";
@@ -689,7 +723,7 @@ namespace Kawashirov.MaterialCombining {
 			AtlasReImportPNG(asset_path, false);
 			// А теперь можно перезаписать картинку уже норм данными и она сразу заимпортися с норм настройками.
 
-			if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
+			if (ShouldYield(sw)) {
 				yield return null;
 				sw.Reset();
 			}
@@ -697,7 +731,7 @@ namespace Kawashirov.MaterialCombining {
 			// Но для начала конвертируем RenderTexture -> Texture2D
 			var tex_temp = AtlasRTToTexture2D(desc, texRT1);
 
-			if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
+			if (ShouldYield(sw)) {
 				yield return SelectFocus(tex_temp);
 				sw.Reset();
 			}
@@ -706,7 +740,7 @@ namespace Kawashirov.MaterialCombining {
 			RenderTexture.ReleaseTemporary(texRT1); // DestroyImmediate(tex_dst1);
 			texRT1 = null;
 
-			if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
+			if (ShouldYield(sw)) {
 				yield return null;
 				sw.Reset();
 			}
@@ -726,7 +760,7 @@ namespace Kawashirov.MaterialCombining {
 			DestroyImmediate(tex_temp);
 			tex_temp = null;
 
-			if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
+			if (ShouldYield(sw)) {
 				yield return null;
 				sw.Reset();
 			}
@@ -741,7 +775,7 @@ namespace Kawashirov.MaterialCombining {
 				data = null; // Помогаем сборщику мусора.
 			}
 
-			if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
+			if (ShouldYield(sw)) {
 				yield return null;
 				sw.Reset();
 			}
@@ -756,17 +790,19 @@ namespace Kawashirov.MaterialCombining {
 			}
 			desc.atlasTexture = asset_tex;
 			AtlasTextures = AtlasTextures.Append(asset_tex).ToArray();
+			SetDirty();
 
-			if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
+			if (ShouldYield(sw)) {
 				yield return SelectFocus(asset_tex);
 				sw.Reset();
 			}
 
-			Log($"Saved \"{desc_name}\" as {asset_tex} at \"{asset_path}\".");
+			Log($"Saved \"{desc_name}\" as {asset_tex} at \"{asset_path}\" in {begin.Elapsed}.");
 		}
 
 		protected virtual IEnumerator AtlasBake() {
 			AtlasTextures = new Texture2D[0];
+			SetDirty();
 
 			var shader_path = AssetDatabase.GUIDToAssetPath(SHADER_GUID);
 			if (string.IsNullOrWhiteSpace(shader_path))
@@ -815,17 +851,17 @@ namespace Kawashirov.MaterialCombining {
 			}
 
 			mat_atlas.name = $"Atlas_{gameObject.name}_mat_{AtlasMaterials.Length}";
-			var mat_atlas_path = $"{sceneDir}/{mat_atlas.name}.mat";
-			if (UniqueAssetNames)
-				mat_atlas_path = AssetDatabase.GenerateUniqueAssetPath(mat_atlas_path);
-			AssetDatabase.CreateAsset(mat_atlas, mat_atlas_path);
-			Log($"Created and saved new atlas material {mat_atlas} as \"{mat_atlas_path}\"", mat_atlas);
+			LogDebug($"Created new atlas material {mat_atlas}.", mat_atlas);
 			AtlasMaterials = AtlasMaterials.Append(mat_atlas).ToArray();
+			SetDirty();
 			return mat_atlas;
 		}
 
 		protected virtual void ConvertMaterials() {
+			LogDebug($"Converting {materials.Count} original materials to atlas materials...");
+			var begin = Stopwatch.StartNew();
 			AtlasMaterials = new Material[0];
+			SetDirty();
 			var report = new List<string>(materials.Count);
 			foreach (var mat_group in materials.Values) {
 				if (mat_group.matOriginal != null) {
@@ -836,44 +872,96 @@ namespace Kawashirov.MaterialCombining {
 				}
 				report.Add($"- {mat_group.matOriginal} -> {mat_group.matAtlas}.");
 			}
-			Log($"Converted {report.Count} materials:\n" + string.Join("\n", report));
+			Log($"Converted {report.Count} original materials to {AtlasMaterials.Length} " +
+				$"atlas materials in {begin.Elapsed}:\n" + string.Join("\n", report));
 		}
 
-		protected virtual IEnumerator AtlasApply() {
+		protected virtual IEnumerator AtlasSaveMaterials() {
+			if (!SaveMaterials)
+				yield break;
+			LogDebug($"Saving {AtlasMaterials.Length} atlas materials...");
+			var begin = Stopwatch.StartNew();
+			var sw = Stopwatch.StartNew();
+			// Несмотря на то, что материалы сами по себе простые и маленькие объекты, 
+			// CreateAsset() может вызывать фризы, по этому лучше их собрать в один подход.
+			AssetDatabase.StartAssetEditing();
+			try {
+				foreach (var mat_group in materials.Values) {
+					var mat_atlas = mat_group.matAtlas;
+					if (mat_atlas == null)
+						continue;
+					var mat_atlas_path = $"{sceneDir}/{mat_atlas.name}.mat";
+					if (UniqueAssetNames)
+						mat_atlas_path = AssetDatabase.GenerateUniqueAssetPath(mat_atlas_path);
+					AssetDatabase.CreateAsset(mat_atlas, mat_atlas_path);
+					LogDebug($"Saved atlas material {mat_atlas} as \"{mat_atlas_path}\"", mat_atlas);
+					if (ShouldYield(sw)) {
+						yield return SelectFocus(mat_atlas);
+						sw.Reset();
+					}
+				}
+			} finally {
+				AssetDatabase.StartAssetEditing();
+			}
+			AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+			yield return null;
+			LogDebug($"Saved {AtlasMaterials.Length} atlas materials in {begin.Elapsed}.");
+		}
+
+		protected virtual IEnumerator AtlasApplyUV() {
 			var items_c = materials.Values.Sum(g => g.items.Count);
-			Log($"Applying UV transforms to {items_c} temp mat slot meshes...");
+			LogDebug($"Applying UV transforms to {items_c} temp mat slot meshes...");
+			var begin = Stopwatch.StartNew();
 			var sw = Stopwatch.StartNew();
 			foreach (var mat_group in materials.Values) {
 				if (mat_group.matAtlas == null)
 					continue;
-				mat_group.ApplyMatAndUV();
-				if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
+				mat_group.AtlasApplyUV();
+				if (ShouldYield(sw)) {
 					yield return null;
 					sw.Reset();
 				}
 			}
-			if (MoreInfo || sw.ElapsedMilliseconds > 500) {
-				yield return null;
-				sw.Reset();
-			}
+			Log($"Applied UV transforms to {items_c} temp mat slot meshes in {begin.Elapsed}.");
+		}
 
-			Log($"Applied UV transforms to {items_c} temp mat slot meshes, processing {renderers.Count} renderers...");
-
+		protected virtual IEnumerator AtlasApplyMeshesAndMats() {
+			LogDebug($"Applying meshes and materials on {renderers.Count} renderers...");
+			var begin = Stopwatch.StartNew();
+			var sw = Stopwatch.StartNew();
+			int atlas_meshes = 0, atlas_slots = 0;
 			foreach (var r_group in renderers) {
-				r_group.AtlasApply();
-				if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
+				r_group.AtlasApplyMeshesAndMats();
+				if (r_group.meshAtlas != null)
+					++atlas_meshes;
+				atlas_slots += r_group.items.Count;
+				if (ShouldYield(sw)) {
 					yield return SelectFocus(r_group.renderer);
 					sw.Reset();
 				}
 			}
+			AtlasMeshes = renderers.Select(rg => rg.meshAtlas).UnityNotNull().ToArray();
+			SetDirty();
+			Log($"Applied atlas to {atlas_meshes} renderers, {atlas_slots} slots, " +
+				$"generated {AtlasMeshes.Length} meshes in {begin.Elapsed}.");
+			yield return null;
+		}
 
+		protected virtual IEnumerator AtlasSaveMeshes() {
+			if (!SaveMeshes)
+				yield break;
+			LogDebug($"Saving {AtlasMeshes.Length} meshes...");
+			var begin = Stopwatch.StartNew();
+			var sw = Stopwatch.StartNew();
+			// Замечено, что CreateAsset() по отдельности на большом количестве мешей
+			// вызывает значительные фризы, по этому лучше их собрать в один подход.
 			AssetDatabase.StartAssetEditing();
 			try {
 				foreach (var r_group in renderers) {
 					if (r_group.meshAtlas == null)
 						continue;
 					r_group.SaveMesh();
-					if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
+					if (ShouldYield(sw)) {
 						yield return SelectFocus(r_group.meshAtlas);
 						sw.Reset();
 					}
@@ -882,14 +970,8 @@ namespace Kawashirov.MaterialCombining {
 				AssetDatabase.StopAssetEditing();
 			}
 			AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
-			if (MoreInfo || sw.ElapsedMilliseconds > 1000) {
-				yield return null;
-				sw.Reset();
-			}
-
-			AtlasMeshes = renderers.Select(rg => rg.meshAtlas).UnityNotNull().ToArray();
-			Log($"Applied atlas to {materials.Count} materials, {items_c} slots, generated {AtlasMeshes.Length} meshes.");
 			yield return null;
+			LogDebug($"Saved {AtlasMeshes.Length} meshes in {begin.Elapsed}.");
 		}
 
 		public virtual IEnumerator Run() {
@@ -936,11 +1018,22 @@ namespace Kawashirov.MaterialCombining {
 			ConvertMaterials();
 			yield return null;
 
-			// И применить на меши.
-			var task_apply = AtlasApply();
-			while (task_apply.MoveNext())
-				yield return task_apply.Current;
+			var task_save_mats = AtlasSaveMaterials();
+			while (task_save_mats.MoveNext())
+				yield return task_save_mats.Current;
 
+			// И применить на меши.
+			var task_apply_uv = AtlasApplyUV();
+			while (task_apply_uv.MoveNext())
+				yield return task_apply_uv.Current;
+
+			var task_apply_meshes = AtlasApplyMeshesAndMats();
+			while (task_apply_meshes.MoveNext())
+				yield return task_apply_meshes.Current;
+
+			var task_save_meshes = AtlasSaveMeshes();
+			while (task_save_meshes.MoveNext())
+				yield return task_save_meshes.Current;
 		}
 	}
 }
