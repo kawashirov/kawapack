@@ -10,7 +10,7 @@ namespace Kawashirov.MeshCombining {
 		// Здесь сообираются вместе все саб меши одного материала всех меш рендереров
 
 		// Эти 4 для логов и отладки
-		public readonly MeshRendererGroup group;
+		public readonly MeshCombineGroupMeta group;
 		public readonly int indexMRG;
 		public readonly int indexSMG;
 		private readonly string logToken;
@@ -22,11 +22,11 @@ namespace Kawashirov.MeshCombining {
 		// прежде чем будут скомбинированы в одну большую с разными материалами.
 		public readonly Mesh tmpMesh;
 
-		public SubMeshGroup(MeshRendererGroup group, int mrg_index, int smg_index, Material material, SubMeshInfo init) {
+		public SubMeshGroup(MeshCombineGroupMeta group, int mrg_index, int smg_index, Material material, SubMeshInfo init) {
 			this.group = group;
 			indexMRG = mrg_index;
 			indexSMG = smg_index;
-			var global_name = group.combiner.gameObject.name;
+			var global_name = group.Combiner.gameObject.name;
 			logToken = $"{global_name}/№{mrg_index}/№{smg_index}";
 			this.material = material;
 			originals = new List<SubMeshInfo>();
@@ -37,7 +37,7 @@ namespace Kawashirov.MeshCombining {
 
 		public Mesh Combine() {
 			// Скомбинировать все саб меши одного материала в одну временную
-			group.combiner.LogDebug($"{logToken}: Combining {originals.Count} sub meshes of " +
+			group.LogDebug($"{logToken}: Combining {originals.Count} sub meshes of " +
 				$"same material {material} to temporary mesh...");
 			var cis = originals.Select(smi => smi.CombineInstance()).ToArray();
 			tmpMesh.CombineMeshes(cis, true, true, false); // TODO hasLightmapData
@@ -46,7 +46,7 @@ namespace Kawashirov.MeshCombining {
 			tmpMesh.MarkModified();
 			EditorUtility.SetDirty(tmpMesh);
 			var info = tmpMesh.GetSubMesh(0);
-			group.combiner.LogDebug($"{logToken}: Combined {originals.Count} sub meshes of " +
+			group.LogDebug($"{logToken}: Combined {originals.Count} sub meshes of " +
 				$"same material {material} to temporary mesh: {info}");
 			return tmpMesh;
 		}

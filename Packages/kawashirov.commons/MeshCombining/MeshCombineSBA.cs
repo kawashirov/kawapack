@@ -15,9 +15,9 @@ namespace Kawashirov.MeshCombining {
 
 		[Space]
 		[Tooltip("What combiners to run.\nUsed only if CombineEveryithingOnScene is off")]
-		public MeshCombiner[] Combiners;
+		public List<MeshCombiner> Combiners = new List<MeshCombiner>();
 		[Tooltip("Exclude those combiners.\nUseful when CombineEveryithingOnScene is on, but applies always.")]
-		public MeshCombiner[] Except;
+		public List<MeshCombiner> Except = new List<MeshCombiner>();
 
 		protected virtual List<MeshCombiner> GetCombiners() {
 			var allow_disabled = !OnlyEnabled;

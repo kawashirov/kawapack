@@ -16,15 +16,11 @@ namespace Kawashirov.MeshCombining {
 		public static readonly StaticEditorFlags STATIC_EQ_MASK = StaticEditorFlags.ContributeGI | STATIC_CHECK_MASK;
 
 		[Tooltip("Where on scene search renderers to combine.")]
-		public GameObject[] Hierarchy;
+		public List<GameObject> Hierarchy = new List<GameObject>();
 		public bool IgnoreEditorOnly = true;
 		public bool IgnoreDisabled = true;
 		public bool IgnoreDynamic = true;
 		public bool IgnoreNonLightmapped = true;
-
-		[Space]
-		// Гейм-объект в который будут объеденённые меши.
-		public GameObject Container = null;
 
 		[Space]
 		// Применять или нет базовую перепаковку второго UV слоая, если он есть. 
@@ -38,13 +34,17 @@ namespace Kawashirov.MeshCombining {
 		// но корректировка будет применяться как указано тут.
 		public bool ApplyScaleInLightmap = true;
 
-		/* internals */
+		[Space]
+		// Гейм-объект в который будут объеденённые меши.
+		public GameObject Container = null;
 
+		[Header("Properties below are auto-generated")]
 		// Исходные MeshRendererы которые нужно объеденить.
-		public readonly List<MeshRenderer> originals = new List<MeshRenderer>();
-		protected bool originalsResolved = false;
+		public List<MeshRenderer> OriginalRenderers = new List<MeshRenderer>();
+		public bool OriginalRenderersResolved = false;
+		public List<MeshCombineGroupMeta> CombineGroups = new List<MeshCombineGroupMeta>();
 
-		protected List<MeshRendererGroup> groups = new List<MeshRendererGroup>();
+		/* internals */
 
 		protected virtual void Init() {
 			// TODO
@@ -89,26 +89,27 @@ namespace Kawashirov.MeshCombining {
 		}
 
 		protected virtual void ResetHierarchy() {
-			originals.Clear();
-			originalsResolved = false;
+			OriginalRenderers.Clear();
+			OriginalRenderersResolved = false;
+			SetDirty();
 		}
 
 		protected virtual List<MeshRenderer> ResolveHierarchy() {
 			// Рекурсивная!
-			if (originalsResolved)
-				return originals;
+			if (OriginalRenderersResolved)
+				return OriginalRenderers;
 
 			LogDebug($"Looking for original mesh renderers for {gameObject.name}...");
-			originals.Clear();
+			OriginalRenderers.Clear();
 
 			if (!EnsureNoOther()) {
-				originalsResolved = true;
-				return originals;
+				OriginalRenderersResolved = true;
+				return OriginalRenderers;
 			}
 
 			IEnumerable<MeshRenderer> hrs = null;
 			IEnumerable<MeshCombiner> sub = null;
-			if (Hierarchy == null || Hierarchy.Length < 1) {
+			if (Hierarchy == null || Hierarchy.Count < 1) {
 				// При пустом Hierarchy ищем в самом себе
 				hrs = gameObject.GetComponentsInChildren<MeshRenderer>(!IgnoreDisabled);
 				sub = gameObject.GetComponentsInChildren<MeshCombiner>(true);
@@ -130,11 +131,11 @@ namespace Kawashirov.MeshCombining {
 			if (IgnoreNonLightmapped)
 				hrs = hrs.Where(r => IsLightmapped(r));
 
-			originals.Clear();
-			originals.AddRange(hrs);
-			originalsResolved = true;
-			LogDebug($"Found {originals.Count} mesh renderers for {gameObject.name}.");
-			return originals;
+			OriginalRenderers.Clear();
+			OriginalRenderers.AddRange(hrs);
+			OriginalRenderersResolved = true;
+			LogDebug($"Found {OriginalRenderers.Count} mesh renderers for {gameObject.name}.");
+			return OriginalRenderers;
 		}
 
 		protected virtual bool DiffBasic(MeshRenderer x, MeshRenderer y) {
@@ -213,15 +214,35 @@ namespace Kawashirov.MeshCombining {
 			return true;
 		}
 
+		protected virtual MeshCombineGroupMeta CreateNewGroup() {
+			var index_mrg_new = CombineGroups.Count;
+			LogDebug($"Creating new mesh renderers group №{index_mrg_new}...");
+			var gobj = new GameObject($"CmbGroup_{index_mrg_new}");
+
+			var transform = gobj.transform;
+			transform.SetParent(GetContainer().transform, false);
+			transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+			transform.localScale = Vector3.one;
+
+			var group_new = gobj.AddComponent<MeshCombineGroupMeta>();
+			group_new.Combiner = this;
+			group_new.GroupIndex = index_mrg_new;
+			group_new.Init();
+			CombineGroups.Add(group_new);
+			SetDirty();
+			LogDebug($"Created new mesh renderers group {gobj}...", group_new);
+			return group_new;
+		}
+
 		protected virtual void GroupMeshRenderers() {
-			LogDebug($"Trying to group {originals.Count} mesh renderers...");
-			groups.Clear();
-			foreach (var mr in originals) {
+			LogDebug($"Trying to group {OriginalRenderers.Count} mesh renderers...");
+			CombineGroups.Clear();
+			SetDirty();
+			foreach (var mr in OriginalRenderers) {
 				// Тут по сути сложность N^3, но я не думаю что будет много мешей.
-				var matched = groups.Where(g => g.Match(mr)).ToList();
+				var matched = CombineGroups.Where(g => g.Match(mr)).ToList();
 				if (matched.Count == 0) {
-					var group = new MeshRendererGroup(this, groups.Count);
-					groups.Add(group);
+					var group = CreateNewGroup();
 					group.Add(mr);
 				} else if (matched.Count == 1) {
 					matched[0].Add(mr);
@@ -231,15 +252,16 @@ namespace Kawashirov.MeshCombining {
 						$"Matches {mr} with {matched.Count} groups, but must be one or nothing."), mr);
 				}
 			}
-			Assert.IsTrue(groups.Count > 0);
+			Assert.IsNotNull(CombineGroups);
+			Assert.IsTrue(CombineGroups.Count > 0);
 
-			var groups_s = new List<string>(groups.Count);
-			for (var i = 0; i < groups.Count; ++i) {
-				var group = groups[i];
-				var items = string.Join("\n", group.originals.Select(mr => mr.gameObject.KawaGetFullPath()));
+			var groups_s = new List<string>(CombineGroups.Count);
+			for (var i = 0; i < CombineGroups.Count; ++i) {
+				var group = CombineGroups[i];
+				var items = string.Join("\n", group.OriginalRenderers.Select(mr => mr.gameObject.KawaGetFullPath()));
 				groups_s.Add($"Group №{i}:\n{items}");
 			}
-			Log($"Created {groups.Count} groups from {originals.Count} original mesh renderers:\n" +
+			Log($"Created {groups_s.Count} groups from {OriginalRenderers.Count} original mesh renderers:\n" +
 				string.Join("\n\n", groups_s));
 		}
 
@@ -247,7 +269,7 @@ namespace Kawashirov.MeshCombining {
 			Init();
 
 			ResolveHierarchy();
-			if (originals.Count < 1) {
+			if (OriginalRenderers.Count < 1) {
 				LogWarning($"No mesh renderers found to combine!");
 				yield break;
 			}
@@ -256,10 +278,17 @@ namespace Kawashirov.MeshCombining {
 			GroupMeshRenderers();
 			yield return null;
 
-			foreach (var group in groups) {
-				group.Process();
+			LogDebug($"Processing {CombineGroups.Count} combine meshes groups...");
+			foreach (var group in CombineGroups) {
+				try {
+					group.Process();
+				} catch (Exception exc) {
+					LogException($"Failed to process combine meshes group {group}", exc, group);
+					throw exc;
+				}
 				yield return null;
 			}
+			Log($"Processed {CombineGroups.Count} combine meshes groups. Done.");
 		}
 
 	}
