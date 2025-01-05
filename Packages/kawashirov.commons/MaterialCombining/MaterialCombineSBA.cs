@@ -16,9 +16,9 @@ namespace Kawashirov.SceneBuilding {
 
 		[Space]
 		[Tooltip("What combiners to run.\nUsed only if CombineEveryithingOnScene is off")]
-		public MaterialCombiner[] Combiners;
+		public List<MaterialCombiner> Combiners = new List<MaterialCombiner>();
 		[Tooltip("Exclude those combiners.\nUseful when CombineEveryithingOnScene is on, but applies always.")]
-		public MaterialCombiner[] Except;
+		public List<MaterialCombiner> Except = new List<MaterialCombiner>();
 
 		protected virtual List<MaterialCombiner> GetCombiners() {
 			var allow_disabled = !OnlyEnabled;

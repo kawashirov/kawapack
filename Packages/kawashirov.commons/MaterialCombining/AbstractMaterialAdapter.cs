@@ -8,7 +8,6 @@ using UnityEngine.Rendering;
 
 namespace Kawashirov.MaterialCombining {
 	public abstract class AbstractMaterialAdapter : KawaEditorBehaviour {
-		[NonSerialized] public MaterialCombiner combiner;
 		protected readonly List<DataTexDesc> descriptors = new List<DataTexDesc>();
 
 		/* libarary methods */

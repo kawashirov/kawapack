@@ -21,30 +21,21 @@ namespace Kawashirov.MaterialCombining {
 		}
 
 		[Tooltip("Where on scene search objects to atlas.")]
-		public GameObject[] Hierarchy;
+		public List<GameObject> Hierarchy = new List<GameObject>();
 
 		[Tooltip("If Checked, \"Hierarchy\" is ignored and hole scene is used.")]
 		public bool WholeScene = false;
 
 		[Space]
 		[Tooltip("Filter specific Materials for atlassing.")]
-		public AbstractMaterialFilter[] Filters;
+		public List<AbstractMaterialFilter> Filters = new List<AbstractMaterialFilter>();
 
 		[Space]
 		public AbstractMaterialAdapter MainAdapter;
-
-		public AbstractMaterialAdapter[] SecondaryAdapters;
-		[Tooltip("Select which texture data channels to atlas. See also OnlyIncludeFilterTextures.")]
-
-		public string[] FilterTextures;
-		[Tooltip("When checked only texture data channels from FilterTextures will be used. " +
-			"When unchecked only texture data channels that is NOT in FilterTextures will be used.")]
-
-		public bool OnlyIncludeFilterTextures = false;
-
+		public List<AbstractMaterialAdapter> SecondaryAdapters = new List<AbstractMaterialAdapter>();
+		
 		[Space]
 		public AtlasLayoutBackend AtlasLayout = AtlasLayoutBackend.PackTextures;
-
 		public int IslandsAlignPx = 8;
 		public int IslandsEpsilonPx = 8;
 		public int IslandsPaddingPx = 8;
@@ -55,7 +46,6 @@ namespace Kawashirov.MaterialCombining {
 		[Tooltip("When checked, will select operating objects and interrupt more frequently for visual feedback.")]
 		public float MaxStallTime = 1;
 
-
 		[Header("Asset saving")]
 		public bool SaveMeshes = false;
 		public bool SaveMaterials = false;
@@ -64,15 +54,15 @@ namespace Kawashirov.MaterialCombining {
 		public bool UniqueAssetNames = false;
 
 		[Header("Properties below are auto-generated")]
-		public Texture2D[] OriginalTextures;
-		public Material[] OriginalMaterials;
-		public Texture2D[] AtlasTextures;
-		public Material[] AtlasMaterials;
-		public Mesh[] AtlasMeshes;
+		public List<Texture2D> OriginalTextures = new List<Texture2D>();
+		public List<Material> OriginalMaterials = new List<Material>();
+		public List<Texture2D> AtlasTextures = new List<Texture2D>();
+		public List<Material> AtlasMaterials = new List<Material>();
+		public List<Mesh> AtlasMeshes = new List<Mesh>();
 
 		/**/
-		public int stallTimeMS = 1000;
-		public List<DataTexDesc> descriptors;
+		protected int stallTimeMS = 1000;
+		protected List<DataTexDesc> descriptors;
 		protected readonly List<RendererGroup> renderers = new List<RendererGroup>();
 		protected readonly Dictionary<Material, MaterialGroup> materials = new Dictionary<Material, MaterialGroup>();
 		protected readonly HashSet<Material> unadaptable = new HashSet<Material>();
@@ -81,7 +71,7 @@ namespace Kawashirov.MaterialCombining {
 		protected Material matBlit;
 		protected RenderTexture texRT1 = null;
 		protected RenderTexture texRT2 = null;
-		public string sceneDir = null;
+		internal string sceneDir = null;
 
 		public object SelectFocus(Object obj) {
 			if (obj == null)
@@ -104,9 +94,10 @@ namespace Kawashirov.MaterialCombining {
 				ThrowException(new NullReferenceException($"{nameof(MainAdapter)} is not set!"));
 			}
 
-			if (SecondaryAdapters == null || SecondaryAdapters.Length == 0) {
+			if (SecondaryAdapters == null || SecondaryAdapters.Count == 0) {
 				LogWarning($"{nameof(SecondaryAdapters)} is empty! Auto-adding {nameof(MainAdapter)} {MainAdapter} there.");
-				SecondaryAdapters = new AbstractMaterialAdapter[1] { MainAdapter };
+				SecondaryAdapters.Add(MainAdapter);
+				SetDirty();
 			} else if (!SecondaryAdapters.Contains(MainAdapter)) {
 				LogWarning($"{nameof(SecondaryAdapters)} doesn't contains {nameof(MainAdapter)}. " +
 					$"That's acceptable in specificcases, but might be not that you want.");
@@ -114,15 +105,6 @@ namespace Kawashirov.MaterialCombining {
 
 			if (1 > MaxAtlasSize || MaxAtlasSize > 16 * 1024) {
 				ThrowException(new ArgumentOutOfRangeException($"{nameof(MaxAtlasSize)} must be in range 1 .. {16 * 1024}"));
-			}
-
-			if (FilterTextures == null) {
-				FilterTextures = new string[0];
-			}
-			FilterTextures = FilterTextures.Where(s => !string.IsNullOrWhiteSpace(s)).Distinct().ToArray();
-			if (OnlyIncludeFilterTextures && FilterTextures.Length < 1) {
-				ThrowException(new ArgumentOutOfRangeException(
-					$"{nameof(OnlyIncludeFilterTextures)} is ON and {nameof(FilterTextures)} has no elements!"));
 			}
 
 			stallTimeMS = MaxStallTime > 0 ? Mathf.RoundToInt(Mathf.Clamp(MaxStallTime, 1f / 60, 10f) * 1000) : 0;
@@ -156,8 +138,15 @@ namespace Kawashirov.MaterialCombining {
 		}
 
 		protected virtual List<Renderer> CollectRenderers() {
-			var gobjs_prime = WholeScene ? gameObject.scene.GetRootGameObjects() : Hierarchy;
-			if (gobjs_prime.Length < 1)
+			List<GameObject> gobjs_prime;
+			if (WholeScene) {
+				gobjs_prime = new List<GameObject>();
+				gameObject.scene.GetRootGameObjects(gobjs_prime);
+			} else {
+				gobjs_prime = Hierarchy;
+			}
+
+			if (gobjs_prime.Count < 1)
 				ThrowException(new ArgumentException($"No GameObjects in given scope!"));
 
 			var all_renderers = gobjs_prime.SelectMany(g => g.GetComponentsInChildren<Renderer>(true)).Distinct().ToList();
@@ -266,9 +255,11 @@ namespace Kawashirov.MaterialCombining {
 					$"for atlas after checking {all_renderers.Count} renderers! Nothing to atlas."));
 			}
 
-			OriginalTextures = materials.Values.SelectMany(g => g.adapted.data)
-				.SelectMany(d => d.dstTex).Distinct().ToArray();
-			OriginalMaterials = materials.Keys.ToArray();
+			OriginalTextures.Clear();
+			OriginalTextures.AddRange(materials.Values.SelectMany(g => g.adapted.data)
+				.SelectMany(d => d.dstTex).Distinct());
+			OriginalMaterials.Clear();
+			OriginalMaterials.AddRange(materials.Keys);
 			SetDirty();
 			unadaptable.Clear(); // Больше метки нам не понадобятся.
 			Log($"Gathered {materials.Count} materials and {slots} material slots " +
@@ -789,7 +780,7 @@ namespace Kawashirov.MaterialCombining {
 				yield return null; // Принудительная пауза
 			}
 			desc.atlasTexture = asset_tex;
-			AtlasTextures = AtlasTextures.Append(asset_tex).ToArray();
+			AtlasTextures.Add(asset_tex);
 			SetDirty();
 
 			if (ShouldYield(sw)) {
@@ -801,7 +792,7 @@ namespace Kawashirov.MaterialCombining {
 		}
 
 		protected virtual IEnumerator AtlasBake() {
-			AtlasTextures = new Texture2D[0];
+			AtlasTextures.Clear();
 			SetDirty();
 
 			var shader_path = AssetDatabase.GUIDToAssetPath(SHADER_GUID);
@@ -850,9 +841,9 @@ namespace Kawashirov.MaterialCombining {
 				}
 			}
 
-			mat_atlas.name = $"Atlas_{gameObject.name}_mat_{AtlasMaterials.Length}";
+			mat_atlas.name = $"Atlas_{gameObject.name}_mat_{AtlasMaterials.Count}";
 			LogDebug($"Created new atlas material {mat_atlas}.", mat_atlas);
-			AtlasMaterials = AtlasMaterials.Append(mat_atlas).ToArray();
+			AtlasMaterials.Add(mat_atlas);
 			SetDirty();
 			return mat_atlas;
 		}
@@ -860,7 +851,7 @@ namespace Kawashirov.MaterialCombining {
 		protected virtual void ConvertMaterials() {
 			LogDebug($"Converting {materials.Count} original materials to atlas materials...");
 			var begin = Stopwatch.StartNew();
-			AtlasMaterials = new Material[0];
+			AtlasMaterials.Clear();
 			SetDirty();
 			var report = new List<string>(materials.Count);
 			foreach (var mat_group in materials.Values) {
@@ -872,14 +863,14 @@ namespace Kawashirov.MaterialCombining {
 				}
 				report.Add($"- {mat_group.matOriginal} -> {mat_group.matAtlas}.");
 			}
-			Log($"Converted {report.Count} original materials to {AtlasMaterials.Length} " +
+			Log($"Converted {report.Count} original materials to {AtlasMaterials.Count} " +
 				$"atlas materials in {begin.Elapsed}:\n" + string.Join("\n", report));
 		}
 
 		protected virtual IEnumerator AtlasSaveMaterials() {
 			if (!SaveMaterials)
 				yield break;
-			LogDebug($"Saving {AtlasMaterials.Length} atlas materials...");
+			LogDebug($"Saving {AtlasMaterials.Count} atlas materials...");
 			var begin = Stopwatch.StartNew();
 			var sw = Stopwatch.StartNew();
 			// Несмотря на то, что материалы сами по себе простые и маленькие объекты, 
@@ -905,7 +896,7 @@ namespace Kawashirov.MaterialCombining {
 			}
 			AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
 			yield return null;
-			LogDebug($"Saved {AtlasMaterials.Length} atlas materials in {begin.Elapsed}.");
+			LogDebug($"Saved {AtlasMaterials.Count} atlas materials in {begin.Elapsed}.");
 		}
 
 		protected virtual IEnumerator AtlasApplyUV() {
@@ -940,17 +931,18 @@ namespace Kawashirov.MaterialCombining {
 					sw.Reset();
 				}
 			}
-			AtlasMeshes = renderers.Select(rg => rg.meshAtlas).UnityNotNull().ToArray();
+			AtlasMeshes.Clear();
+			AtlasMeshes.AddRange(renderers.Select(rg => rg.meshAtlas).UnityNotNull());
 			SetDirty();
 			Log($"Applied atlas to {atlas_meshes} renderers, {atlas_slots} slots, " +
-				$"generated {AtlasMeshes.Length} meshes in {begin.Elapsed}.");
+				$"generated {AtlasMeshes.Count} meshes in {begin.Elapsed}.");
 			yield return null;
 		}
 
 		protected virtual IEnumerator AtlasSaveMeshes() {
 			if (!SaveMeshes)
 				yield break;
-			LogDebug($"Saving {AtlasMeshes.Length} meshes...");
+			LogDebug($"Saving {AtlasMeshes.Count} meshes...");
 			var begin = Stopwatch.StartNew();
 			var sw = Stopwatch.StartNew();
 			// Замечено, что CreateAsset() по отдельности на большом количестве мешей
@@ -971,7 +963,7 @@ namespace Kawashirov.MaterialCombining {
 			}
 			AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
 			yield return null;
-			LogDebug($"Saved {AtlasMeshes.Length} meshes in {begin.Elapsed}.");
+			LogDebug($"Saved {AtlasMeshes.Count} meshes in {begin.Elapsed}.");
 		}
 
 		public virtual IEnumerator Run() {

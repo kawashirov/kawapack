@@ -1,20 +1,18 @@
 #if UNITY_EDITOR
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
 
 namespace Kawashirov.MaterialCombining {
 	public class ShaderIncluder : AbstractMaterialFilter {
 		[Header("Include materials with these shaders")]
-		public Shader[] Shaders;
+		public List<Shader> Shaders = new List<Shader>();
 
 		protected void FilterShader() {
 			var new_shaders = Shaders.UnityNotNull().Distinct().ToArray();
-			if (Shaders.Length != new_shaders.Length) {
-				Shaders = new_shaders;
+			if (Shaders.Count != new_shaders.Length) {
+				Shaders.Clear();
+				Shaders.AddRange(new_shaders);
 				SetDirty();
 			}
 		}
@@ -26,8 +24,6 @@ namespace Kawashirov.MaterialCombining {
 		public override void Prepare() => ApplyFilters();
 
 		public override bool CheckInclude(Renderer renderer, Mesh mesh, int index, Material mat) {
-			if (Shaders.Length == 0)
-				return false;
 			return Shaders.Contains(mat.shader);
 		}
 

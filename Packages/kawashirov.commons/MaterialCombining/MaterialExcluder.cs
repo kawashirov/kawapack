@@ -11,41 +11,42 @@ using Object = UnityEngine.Object;
 namespace Kawashirov.MaterialCombining {
 	public class MaterialExcluder : AbstractMaterialFilter {
 		[Header("Exclude these materials")]
-		public Material[] Materials;
-		public string[] MaterialNameWords;
+		public List<Material> Materials = new List<Material>();
+		public List<string> MaterialNameWords = new List<string>();
 
 		[Header("Exclude these GameObjects")]
-		public GameObject[] Hierarchy;
-		public string[] HierarchyNameWords;
+		public List<GameObject> Hierarchy = new List<GameObject>();
+		public List<string> HierarchyNameWords = new List<string>();
 
-		protected void FilterObjArray<T>(ref T[] array) where T : Object {
-			var new_exclude = array
-				.UnityNotNull().Distinct().ToArray();
-			if (array.Length != new_exclude.Length) {
-				array = new_exclude;
+		protected void FilterObjArray<T>(List<T> list) where T : Object {
+			var new_exclude = list.UnityNotNull().Distinct().ToArray();
+			if (list.Count != new_exclude.Length) {
+				list.Clear();
+				list.AddRange(new_exclude);
 				SetDirty();
 			}
 		}
 
-		protected void FilterKeywordsArray(ref string[] array) {
-			var new_exclude_kw = array
+		protected void FilterKeywordsArray(List<string> list) {
+			var new_exclude_kw = list
 				.Where(kw => !string.IsNullOrWhiteSpace(kw))
 				.Select(kw => kw.Trim()).Distinct().ToArray();
-			if (array.Length != new_exclude_kw.Length) {
-				array = new_exclude_kw;
+			if (list.Count != new_exclude_kw.Length) {
+				list.Clear();
+				list.AddRange(new_exclude_kw);
 				SetDirty();
 			}
 		}
 
-		protected bool ContainsAnyKeyword(string what, string[] keywords)
+		protected bool ContainsAnyKeyword(string what, List<string> keywords)
 			=> keywords.Any(kw => what.Contains(kw, StringComparison.InvariantCultureIgnoreCase));
 
 		public void ApplyFilters() {
-			FilterObjArray(ref Materials);
-			FilterKeywordsArray(ref MaterialNameWords);
+			FilterObjArray(Materials);
+			FilterKeywordsArray(MaterialNameWords);
 
-			FilterObjArray(ref Hierarchy);
-			FilterKeywordsArray(ref HierarchyNameWords);
+			FilterObjArray(Hierarchy);
+			FilterKeywordsArray(HierarchyNameWords);
 		}
 
 		public override void Prepare() => ApplyFilters();

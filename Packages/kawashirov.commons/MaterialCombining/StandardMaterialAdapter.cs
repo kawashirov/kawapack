@@ -50,16 +50,16 @@ namespace Kawashirov.MaterialCombining {
 		public bool AssumeCompatible = false;
 
 		[Tooltip("Shaders that contains any of those words in their names will be assumed as NOT standard-compatible")]
-		public string[] ExcludeNameWords = new string[] { "Legacy" };
+		public List<string> ExcludeNameWords = new List<string> { "Legacy" };
 
 		[Tooltip("Same as ExcludeKeywords but Shader Objects")]
-		public Shader[] ExcludeShaders;
+		public List<Shader> ExcludeShaders = new List<Shader>();
 
 		[Tooltip("Shaders that contains any of those words in their names will be assumed as standard-compatible")]
-		public string[] IncludeNameWords = new string[] { "VRChat/Mobile/Standard Lite" };
+		public List<string> IncludeNameWords = new List<string> { "VRChat/Mobile/Standard Lite" };
 
 		[Tooltip("Same as IncludeKeywords but Shader Objects")]
-		public Shader[] IncludeShaders;
+		public List<Shader> IncludeShaders = new List<Shader>();
 
 		/**/
 

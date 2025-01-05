@@ -9,13 +9,14 @@ using UnityEngine;
 namespace Kawashirov.MaterialCombining {
 	public class MaterialIncluder : AbstractMaterialFilter {
 		[Header("Include these materials and their cildren")]
-		public Material[] Parents;
+		public List<Material> Parents = new List<Material>();
 
 		protected void FilterParents() {
 			var new_parents = Parents
 				.UnityNotNull().Distinct().ToArray();
-			if (Parents.Length != new_parents.Length) {
-				Parents = new_parents;
+			if (Parents.Count != new_parents.Length) {
+				Parents.Clear();
+				Parents.AddRange(new_parents);
 				SetDirty();
 			}
 		}
@@ -27,7 +28,7 @@ namespace Kawashirov.MaterialCombining {
 		public override void Prepare() => ApplyFilters();
 
 		public override bool CheckInclude(Renderer renderer, Mesh mesh, int index, Material mat) {
-			if (Parents.Length == 0)
+			if (Parents.Count == 0)
 				return false;
 			while (mat != null) {
 				if (Parents.Contains(mat))
