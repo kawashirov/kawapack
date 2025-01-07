@@ -20,47 +20,35 @@ namespace Kawashirov.MaterialCombining {
 			PackTextures, GenerateAtlasPerfect, GenerateAtlasDense
 		}
 
-		[Tooltip("Where on scene search objects to atlas.")]
+		public bool WholeScene = false;
 		public List<GameObject> Hierarchy = new List<GameObject>();
 
-		[Tooltip("If Checked, \"Hierarchy\" is ignored and hole scene is used.")]
-		public bool WholeScene = false;
-
-		[Space]
-		[Tooltip("Filter specific Materials for atlassing.")]
 		public List<AbstractMaterialFilter> Filters = new List<AbstractMaterialFilter>();
 
-		[Space]
 		public AbstractMaterialAdapter MainAdapter;
 		public List<AbstractMaterialAdapter> SecondaryAdapters = new List<AbstractMaterialAdapter>();
-		
-		[Space]
+
 		public AtlasLayoutBackend AtlasLayout = AtlasLayoutBackend.PackTextures;
-		public int IslandsAlignPx = 8;
-		public int IslandsEpsilonPx = 8;
-		public int IslandsPaddingPx = 8;
+		[Range(0, 16)] public int IslandsAlignPx = 8;
+		[Range(0, 16)] public int IslandsEpsilonPx = 8;
+		[Range(0, 16)] public int IslandsPaddingPx = 8;
+		[Range(4, 16 * 1024)] public int MaxAtlasSize = 4096;
 
-		[Tooltip("Powers of 2 recommended (..., 1024, 2048, 4096, ...)")]
-		public int MaxAtlasSize = 1024;
-
-		[Tooltip("When checked, will select operating objects and interrupt more frequently for visual feedback.")]
 		public float MaxStallTime = 1;
 
-		[Header("Asset saving")]
 		public bool SaveMeshes = false;
 		public bool SaveMaterials = false;
 
-		[Tooltip("When checked, assets will not be overwriten, but new files with similar names will be created.")]
 		public bool UniqueAssetNames = false;
 
-		[Header("Properties below are auto-generated")]
 		public List<Texture2D> OriginalTextures = new List<Texture2D>();
 		public List<Material> OriginalMaterials = new List<Material>();
 		public List<Texture2D> AtlasTextures = new List<Texture2D>();
 		public List<Material> AtlasMaterials = new List<Material>();
 		public List<Mesh> AtlasMeshes = new List<Mesh>();
 
-		/**/
+		/* * * */
+
 		protected int stallTimeMS = 1000;
 		protected List<DataTexDesc> descriptors;
 		protected readonly List<RendererGroup> renderers = new List<RendererGroup>();
