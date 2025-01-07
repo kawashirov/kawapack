@@ -867,18 +867,17 @@ namespace Kawashirov.MaterialCombining {
 				$"atlas materials in {begin.Elapsed}:\n" + string.Join("\n", report));
 		}
 
-		protected virtual IEnumerator AtlasSaveMaterials() {
-			if (!SaveMaterials)
-				yield break;
-			LogDebug($"Saving {AtlasMaterials.Count} atlas materials...");
-			var begin = Stopwatch.StartNew();
-			var sw = Stopwatch.StartNew();
+		protected virtual void AtlasSaveMaterials() {
 			// Несмотря на то, что материалы сами по себе простые и маленькие объекты, 
 			// CreateAsset() может вызывать фризы, по этому лучше их собрать в один подход.
+			// Во время StartAssetEditing / StopAssetEditing не должно быть прерываний.
+			if (!SaveMaterials)
+				return;
+			LogDebug($"Saving {AtlasMaterials.Count} atlas materials...");
+			var begin = Stopwatch.StartNew();
 			AssetDatabase.StartAssetEditing();
 			try {
-				foreach (var mat_group in materials.Values) {
-					var mat_atlas = mat_group.matAtlas;
+				foreach (var mat_atlas in AtlasMaterials) {
 					if (mat_atlas == null)
 						continue;
 					var mat_atlas_path = $"{sceneDir}/{mat_atlas.name}.mat";
@@ -886,16 +885,11 @@ namespace Kawashirov.MaterialCombining {
 						mat_atlas_path = AssetDatabase.GenerateUniqueAssetPath(mat_atlas_path);
 					AssetDatabase.CreateAsset(mat_atlas, mat_atlas_path);
 					LogDebug($"Saved atlas material {mat_atlas} as \"{mat_atlas_path}\"", mat_atlas);
-					if (ShouldYield(sw)) {
-						yield return SelectFocus(mat_atlas);
-						sw.Reset();
-					}
 				}
 			} finally {
-				AssetDatabase.StartAssetEditing();
+				AssetDatabase.StopAssetEditing();
 			}
 			AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
-			yield return null;
 			LogDebug($"Saved {AtlasMaterials.Count} atlas materials in {begin.Elapsed}.");
 		}
 
@@ -939,30 +933,25 @@ namespace Kawashirov.MaterialCombining {
 			yield return null;
 		}
 
-		protected virtual IEnumerator AtlasSaveMeshes() {
-			if (!SaveMeshes)
-				yield break;
-			LogDebug($"Saving {AtlasMeshes.Count} meshes...");
-			var begin = Stopwatch.StartNew();
-			var sw = Stopwatch.StartNew();
+		protected virtual void AtlasSaveMeshes() {
 			// Замечено, что CreateAsset() по отдельности на большом количестве мешей
 			// вызывает значительные фризы, по этому лучше их собрать в один подход.
+			// Во время StartAssetEditing / StopAssetEditing не должно быть прерываний.
+			if (!SaveMeshes)
+				return;
+			LogDebug($"Saving {AtlasMeshes.Count} meshes...");
+			var begin = Stopwatch.StartNew();
 			AssetDatabase.StartAssetEditing();
 			try {
 				foreach (var r_group in renderers) {
 					if (r_group.meshAtlas == null)
 						continue;
 					r_group.SaveMesh();
-					if (ShouldYield(sw)) {
-						yield return SelectFocus(r_group.meshAtlas);
-						sw.Reset();
-					}
 				}
 			} finally {
 				AssetDatabase.StopAssetEditing();
 			}
 			AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
-			yield return null;
 			LogDebug($"Saved {AtlasMeshes.Count} meshes in {begin.Elapsed}.");
 		}
 
@@ -1010,9 +999,8 @@ namespace Kawashirov.MaterialCombining {
 			ConvertMaterials();
 			yield return null;
 
-			var task_save_mats = AtlasSaveMaterials();
-			while (task_save_mats.MoveNext())
-				yield return task_save_mats.Current;
+			AtlasSaveMaterials();
+			yield return null;
 
 			// И применить на меши.
 			var task_apply_uv = AtlasApplyUV();
@@ -1023,9 +1011,8 @@ namespace Kawashirov.MaterialCombining {
 			while (task_apply_meshes.MoveNext())
 				yield return task_apply_meshes.Current;
 
-			var task_save_meshes = AtlasSaveMeshes();
-			while (task_save_meshes.MoveNext())
-				yield return task_save_meshes.Current;
+			AtlasSaveMeshes();
+			yield return null;
 		}
 	}
 }
