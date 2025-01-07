@@ -19,12 +19,22 @@ namespace Kawashirov.MaterialCombining {
 
 		public enum WorkflowMode { Specular, Metallic } // Dielectric
 		public enum GlossMode { GlossAndSmoothness, GlossOnly, SmoothnessOnly }
+		[Flags]
+		public enum BlendFlags {
+			None = 0,
+			Opaque = 1 << 0, Cutout = 1 << 1, Fade = 1 << 2, Transparent = 1 << 3,
+			UsingAlpha = Cutout | Fade | Transparent,
+			All = ~0
+		}
 
 		/* Serializables */
 
 		[Tooltip("Standard (Specular) vs Standard")] //  vs Standard (Dielectric)
 		public WorkflowMode Workflow = WorkflowMode.Metallic;
 		public GlossMode Gloss = GlossMode.GlossAndSmoothness;
+		public BlendFlags Blend = BlendFlags.All;
+		public bool InstancingMatters = false;
+		public bool GIFlagsMatters = false;
 
 		[Tooltip("Optional: Replace the shader of altas materials to this one. Must be compatible with this Adapter.")]
 		public Shader OverrideShader;
@@ -41,9 +51,6 @@ namespace Kawashirov.MaterialCombining {
 
 		public bool EmissionEnable = true;
 		public float EmissionScale = 1;
-
-		public bool InstancingMatters = false;
-		public bool GIFlagsMatters = false;
 
 		[Header("Compatibility Options")]
 		[Tooltip("If checked, all Shaders will be assumed supported with respect to ExcludeKeywords and IncludeKeywords")]
@@ -79,6 +86,16 @@ namespace Kawashirov.MaterialCombining {
 			}
 		}
 
+		public static BlendFlags GetBlendFlags(Material mat) {
+			return mat.HasFloat("_Mode") ? mat.GetFloat("_Mode") switch {
+				0 => BlendFlags.Opaque,
+				1 => BlendFlags.Cutout,
+				2 => BlendFlags.Fade,
+				3 => BlendFlags.Transparent,
+				_ => BlendFlags.None,
+			} : BlendFlags.None;
+		}
+
 		protected override Shader GetDefaultAtlasShader() {
 			return Workflow switch {
 				WorkflowMode.Specular => Shader.Find(SHADER_NAME_SPECULAR),
@@ -105,7 +122,7 @@ namespace Kawashirov.MaterialCombining {
 			if (AlbedoEnable) {
 				yield return descAlbedo = new DataTexDesc(this, DATACH_ALBEDO) {
 					bgTexture = Texture2D.blackTexture,
-					textureChannels = "RGBA",
+					textureChannels = (Blend & BlendFlags.UsingAlpha) == 0 ? "RGB1" : "RGBA",
 					bgColor = Color.black,
 					scaleFactor = AlbedoScale,
 					sRGB = true, alphaIsTransparency = true,
@@ -159,6 +176,10 @@ namespace Kawashirov.MaterialCombining {
 			if (shader == null)
 				return false;
 			var shader_name = shader.name;
+
+			var blend_mode = GetBlendFlags(mat);
+			if ((blend_mode & Blend) == 0)
+				return false;
 
 			if (IncludeShaders.Contains(shader))
 				return true;
