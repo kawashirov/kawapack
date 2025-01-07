@@ -108,6 +108,13 @@ namespace Kawashirov.MaterialCombining {
 			}
 
 			stallTimeMS = MaxStallTime > 0 ? Mathf.RoundToInt(Mathf.Clamp(MaxStallTime, 1f / 60, 10f) * 1000) : 0;
+
+			OriginalTextures.Clear();
+			OriginalMaterials.Clear();
+			AtlasTextures.Clear();
+			AtlasMaterials.Clear();
+			AtlasMeshes.Clear();
+			SetDirty();
 		}
 
 		protected virtual void InitSceneDir() {
