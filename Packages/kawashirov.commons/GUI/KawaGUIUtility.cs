@@ -6,6 +6,10 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
+using Object = UnityEngine.Object;
+using UnityEngine.Assertions;
+
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -15,6 +19,16 @@ namespace Kawashirov {
 #if UNITY_EDITOR
 
 		public static readonly Lazy<Texture2D> kawaIcon = new Lazy<Texture2D>(GetKawaIcon);
+
+		public static readonly GUILayoutOption expandWidth = GUILayout.ExpandWidth(true);
+		public static readonly Lazy<float> doubleLineHeight =
+			new Lazy<float>(() => EditorGUIUtility.singleLineHeight * 2);
+
+		public static readonly Lazy<GUILayoutOption> doubleLineHeightMin =
+			new Lazy<GUILayoutOption>(() => GUILayout.MinHeight(doubleLineHeight.Value));
+
+		public static readonly Lazy<GUILayoutOption> doubleLineHeightMax =
+			new Lazy<GUILayoutOption>(() => GUILayout.MaxHeight(doubleLineHeight.Value));
 
 		private static Texture2D GetKawaIcon() {
 			var path = AssetDatabase.GUIDToAssetPath("302691306fd300648a26254d75364f60");
@@ -34,6 +48,16 @@ namespace Kawashirov {
 
 		public static void HelpBoxRich(string msg) {
 			EditorGUILayout.TextArea(msg, richHelpBox.Value);
+		}
+
+		public static bool HelpBoxWithButton(GUIContent messageContent, GUIContent buttonContent) {
+			// static copy of MaterialEditor.HelpBoxWithButton
+			var rect = GUILayoutUtility.GetRect(messageContent, richHelpBox.Value);
+			GUILayoutUtility.GetRect(1f, 25f);
+			rect.height += 25f;
+			GUI.Label(rect, messageContent, richHelpBox.Value);
+			var position = new Rect(rect.xMax - 60f - 4f, rect.yMax - 20f - 4f, 60f, 20f);
+			return GUI.Button(position, buttonContent);
 		}
 
 		public static bool PropertyEnumPopupCustomLabels<E>(
@@ -80,8 +104,9 @@ namespace Kawashirov {
 			}
 		}
 
-		public static void ToggleLeft(SerializedProperty property, GUIContent label) {
+		public static void ToggleLeft(SerializedProperty property, GUIContent label = null) {
 			var position = EditorGUILayout.GetControlRect(true);
+			label ??= new GUIContent(property.displayName);
 			using (var prop_scope = new EditorGUI.PropertyScope(position, label, property)) {
 				using (var change_scope = new EditorGUI.ChangeCheckScope()) {
 					var value = EditorGUI.ToggleLeft(position, label, property.boolValue);
@@ -90,6 +115,94 @@ namespace Kawashirov {
 					}
 				}
 			}
+		}
+
+		private static MethodInfo FindMethod(Type clazz, MethodBase template) {
+			var parameter_types = template.GetParameters().Select(p => p.ParameterType).ToArray();
+			return clazz.GetMethod(template.Name, BindingFlags.NonPublic | BindingFlags.Static, null, parameter_types, null);
+		}
+
+		private static MethodInfo GetSliderRect_m1 = null;
+		public static Rect GetSliderRect(bool hasLabel, params GUILayoutOption[] options) {
+			// Proxy to internal EditorGUILayout.GetSliderRect
+			GetSliderRect_m1 ??= FindMethod(typeof(EditorGUILayout), MethodBase.GetCurrentMethod());
+			if (GetSliderRect_m1 == null) {
+				Debug.LogWarning($"Can't find {nameof(GetSliderRect_m1)} in {typeof(EditorGUILayout)} by {MethodBase.GetCurrentMethod()}.");
+				return EditorGUILayout.GetControlRect(options);
+			} else {
+				return (Rect)GetSliderRect_m1.Invoke(null, new object[] { hasLabel, options });
+			}
+		}
+
+		private static MethodInfo PowerSlider_m1 = null;
+		public static float PowerSlider(string label, float value,
+			float leftValue, float rightValue, float power, params GUILayoutOption[] options) {
+			// Proxy to internal EditorGUILayout.PowerSlider
+			PowerSlider_m1 ??= FindMethod(typeof(EditorGUILayout), MethodBase.GetCurrentMethod());
+			if (PowerSlider_m1 == null) {
+				Debug.LogWarning($"Can't find {nameof(PowerSlider_m1)} in {typeof(EditorGUILayout)} by {MethodBase.GetCurrentMethod()}.");
+				return EditorGUILayout.Slider(label, value, leftValue, rightValue, options);
+			} else {
+				return (float)PowerSlider_m1.Invoke(null, new object[] {
+					label, value, leftValue, rightValue, power, options });
+			}
+		}
+
+		private static MethodInfo PowerSlider_m2 = null;
+		public static float PowerSlider(GUIContent label, float value,
+			float leftValue, float rightValue, float power, params GUILayoutOption[] options) {
+			// Proxy to internal EditorGUILayout.PowerSlider
+			PowerSlider_m2 ??= FindMethod(typeof(EditorGUILayout), MethodBase.GetCurrentMethod());
+			if (PowerSlider_m2 == null) {
+				Debug.LogWarning($"Can't find {nameof(PowerSlider_m2)} in {typeof(EditorGUILayout)} by {MethodBase.GetCurrentMethod()}.");
+				return EditorGUILayout.Slider(label, value, leftValue, rightValue, options);
+			} else {
+				return (float)PowerSlider_m2.Invoke(null, new object[] {
+					label, value, leftValue, rightValue, power, options });
+			}
+		}
+
+		private static MethodInfo PowerSlider_m3 = null;
+		public static float PowerSlider(Rect position, GUIContent label, float sliderValue,
+			float leftValue, float rightValue, GUIStyle textfieldStyle, float power) {
+			// Proxy to internal EditorGUI.PowerSlider
+			PowerSlider_m3 ??= FindMethod(typeof(EditorGUI), MethodBase.GetCurrentMethod());
+			if (PowerSlider_m3 == null) {
+				Debug.LogWarning($"Can't find {nameof(PowerSlider_m3)} in {typeof(EditorGUILayout)} by {MethodBase.GetCurrentMethod()}.");
+				return EditorGUI.Slider(position, label, sliderValue, leftValue, rightValue);
+			} else {
+				return (float)PowerSlider_m3.Invoke(null, new object[] {
+					position, label, sliderValue, leftValue, rightValue, textfieldStyle, power });
+			}
+		}
+
+		public static bool PowerSlider(SerializedProperty property, float leftValue, float rightValue, float power, params GUILayoutOption[] options) {
+			var position = GetSliderRect(hasLabel: true, options);
+			var label = EditorGUI.BeginProperty(position, new GUIContent(property.displayName), property);
+			EditorGUI.BeginChangeCheck();
+			float value = property.propertyType == SerializedPropertyType.Integer ? property.intValue : property.floatValue;
+			value = PowerSlider(position, label, value, leftValue, rightValue, EditorStyles.numberField, power);
+			var changed = false;
+			if (EditorGUI.EndChangeCheck()) {
+				changed = true;
+				if (property.propertyType == SerializedPropertyType.Integer) {
+					property.intValue = Mathf.RoundToInt(value);
+				} else {
+					property.floatValue = value;
+				}
+			}
+			EditorGUI.EndProperty();
+			return changed;
+		}
+
+		public static bool Contains(SerializedProperty ref_array, Object item) {
+			Assert.IsTrue(ref_array.isArray);
+			for (var i = 0; i < ref_array.arraySize; i++) {
+				var prop_i = ref_array.GetArrayElementAtIndex(i);
+				if (prop_i.objectReferenceValue == item)
+					return true;
+			}
+			return false;
 		}
 
 		public static void ShaderEditorFooter() {
