@@ -15,7 +15,7 @@ using Object = UnityEngine.Object;
 
 namespace Kawashirov.MaterialCombining {
 	public class MaterialCombiner : KawaEditorBehaviour {
-		public const string SHADER_GUID = "fcbb4213b7350534397157f990cd24b7";
+		public static readonly string BLIT_SHADER_GUID = "fcbb4213b7350534397157f990cd24b7";
 		public enum AtlasLayoutBackend {
 			PackTextures, GenerateAtlasPerfect, GenerateAtlasDense
 		}
@@ -802,9 +802,9 @@ namespace Kawashirov.MaterialCombining {
 			AtlasTextures.Clear();
 			SetDirty();
 
-			var shader_path = AssetDatabase.GUIDToAssetPath(SHADER_GUID);
+			var shader_path = AssetDatabase.GUIDToAssetPath(BLIT_SHADER_GUID);
 			if (string.IsNullOrWhiteSpace(shader_path))
-				ThrowException(new Exception($"Blit shader \"{SHADER_GUID}\" not found in asset DB!"));
+				ThrowException(new Exception($"Blit shader \"{BLIT_SHADER_GUID}\" not found in asset DB!"));
 			var shader = AssetDatabase.LoadAssetAtPath<Shader>(shader_path);
 			if (shader == null)
 				ThrowException(new Exception($"Was not able to load blit shader at \"{shader_path}\"!"));
