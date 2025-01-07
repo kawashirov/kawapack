@@ -81,6 +81,13 @@ namespace Kawashirov {
 		}
 
 #if KAWA_DEBUG
+		[MenuItem("Kawashirov/Internals/StopAssetEditing")]
+#endif
+		public static void StopAssetEditing() {
+			AssetDatabase.StopAssetEditing();
+		}
+
+#if KAWA_DEBUG
 		[MenuItem("Kawashirov/Internals/Reapply Icons")]
 #endif
 		public static void ReapplyIcons() {
