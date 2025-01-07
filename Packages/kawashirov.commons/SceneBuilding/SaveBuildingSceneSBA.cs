@@ -134,12 +134,12 @@ namespace Kawashirov.SceneBuilding {
 				using (new EditorGUILayout.HorizontalScope()) {
 					var no_osp = string.IsNullOrWhiteSpace(target.OriginalScenePath);
 					using (new EditorGUI.DisabledScope(no_osp)) {
-						if (GUILayout.Button("Go Back to Original...")) {
+						if (GUILayout.Button("Go Back to Original...", KawaGUIUtility.doubleLineHeightMin.Value)) {
 							target.OpenOriginal(true);
 						}
 					}
 					using (new EditorGUI.DisabledScope(no_osp || !IKnowWhatIamDoing)) {
-						if (GUILayout.Button("...But Not Unload Building")) {
+						if (GUILayout.Button("...But Not Unload Building", KawaGUIUtility.doubleLineHeightMin.Value)) {
 							IKnowWhatIamDoing = false;
 							target.OpenOriginal(false);
 						}

@@ -96,6 +96,8 @@ namespace Kawashirov.SceneBuilding {
 		[CustomEditor(typeof(BuildingScenario), true)]
 		public class BaseBuildingActionEditor : KawaEditorBehaviourEditor {
 
+			public override bool ShowIKnowWhatIamDoing() => true;
+
 			public virtual void BuildingScenarioStatusGUI(BuildingScenario target) {
 				var prev_color = GUI.color;
 				var color = prev_color; // No change by default
@@ -122,27 +124,27 @@ namespace Kawashirov.SceneBuilding {
 
 				BuildingScenarioStatusGUI(target);
 
-				using (new EditorGUI.DisabledScope(target.status != BuildingStatus.NotStarted)) {
-					if (GUILayout.Button("Run Scenario")) {
-						EditorCoroutineUtility.StartCoroutine(target.RunScenario(true), target);
+				using (new EditorGUILayout.HorizontalScope()) {
+					using (new EditorGUI.DisabledScope(target.status != BuildingStatus.NotStarted)) {
+						if (GUILayout.Button("Run Scenario!", KawaGUIUtility.doubleLineHeightMin.Value, KawaGUIUtility.expandWidth)) {
+							EditorCoroutineUtility.StartCoroutine(target.RunScenario(true), target);
+						}
+					}
+
+					using (new EditorGUI.DisabledScope(!IKnowWhatIamDoing)) {
+						if (GUILayout.Button("Reset Status", KawaGUIUtility.doubleLineHeightMin.Value)) {
+							target.ResetScenarioStatus();
+							IKnowWhatIamDoing = false;
+						}
 					}
 				}
-
-				using (new EditorGUI.DisabledScope(!IKnowWhatIamDoing)) {
-					if (GUILayout.Button("Reset Scenario Status")) {
-						target.ResetScenarioStatus();
-						IKnowWhatIamDoing = false;
-					}
-				}
-
 			}
 
-			public override bool ShowIKnowWhatIamDoing() => true;
-
 			public override void OnInspectorGUI() {
+				IKnowWhatIamDoingGUI();
+				DebugModeGUI();
 				DrawDefaultInspector();
 				BuildingScenarioGUI();
-				IKnowWhatIamDoingGUI();
 			}
 		}
 	}

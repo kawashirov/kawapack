@@ -27,10 +27,10 @@ namespace Kawashirov.SceneBuilding {
 			public virtual void BuildingActionGUI() { }
 
 			public override void OnInspectorGUI() {
+				IKnowWhatIamDoingGUI();
+				DebugModeGUI();
 				DrawDefaultInspector();
 				BuildingActionGUI();
-				DebugModeGUI();
-				IKnowWhatIamDoingGUI();
 			}
 		}
 	}

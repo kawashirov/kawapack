@@ -384,6 +384,8 @@ namespace Kawashirov.MeshCombining {
 		[CustomEditor(typeof(MeshCombineGroupMeta), true)]
 		public class MeshCombineGroupMetaEditor : KawaEditorBehaviourEditor {
 			public override void OnInspectorGUI() {
+				IKnowWhatIamDoingGUI();
+				DebugModeGUI();
 				EditorGUILayout.HelpBox(
 					"This is auto-generated component that only holds data for scripting. You must not create it manually! " +
 					"Its properties exposed only for debug/info purposes. You must not edit anything here!",
@@ -392,8 +394,6 @@ namespace Kawashirov.MeshCombining {
 				using (new EditorGUI.DisabledScope(!IKnowWhatIamDoing)) {
 					DrawDefaultInspector();
 				}
-				DebugModeGUI();
-				IKnowWhatIamDoingGUI();
 			}
 		}
 

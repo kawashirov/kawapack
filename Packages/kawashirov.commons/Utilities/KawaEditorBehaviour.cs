@@ -10,6 +10,7 @@ using UnityEditor;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace Kawashirov {
 	[ExecuteAlways]
@@ -106,6 +107,7 @@ namespace Kawashirov {
 		[CustomEditor(typeof(KawaEditorBehaviour), true)]
 		public class KawaEditorBehaviourEditor : Editor {
 			protected bool IKnowWhatIamDoing = false;
+			protected Dictionary<string, SerializedProperty> properties;
 
 			public virtual bool ShowIKnowWhatIamDoing() => true;
 			public virtual bool ShowDebugMode() => false;
@@ -128,10 +130,31 @@ namespace Kawashirov {
 				}
 			}
 
+			protected SerializedProperty Prop(string key) {
+				if (properties == null) {
+					properties = new Dictionary<string, SerializedProperty>();
+					var itr = serializedObject.GetIterator();
+					itr.Next(true);
+					do {
+						// Debug.Log($"{itr.name} = {itr}");
+						properties[itr.name] = itr.Copy();
+					} while (itr.Next(false));
+				}
+				return properties.TryGetValue(key, out var prop) ? prop : null;
+			}
+
+			protected void ScriptGUI() {
+				using (new EditorGUI.DisabledScope(true)) {
+					EditorGUILayout.PropertyField(Prop("m_Script"));
+				}
+			}
+
+			protected virtual void OnEnable() { }
+
 			public override void OnInspectorGUI() {
-				DrawDefaultInspector();
-				DebugModeGUI();
 				IKnowWhatIamDoingGUI();
+				DebugModeGUI();
+				DrawDefaultInspector();
 				this.BehaviourRefreshGUI();
 			}
 		}
