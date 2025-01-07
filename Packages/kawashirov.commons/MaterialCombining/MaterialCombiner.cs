@@ -691,6 +691,8 @@ namespace Kawashirov.MaterialCombining {
 
 			// Сначала записываем в path_png "болванку".
 			var sw = Stopwatch.StartNew();
+
+			LogDebug($"Saving \"{desc_name}\" dull placeholder as \"{asset_path}\"...");
 			Texture2D dull_tex = null;
 			try {
 				var dull_fmt = desc.EXR ? TextureFormat.RGBAHalf : TextureFormat.RGBA32;
@@ -705,6 +707,7 @@ namespace Kawashirov.MaterialCombining {
 					DestroyImmediate(dull_tex);
 				dull_tex = null;
 			}
+			LogDebug($"Saved \"{desc_name}\" dull placeholder as \"{asset_path}\".");
 
 			// Убеждаемся, что ассет появился в датабазе, если что - ждём...
 			while (AtlasReImportPNG(asset_path, false) == null) {
@@ -749,12 +752,15 @@ namespace Kawashirov.MaterialCombining {
 			byte[] data = null;
 			var data_length = 0;
 			try {
-				data = desc.EXR ? tex_temp.EncodeToEXR() : tex_temp.EncodeToPNG();
+				var flags = Texture2D.EXRFlags.CompressZIP | Texture2D.EXRFlags.CompressRLE | Texture2D.EXRFlags.CompressPIZ;
+				// Я хз как оно работает когда несколько флагов, но оно работает.
+				data = desc.EXR ? tex_temp.EncodeToEXR(flags) : tex_temp.EncodeToPNG();
 				data_length = data.Length;
 			} catch (Exception exc) {
 				LogException($"Failed to encode {tex_temp} for \"{desc_name}\" as PNG.", exc);
 				throw exc;
 			}
+			LogDebug($"Encoded \"{desc_name}\" encoded as {data_length} bytes {ext}.");
 
 			// Теперь tex_temp больше не нужна.
 			DestroyImmediate(tex_temp);
@@ -774,6 +780,7 @@ namespace Kawashirov.MaterialCombining {
 			} finally {
 				data = null; // Помогаем сборщику мусора.
 			}
+			LogDebug($"Saved \"{desc_name}\" encoded as {data_length} bytes as \"{asset_path}\".");
 
 			if (ShouldYield(sw)) {
 				yield return null;
@@ -797,7 +804,7 @@ namespace Kawashirov.MaterialCombining {
 				sw.Reset();
 			}
 
-			Log($"Saved \"{desc_name}\" as {asset_tex} at \"{asset_path}\" in {begin.Elapsed}.");
+			Log($"Saved \"{desc_name}\" as {asset_tex} ({data_length} bytes) at \"{asset_path}\" in {begin.Elapsed}.");
 		}
 
 		protected virtual IEnumerator AtlasBake() {
