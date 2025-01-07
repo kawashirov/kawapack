@@ -146,12 +146,16 @@ namespace Kawashirov.MaterialCombining {
 				gobjs_prime = Hierarchy;
 			}
 
-			if (gobjs_prime.Count < 1)
-				ThrowException(new ArgumentException($"No GameObjects in given scope!"));
+			if (gobjs_prime.Count < 1) {
+				LogWarning($"No GameObjects in given scope! (WholeScene={WholeScene}, Hierarchy={Hierarchy})");
+				return new List<Renderer>(0);
+			}
 
 			var all_renderers = gobjs_prime.SelectMany(g => g.GetComponentsInChildren<Renderer>(true)).Distinct().ToList();
-			if (all_renderers.Count < 1)
-				ThrowException(new ArgumentException($"Found no Renderers in given scope!"));
+			if (all_renderers.Count < 1) {
+				LogWarning($"Found no Renderers in given scope! (WholeScene={WholeScene}, Hierarchy={Hierarchy})");
+				return new List<Renderer>(0);
+			}
 
 			LogDebug($"Found {all_renderers.Count} total potential renderers...");
 			return all_renderers;
@@ -243,6 +247,9 @@ namespace Kawashirov.MaterialCombining {
 			materials.Clear();
 			unadaptable.Clear();
 			var all_renderers = CollectRenderers();
+			if (all_renderers.Count < 1)
+				return;
+
 			foreach (var renderer in all_renderers) {
 				ProcessRenderer(renderer);
 			}
@@ -250,9 +257,9 @@ namespace Kawashirov.MaterialCombining {
 			var renderers = materials.Values.SelectMany(g => g.items.Select(i => i.renderer)).Distinct().Count();
 			var slots = materials.Values.Sum(v => v.items.Count);
 			if (renderers < 1 || slots < 1 || materials.Count < 1) {
-				ThrowException(new ArgumentException(
-					$"Found {renderers} renderers, {slots} material slots and {materials.Count} materials " +
-					$"for atlas after checking {all_renderers.Count} renderers! Nothing to atlas."));
+				LogWarning($"Found {renderers} renderers, {slots} material slots and {materials.Count} materials " +
+					$"for atlas after checking {all_renderers.Count} renderers! Nothing to atlas.");
+				return;
 			}
 
 			OriginalTextures.Clear();
