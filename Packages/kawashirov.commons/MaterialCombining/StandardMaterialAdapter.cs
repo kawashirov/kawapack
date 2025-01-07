@@ -420,16 +420,8 @@ namespace Kawashirov.MaterialCombining {
 			return true;
 		}
 
-		protected virtual Material InstantiateNewAtlasMaterial(Material original) {
-			var atlas = Instantiate(original);
-			atlas.parent = null;
+		public override void ConfigureAtlasMaterial(Material atlas) {
 			atlas.shader = EnsureAtlasShader();
-			return atlas;
-		}
-
-		public override Material MakeNewAtlasMaterial(Material original) {
-			var atlas = Instantiate(original);
-			atlas.parent = null;
 			RemoveAllTextures(atlas);
 			if (!InstancingMatters)
 				atlas.enableInstancing = true;
@@ -457,7 +449,6 @@ namespace Kawashirov.MaterialCombining {
 			atlas.SetFloat("_DetailNormalMapScale", 1);
 			SetTextureNoST(atlas, "_DetailNormalMap", null);
 			atlas.SetFloat("_UVSec", 0);
-			return atlas;
 		}
 	}
 }

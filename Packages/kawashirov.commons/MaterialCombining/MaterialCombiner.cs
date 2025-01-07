@@ -33,6 +33,7 @@ namespace Kawashirov.MaterialCombining {
 		[Range(0, 16)] public int IslandsEpsilonPx = 8;
 		[Range(0, 16)] public int IslandsPaddingPx = 8;
 		[Range(4, 16 * 1024)] public int MaxAtlasSize = 4096;
+		public List<Material> AtlasDebugMaterials = new List<Material>();
 
 		public float MaxStallTime = 1;
 
@@ -197,6 +198,12 @@ namespace Kawashirov.MaterialCombining {
 			// то дальнейшие проверки не имеют смысла.
 			if (unadaptable.Contains(mat))
 				return null;
+
+			// Пропустить отладочные материалы.
+			if (AtlasDebugMaterials.Contains(mat)) {
+				unadaptable.Add(mat);
+				return null;
+			}
 
 			var (renderer, mesh) = (group_r.renderer, group_r.meshOriginal);
 
@@ -831,7 +838,9 @@ namespace Kawashirov.MaterialCombining {
 			}
 
 			LogDebug($"Orignal material {original} has no matching atlas material, creating one...", original);
-			var mat_atlas = MainAdapter.MakeNewAtlasMaterial(original);
+			var mat_atlas = Instantiate(original);
+			mat_atlas.parent = null;
+			MainAdapter.ConfigureAtlasMaterial(mat_atlas);
 			mat_atlas.name = $"Atlas_{gameObject.name}_mat_new";
 
 			// Может получиться так, что новый начал совпадать с уже существующим.
@@ -865,8 +874,14 @@ namespace Kawashirov.MaterialCombining {
 				}
 				report.Add($"- {mat_group.matOriginal} -> {mat_group.matAtlas}.");
 			}
+
 			Log($"Converted {report.Count} original materials to {AtlasMaterials.Count} " +
 				$"atlas materials in {begin.Elapsed}:\n" + string.Join("\n", report));
+
+			foreach (var mat_atlas in AtlasDebugMaterials) {
+				if (mat_atlas != null)
+					MainAdapter.ConfigureAtlasMaterial(mat_atlas);
+			}
 		}
 
 		protected virtual void AtlasSaveMaterials() {

@@ -14,6 +14,8 @@ namespace Kawashirov.MaterialCombining {
 		public override bool ShowIKnowWhatIamDoing() => true;
 
 		protected override void OnEnable() {
+			Prop("AtlasDebugMaterials").isExpanded = false;
+
 			Prop("OriginalTextures").isExpanded = false;
 			Prop("OriginalMaterials").isExpanded = false;
 			Prop("AtlasTextures").isExpanded = false;
@@ -160,6 +162,9 @@ namespace Kawashirov.MaterialCombining {
 			EditorGUILayout.PropertyField(Prop("AtlasLayout"));
 			AtlasSizeGUI();
 			AtlasLayoutPxGUI();
+			using (new EditorGUI.DisabledScope(!IKnowWhatIamDoing)) {
+				EditorGUILayout.PropertyField(Prop("AtlasDebugMaterials"), new GUIContent("Debug Materials"));
+			}
 
 			EditorGUILayout.Space();
 

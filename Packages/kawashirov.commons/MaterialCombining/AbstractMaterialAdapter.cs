@@ -192,9 +192,10 @@ namespace Kawashirov.MaterialCombining {
 		// Должен сравнить два материала на совместимость, согласно настройкам этого адаптера.
 		public abstract bool IsCompatible(Material left, Material right);
 
-		// Должен создать новый материал (и настроить его),
-		// на основе данного оригинала (не изменяя его).
-		public abstract Material MakeNewAtlasMaterial(Material original);
+		// Должен настроить данную копию нового материал,
+		// изменяя только минимально необходисый набор опций.
+		// (заменить текстуры, сбросить ST)
+		public abstract void ConfigureAtlasMaterial(Material original);
 
 	}
 }
