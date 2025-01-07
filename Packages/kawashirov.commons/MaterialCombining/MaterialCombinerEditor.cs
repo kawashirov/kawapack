@@ -190,17 +190,18 @@ namespace Kawashirov.MaterialCombining {
 		}
 
 		public override void OnInspectorGUI() {
+			IKnowWhatIamDoingGUI();
+			DebugModeGUI();
 
 			EditorGUI.BeginChangeCheck();
 			serializedObject.UpdateIfRequiredOrScript();
 
 			PropertiesGUI();
-			DebugModeGUI();
-			IKnowWhatIamDoingGUI();
-			this.BehaviourRefreshGUI();
 
 			serializedObject.ApplyModifiedProperties();
 			EditorGUI.EndChangeCheck();
+			
+			this.BehaviourRefreshGUI();
 		}
 
 	}

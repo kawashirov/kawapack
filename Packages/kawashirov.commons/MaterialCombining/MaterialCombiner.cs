@@ -596,7 +596,7 @@ namespace Kawashirov.MaterialCombining {
 				yield return SelectFocus(texRT1);
 				sw.Reset();
 			}
-			Log($"Rendered everything for \"{dsc_name}\" in {begin.Elapsed}...");
+			Log($"Rendered everything for \"{dsc_name}\" in {begin.Elapsed}.");
 		}
 
 		protected virtual Texture2D AtlasRTToTexture2D(DataTexDesc desc, RenderTexture atlas) {
@@ -674,7 +674,7 @@ namespace Kawashirov.MaterialCombining {
 			var asset_path = $"{sceneDir}/Atlas_{gameObject.name}_tex_{desc_name}.{ext}";
 			if (UniqueAssetNames)
 				asset_path = AssetDatabase.GenerateUniqueAssetPath(asset_path);
-			Log($"Saving \"{desc_name}\" as \"{asset_path}\"...");
+			LogDebug($"Saving \"{desc_name}\" as \"{asset_path}\"...");
 
 			// Раньше тут использовался StartAssetEditing / StopAssetEditing и была ошибка
 			// Build asset version error: <файлик> in SourceAssetDB has modification
