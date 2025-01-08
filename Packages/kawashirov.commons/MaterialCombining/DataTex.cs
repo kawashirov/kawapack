@@ -25,7 +25,10 @@ namespace Kawashirov.MaterialCombining {
 		};
 		public readonly int[] dstCh = new int[4] { 0, 1, 2, 3 };
 
+		// Color is affected by Unity intrnal gamma corections, 
+		// but scale is not and passed as is.
 		public Color color = Color.white;
+		public Vector4 scale = Vector4.one;
 
 		public DataTex(Material parent, DataTexDesc desc) {
 			this.parent = parent;
@@ -58,11 +61,13 @@ namespace Kawashirov.MaterialCombining {
 			return this;
 		}
 
-		public DataTex SetWhiteAlpha() {
+		public DataTex SetTexAlphaWhite() {
 			dstTex[3] = Texture2D.whiteTexture;
-			dstCh[3] = 0;
+			dstCh[3] = 3;
 			return this;
 		}
+
+		//
 
 		public DataTex SetColor(Color color) {
 			this.color = color;
@@ -87,6 +92,40 @@ namespace Kawashirov.MaterialCombining {
 			color.a = alpha;
 			return this;
 		}
+
+		public DataTex SetColorAlphaWhite() {
+			color.a = 1;
+			return this;
+		}
+
+		//
+
+		public DataTex SetScaleRGB(Vector4 scale) {
+			this.scale.x = scale.x;
+			this.scale.y = scale.y;
+			this.scale.z = scale.z;
+			return this;
+		}
+
+		public DataTex SetScaleAlpha(float alpha) {
+			scale.w = alpha;
+			return this;
+		}
+
+		public DataTex SetScaleAlphaWhite() {
+			scale.w = 1;
+			return this;
+		}
+
+		//
+
+		public DataTex SetAlphaWhite() {
+			SetTexAlphaWhite();
+			SetColorAlphaWhite();
+			SetScaleAlphaWhite();
+			return this;
+		}
+
 
 		public Vector2Int LargestTexSize() {
 			var tex = dstTex.OrderByDescending(WeightSqr).First();

@@ -15,7 +15,11 @@ namespace Kawashirov.MaterialCombining {
 		public const string DATACH_SPECMOOTH = "SpecularSmoothness";
 		public const string DATACH_METALSMOOTH = "MetallicSmoothness";
 		public const string DATACH_NORMAL = "Normal";
+		public const string DATACH_PARALLAX = "Parallax";
 		public const string DATACH_EMISSION = "Emission";
+
+		public const float PARALLAX_SCALE_DEFAULT = 0.02f;
+		public const float PARALLAX_SCALE_MAX = 0.08f;
 
 		public enum WorkflowMode { Specular, Metallic } // Dielectric
 		public enum GlossMode { GlossAndSmoothness, GlossOnly, SmoothnessOnly }
@@ -49,6 +53,10 @@ namespace Kawashirov.MaterialCombining {
 		public bool NormalEnable = true;
 		public float NormalScale = 1;
 
+		public bool ParallaxEnable = true;
+		public float ParallaxScale = 1;
+		public float ParallaxReference = PARALLAX_SCALE_MAX;
+
 		public bool EmissionEnable = true;
 		public float EmissionScale = 1;
 
@@ -74,6 +82,7 @@ namespace Kawashirov.MaterialCombining {
 		protected DataTexDesc descSpecSmooth = null;
 		protected DataTexDesc descMetalSmooth = null;
 		protected DataTexDesc descNormal = null;
+		protected DataTexDesc descParallax = null;
 		protected DataTexDesc descEmission = null;
 
 		public static string GlossModeToChannels(GlossMode mode) {
@@ -157,6 +166,16 @@ namespace Kawashirov.MaterialCombining {
 					bgColor = Color.white,
 					scaleFactor = NormalScale,
 					sRGB = false, isNormal = true,
+				};
+			}
+
+			if (ParallaxEnable) {
+				yield return descParallax = new DataTexDesc(this, DATACH_PARALLAX) {
+					bgTexture = Texture2D.grayTexture,
+					textureChannels = "RGB1",
+					bgColor = Color.white, bgScale = Vector4.one * PARALLAX_SCALE_DEFAULT,
+					scaleFactor = ParallaxScale,
+					sRGB = false, isParallax = true, parallaxRef = ParallaxReference,
 				};
 			}
 
@@ -276,6 +295,14 @@ namespace Kawashirov.MaterialCombining {
 				.SetTexRGBA(bumpmap_tex).SetColor(Color.white * bumpmap_scale);
 		}
 
+		protected virtual DataTex GetParallaxDC(Material mat) {
+			var parallax_tex = GetTexture2D(mat, "_ParallaxMap", Texture2D.grayTexture);
+			var parallax_scale = GetScalar(mat, "_Parallax", PARALLAX_SCALE_DEFAULT);
+			return new DataTex(mat, descParallax)
+				.SetTexRGB(parallax_tex).SetScaleRGB(Vector4.one * parallax_scale)
+				.SetColorRGB(Color.white).SetAlphaWhite();
+		}
+
 		protected virtual DataTex GetEmissionDC(Material mat) {
 			// Для "Emission" имеет значение globalIlluminationFlags
 			var emission_tex = Texture2D.blackTexture;
@@ -286,7 +313,7 @@ namespace Kawashirov.MaterialCombining {
 				emission_color.a = 1;
 			}
 			return new DataTex(mat, descEmission)
-				.SetTexRGB(emission_tex).SetWhiteAlpha().SetColor(emission_color);
+				.SetTexRGB(emission_tex).SetTexAlphaWhite().SetColor(emission_color);
 		}
 
 		protected virtual IEnumerable<DataTex> YieldDataTexs(Material mat, List<DataTexDesc> descriptors) {
@@ -294,10 +321,14 @@ namespace Kawashirov.MaterialCombining {
 				// Если ref на список совпадает, значит это наш список.
 				if (descAlbedo != null)
 					yield return GetAlbedoDC(mat);
+				if (descSpecSmooth != null)
+					yield return GetSpecularDC(mat);
 				if (descMetalSmooth != null)
 					yield return GetMetallicDC(mat);
 				if (descNormal != null)
 					yield return GetNormalMapDC(mat);
+				if (descParallax != null)
+					yield return GetParallaxDC(mat);
 				if (descEmission != null)
 					yield return GetEmissionDC(mat);
 			} else {
@@ -308,8 +339,12 @@ namespace Kawashirov.MaterialCombining {
 					var desc_name = desc_other.name;
 					if (descAlbedo != null && descAlbedo.name.Equals(desc_name))
 						yield return GetAlbedoDC(mat);
+					else if (descSpecSmooth != null && descSpecSmooth.name.Equals(desc_name))
+						yield return GetSpecularDC(mat);
 					else if (descMetalSmooth != null && descMetalSmooth.name.Equals(desc_name))
 						yield return GetMetallicDC(mat);
+					else if (descParallax != null && descParallax.name.Equals(desc_name))
+						yield return GetParallaxDC(mat);
 					else if (descNormal != null && descNormal.name.Equals(desc_name))
 						yield return GetNormalMapDC(mat);
 					else if (descEmission != null && descEmission.name.Equals(desc_name))
@@ -358,16 +393,26 @@ namespace Kawashirov.MaterialCombining {
 			mat.DisableKeyword("_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A");
 		}
 
-
 		protected virtual void ApplyAtlasNormal(Material mat) {
 			if (descNormal != null && descNormal.atlasTexture != null) {
 				SetTextureNoST(mat, "_BumpMap", descNormal.atlasTexture);
 				mat.EnableKeyword("_NORMALMAP");
 			} else {
-				SetTextureNoST(mat, "_EmissionMap", null);
+				SetTextureNoST(mat, "_BumpMap", null);
 				mat.DisableKeyword("_NORMALMAP");
 			}
 			mat.SetFloat("_BumpScale", 1);
+		}
+
+		protected virtual void ApplyAtlasPaprallax(Material mat) {
+			if (descParallax != null && descParallax.atlasTexture != null) {
+				SetTextureNoST(mat, "_ParallaxMap", descParallax.atlasTexture);
+				mat.EnableKeyword("_PARALLAXMAP");
+			} else {
+				SetTextureNoST(mat, "_ParallaxMap", null);
+				mat.DisableKeyword("_PARALLAXMAP");
+			}
+			mat.SetFloat("_Parallax", ParallaxReference);
 		}
 
 		protected virtual void ApplyAtlasEmission(Material mat) {
@@ -437,7 +482,7 @@ namespace Kawashirov.MaterialCombining {
 
 			ApplyAtlasNormal(atlas);
 
-			// TODO _Parallax, _ParallaxMap
+			ApplyAtlasPaprallax(atlas);
 
 			// TODO _OcclusionStrength, _OcclusionMap
 

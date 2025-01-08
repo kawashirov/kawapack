@@ -26,11 +26,11 @@ namespace Kawashirov.SceneBuilding {
 			if (CombineEveryithingOnScene) {
 				return gameObject.scene.GetRootGameObjects()
 					.SelectMany(gobj => gobj.GetComponentsInChildren<MaterialCombiner>())
-					.Where(mc => allow_disabled || mc.enabled)
+					.Where(mc => allow_disabled || (mc.enabled && mc.gameObject.activeSelf))
 					.Except(except).ToList();
 			} else {
 				return Combiners.Distinct().UnityNotNull()
-					.Where(mc => allow_disabled || mc.enabled)
+					.Where(mc => allow_disabled ||(mc.enabled && mc.gameObject.activeSelf))
 					.Except(except).ToList();
 			}
 		}

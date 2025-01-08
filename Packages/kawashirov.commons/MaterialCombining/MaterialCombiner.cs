@@ -484,10 +484,12 @@ namespace Kawashirov.MaterialCombining {
 			matBlit.SetVector("_Channels", new Vector4(0, 1, 2, 3));
 
 			matBlit.SetColor("_Color", desc.bgColor);
+			matBlit.SetVector("_Scale", desc.bgScale);
 
 			matBlit.SetInteger("_ColorSpace", desc.sRGB ? 1 : 0);
 			matBlit.SetInteger("_BumpMode", desc.isNormal ? 1 : 0);
-			// mat_blit.SetInteger("_BumpBGR", 0);
+			matBlit.SetInteger("_ParallaxMode", desc.isParallax ? 1 : 0);
+			matBlit.SetFloat("_ParallaxRef", desc.parallaxRef);
 
 			var full = new Vector4(0, 0, 1, 1);
 			matBlit.SetVector("_SourceRect", full);
@@ -523,12 +525,14 @@ namespace Kawashirov.MaterialCombining {
 			matBlit.SetTexture("_TexB", data.dstTex[2]);
 			matBlit.SetTexture("_TexA", data.dstTex[3]);
 			matBlit.SetVector("_Channels", data.ChannelsAsVector4());
-			// mat_blit.SetInteger("_BumpBGR", 1);
 
 			matBlit.SetColor("_Color", data.color);
+			matBlit.SetVector("_Scale", data.scale);
 
 			matBlit.SetInteger("_ColorSpace", desc.sRGB ? 1 : 0);
 			matBlit.SetInteger("_BumpMode", desc.isNormal ? 1 : 0);
+			matBlit.SetInteger("_ParallaxMode", desc.isParallax ? 1 : 0);
+			matBlit.SetFloat("_ParallaxRef", desc.parallaxRef);
 
 			for (var islands_i = 0; islands_i < group.islandsAtlas.Count; ++islands_i) {
 				var island_source = group.islandsPadded[islands_i]; // pixel coords
@@ -539,7 +543,7 @@ namespace Kawashirov.MaterialCombining {
 				matBlit.SetVector("_TargetRect", vec_atlas);
 				matBlit.SetTexture("_TargetTex", texRT1);
 				LogDebug($"Blitting {mat_original}/{dsc_name}/{islands_i}: {island_source}/{vec_source} -> {vec_atlas}");
-				var capture = false; // desc.isNormal && data.dstTex.Any(t => t != Texture2D.normalTexture);
+				var capture = desc.isParallax && data.dstTex.Any(t => t != Texture2D.grayTexture && t != Texture2D.whiteTexture);
 				try {
 					if (capture)
 						ExternalGPUProfiler.BeginGPUCapture();
@@ -561,10 +565,8 @@ namespace Kawashirov.MaterialCombining {
 			texRT2 = null;
 			EditorUtility.UnloadUnusedAssetsImmediate(true); // save ram
 			var sw = Stopwatch.StartNew();
+			var capture = desc.isParallax;
 			try {
-				// var rt_desc = PrepareRTDescriptor(desc);
-				// tex_dst1 = new RenderTexture(rt_desc) { name = $"RT_{dsc_name}_A" };
-				// tex_dst2 = new RenderTexture(rt_desc) { name = $"RT_{dsc_name}_B" };
 				texRT1 = AtlasMakeRT(desc);
 				texRT2 = AtlasMakeRT(desc);
 				LogDebug($"For atlassing \"{dsc_name}\": Created temp buffers: {texRT1}, {texRT2}");
@@ -573,20 +575,25 @@ namespace Kawashirov.MaterialCombining {
 					sw.Reset();
 				}
 
+				if (capture)
+					ExternalGPUProfiler.BeginGPUCapture();
+
 				AtlasBlitBackground(desc);
-				if (ShouldYield(sw)) {
+				if (!capture && ShouldYield(sw)) {
 					yield return SelectFocus(texRT1);
 					sw.Reset();
 				}
 
 				foreach (var group in materials.Values) {
 					AtlasBlitGroup(desc, group);
-					if (ShouldYield(sw)) {
+					if (!capture && ShouldYield(sw)) {
 						yield return SelectFocus(texRT1);
 						sw.Reset();
 					}
 				}
 			} finally {
+				if (capture)
+					ExternalGPUProfiler.EndGPUCapture();
 				// tex_dst2 больше не будет использоваться, а из tex_dst1 сохраним полученный атлас.
 				if (texRT2 != null)
 					RenderTexture.ReleaseTemporary(texRT2); // DestroyImmediate(tex_dst2);

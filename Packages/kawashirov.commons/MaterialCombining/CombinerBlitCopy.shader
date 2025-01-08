@@ -8,13 +8,15 @@ Shader "Kawashirov/MaterialCombiner/BlitCopy" {
 		_TexB ("_TexB", any) = "" {}
 		_TexA ("_TexA", any) = "" {}
 		_Channels ("_Channels", Vector) = (0, 1, 2, 3)
-		_ColorSpaces ("_ColorSpaces", Vector) = (0, 0, 0, 0)
+		// _ColorSpaces ("_ColorSpaces", Vector) = (0, 0, 0, 0)
 
 		_Color("_Color", Color) = (1.0, 1.0, 1.0, 1.0)
+		_Scale("_Scale", Vector) = (1.0, 1.0, 1.0, 1.0)
 
 		_ColorSpace ("_ColorSpace", Integer) = 0
 		_BumpMode ("_BumpMode", Integer) = 0
-		// _BumpBGR ("_BumpBGR", Integer) = 0
+		_ParallaxMode ("_ParallaxMode", Integer) = 0
+		_ParallaxRef ("_ParallaxRef", Float) = 0.08
 		
 		_SourceRect ("_SourceRect", Vector) = (0, 0, 1, 1)
 		_TargetRect ("_TargetRect", Vector) = (0, 0, 1, 1)
@@ -40,13 +42,15 @@ Shader "Kawashirov/MaterialCombiner/BlitCopy" {
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_TexB);
 			UNITY_DECLARE_SCREENSPACE_TEXTURE(_TexA);
 			uniform float4 _Channels;
-			uniform float4 _ColorSpaces;
+			// uniform float4 _ColorSpaces;
 
 			uniform float4 _Color;
+			uniform float4 _Scale;
 
 			uniform int _ColorSpace;
 			uniform int _BumpMode;
-			// uniform int _BumpBGR;
+			uniform int _ParallaxMode;
+			uniform float _ParallaxRef;
 
 			uniform float4 _SourceRect;
 			uniform float4 _TargetRect;
@@ -86,9 +90,7 @@ Shader "Kawashirov/MaterialCombiner/BlitCopy" {
 					float color_src_a = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_TexA, src_uv)[(int)_Channels.a];
 					float4 color_src = float4(color_src_r, color_src_g, color_src_b, color_src_a);
 
-					if (_BumpMode <= 0) {
-						color_src *= _Color;
-					}
+					color_src *= _Color;
 
 					if (_ColorSpace < 0) {
 						color_src.rgb = GammaToLinearSpace(color_src.rgb);
@@ -97,12 +99,18 @@ Shader "Kawashirov/MaterialCombiner/BlitCopy" {
 					}
 
 					if (_BumpMode > 0) {
-						// Надеюсь, что это работает.
-						float scale = _Color.r;
+						float scale = _Scale.r;
 						float3 normal = UnpackNormalWithScale(color_src, scale);
 						color_src.rgb = (normal + 1.0) / 2.0;
 						color_src.a = 1;
-						// if (_BumpBGR > 0 ) color_src.rgb = color_src.bgr;
+					} else if (_ParallaxMode > 0) {
+						float scale = _Scale.g; // _Parallax
+						float h = scale * (color_src.g - 0.5);
+						h = h / _ParallaxRef + 0.5;
+						color_src.rgb = h;
+						color_src.a = 1;
+					} else {
+						color_src.rgba *= _Scale;
 					}
 
 					return color_src;

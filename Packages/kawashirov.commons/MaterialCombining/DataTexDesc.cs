@@ -15,10 +15,14 @@ namespace Kawashirov.MaterialCombining {
 		public Texture2D bgTexture = Texture2D.whiteTexture;
 		public string textureChannels = "RGBA"; // TODO
 		public Color bgColor = Color.white;
+		public Vector4 bgScale = Vector4.one;
 		public bool alphaIsTransparency = false;
 		public bool isNormal = false;
+		public bool isParallax = false;
 		public bool sRGB = true;
 		public bool EXR = false;
+
+		public float parallaxRef = 0.08f;
 
 		public Texture2D atlasTexture = null;
 
