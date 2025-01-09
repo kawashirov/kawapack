@@ -489,6 +489,7 @@ namespace Kawashirov.MaterialCombining {
 			matBlit.SetInteger("_ColorSpace", desc.sRGB ? 1 : 0);
 			matBlit.SetInteger("_BumpMode", desc.isNormal ? 1 : 0);
 			matBlit.SetInteger("_ParallaxMode", desc.isParallax ? 1 : 0);
+			matBlit.SetInteger("_OcclusionMode", desc.isOcclusion ? 1 : 0);
 			matBlit.SetFloat("_ParallaxRef", desc.parallaxRef);
 
 			var full = new Vector4(0, 0, 1, 1);
@@ -532,6 +533,7 @@ namespace Kawashirov.MaterialCombining {
 			matBlit.SetInteger("_ColorSpace", desc.sRGB ? 1 : 0);
 			matBlit.SetInteger("_BumpMode", desc.isNormal ? 1 : 0);
 			matBlit.SetInteger("_ParallaxMode", desc.isParallax ? 1 : 0);
+			matBlit.SetInteger("_OcclusionMode", desc.isOcclusion ? 1 : 0);
 			matBlit.SetFloat("_ParallaxRef", desc.parallaxRef);
 
 			for (var islands_i = 0; islands_i < group.islandsAtlas.Count; ++islands_i) {

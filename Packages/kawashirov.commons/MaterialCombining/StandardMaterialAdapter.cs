@@ -16,6 +16,7 @@ namespace Kawashirov.MaterialCombining {
 		public const string DATACH_METALSMOOTH = "MetallicSmoothness";
 		public const string DATACH_NORMAL = "Normal";
 		public const string DATACH_PARALLAX = "Parallax";
+		public const string DATACH_OCCLUSION = "Occlusion";
 		public const string DATACH_EMISSION = "Emission";
 
 		public const float PARALLAX_SCALE_DEFAULT = 0.02f;
@@ -57,6 +58,9 @@ namespace Kawashirov.MaterialCombining {
 		public float ParallaxScale = 1;
 		public float ParallaxReference = PARALLAX_SCALE_MAX;
 
+		public bool OcclusionEnable = true;
+		public float OcclusionScale = 1;
+
 		public bool EmissionEnable = true;
 		public float EmissionScale = 1;
 
@@ -83,6 +87,7 @@ namespace Kawashirov.MaterialCombining {
 		protected DataTexDesc descMetalSmooth = null;
 		protected DataTexDesc descNormal = null;
 		protected DataTexDesc descParallax = null;
+		protected DataTexDesc descOcclusion = null;
 		protected DataTexDesc descEmission = null;
 
 		public static string GlossModeToChannels(GlossMode mode) {
@@ -176,6 +181,16 @@ namespace Kawashirov.MaterialCombining {
 					bgColor = Color.white, bgScale = Vector4.one * PARALLAX_SCALE_DEFAULT,
 					scaleFactor = ParallaxScale,
 					sRGB = false, isParallax = true, parallaxRef = ParallaxReference,
+				};
+			}
+
+			if (OcclusionEnable) {
+				yield return descOcclusion = new DataTexDesc(this, DATACH_OCCLUSION) {
+					bgTexture = Texture2D.whiteTexture,
+					textureChannels = "RGB1",
+					bgColor = Color.white,
+					scaleFactor = OcclusionScale,
+					sRGB = true, isOcclusion = true,
 				};
 			}
 
@@ -292,7 +307,7 @@ namespace Kawashirov.MaterialCombining {
 			var bumpmap_tex = GetTexture2D(mat, "_BumpMap", Texture2D.normalTexture);
 			var bumpmap_scale = GetScalar(mat, "_BumpScale", 1);
 			return new DataTex(mat, descNormal)
-				.SetTexRGBA(bumpmap_tex).SetColor(Color.white * bumpmap_scale);
+				.SetTexRGBA(bumpmap_tex).SetScale(Vector4.one * bumpmap_scale);
 		}
 
 		protected virtual DataTex GetParallaxDC(Material mat) {
@@ -301,6 +316,13 @@ namespace Kawashirov.MaterialCombining {
 			return new DataTex(mat, descParallax)
 				.SetTexRGB(parallax_tex).SetScaleRGB(Vector4.one * parallax_scale)
 				.SetColorRGB(Color.white).SetAlphaWhite();
+		}
+
+		protected virtual DataTex GetOcclusionDC(Material mat) {
+			var occ_tex = GetTexture2D(mat, "_OcclusionMap", Texture2D.whiteTexture);
+			var occ_str = GetScalar(mat, "_OcclusionStrength", 1);
+			return new DataTex(mat, descOcclusion)
+				.SetTexRGB(occ_tex).SetScaleRGB(Vector4.one * occ_str).SetAlphaWhite();
 		}
 
 		protected virtual DataTex GetEmissionDC(Material mat) {
@@ -329,6 +351,8 @@ namespace Kawashirov.MaterialCombining {
 					yield return GetNormalMapDC(mat);
 				if (descParallax != null)
 					yield return GetParallaxDC(mat);
+				if (descOcclusion != null)
+					yield return GetOcclusionDC(mat);
 				if (descEmission != null)
 					yield return GetEmissionDC(mat);
 			} else {
@@ -343,10 +367,12 @@ namespace Kawashirov.MaterialCombining {
 						yield return GetSpecularDC(mat);
 					else if (descMetalSmooth != null && descMetalSmooth.name.Equals(desc_name))
 						yield return GetMetallicDC(mat);
-					else if (descParallax != null && descParallax.name.Equals(desc_name))
-						yield return GetParallaxDC(mat);
 					else if (descNormal != null && descNormal.name.Equals(desc_name))
 						yield return GetNormalMapDC(mat);
+					else if (descParallax != null && descParallax.name.Equals(desc_name))
+						yield return GetParallaxDC(mat);
+					else if (descOcclusion != null && descOcclusion.name.Equals(desc_name))
+						yield return GetOcclusionDC(mat);
 					else if (descEmission != null && descEmission.name.Equals(desc_name))
 						yield return GetEmissionDC(mat);
 					// else несовместимый канал?

@@ -17,6 +17,7 @@ Shader "Kawashirov/MaterialCombiner/BlitCopy" {
 		_BumpMode ("_BumpMode", Integer) = 0
 		_ParallaxMode ("_ParallaxMode", Integer) = 0
 		_ParallaxRef ("_ParallaxRef", Float) = 0.08
+		_OcclusionMode ("_OcclusionMode", Integer) = 0
 		
 		_SourceRect ("_SourceRect", Vector) = (0, 0, 1, 1)
 		_TargetRect ("_TargetRect", Vector) = (0, 0, 1, 1)
@@ -51,6 +52,7 @@ Shader "Kawashirov/MaterialCombiner/BlitCopy" {
 			uniform int _BumpMode;
 			uniform int _ParallaxMode;
 			uniform float _ParallaxRef;
+			uniform int _OcclusionMode;
 
 			uniform float4 _SourceRect;
 			uniform float4 _TargetRect;
@@ -103,12 +105,18 @@ Shader "Kawashirov/MaterialCombiner/BlitCopy" {
 						float3 normal = UnpackNormalWithScale(color_src, scale);
 						color_src.rgb = (normal + 1.0) / 2.0;
 						color_src.a = 1;
+
 					} else if (_ParallaxMode > 0) {
 						float scale = _Scale.g; // _Parallax
 						float h = scale * (color_src.g - 0.5);
 						h = h / _ParallaxRef + 0.5;
 						color_src.rgb = h;
 						color_src.a = 1;
+
+					} else if (_OcclusionMode > 0) {
+						color_src.rgb = 1 - (1 - color_src.rgb) * _Scale;
+						color_src.a = 1;
+						
 					} else {
 						color_src.rgba *= _Scale;
 					}

@@ -19,6 +19,7 @@ namespace Kawashirov.MaterialCombining {
 		public bool alphaIsTransparency = false;
 		public bool isNormal = false;
 		public bool isParallax = false;
+		public bool isOcclusion = false;
 		public bool sRGB = true;
 		public bool EXR = false;
 

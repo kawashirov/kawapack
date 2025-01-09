@@ -100,6 +100,14 @@ namespace Kawashirov.MaterialCombining {
 
 		//
 
+		public DataTex SetScale(Vector4 scale) {
+			this.scale.x = scale.x;
+			this.scale.y = scale.y;
+			this.scale.z = scale.z;
+			this.scale.w = scale.w;
+			return this;
+		}
+
 		public DataTex SetScaleRGB(Vector4 scale) {
 			this.scale.x = scale.x;
 			this.scale.y = scale.y;
