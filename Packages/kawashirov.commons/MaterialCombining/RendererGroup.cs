@@ -79,6 +79,7 @@ namespace Kawashirov.MaterialCombining {
 			Assert.IsTrue(meshAtlas.subMeshCount == N);
 			MeshUtility.Optimize(meshAtlas);
 			meshAtlas.RecalculateBounds();
+			meshAtlas.RecalculateUVDistributionMetrics();
 			meshAtlas.UploadMeshData(false);
 			meshAtlas.MarkModified();
 		}

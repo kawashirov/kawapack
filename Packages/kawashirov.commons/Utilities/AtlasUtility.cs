@@ -8,13 +8,14 @@ namespace Kawashirov {
 	public static class AtlasUtility {
 #if UNITY_EDITOR
 
-		public static bool GenerateAtlas(Vector2[] sizes, int size, List<Rect> results, KawaEditorBehaviour keb) {
+		public static bool GenerateAtlas(Vector2[] sizes, int padding, int size, List<Rect> results,
+			KawaEditorBehaviour keb) {
 			// Texture2D.GenerateAtlas очень баганый и плохо докмументирован
 			// https://discussions.unity.com/t/texture2d-generateatlas-has-a-bug-texture2d-generateatlas-has-a-bug/240115
 			// https://issuetracker.unity3d.com/issues/texture2d-dot-generateatlas-returns-true-with-a-list-of-returned-rectangles-with-a-size-of-0-when-it-should-return-false-or-return-true-and-downscale-the-sizes-provided-in-the-parameters-to-fit-the-atlas-size
 			// По этому используем цирковые проверки
 			results.Clear();
-			var result = Texture2D.GenerateAtlas(sizes, 1, size, results) &&
+			var result = Texture2D.GenerateAtlas(sizes, padding, size, results) &&
 				results.Count == sizes.Length &&
 				results.All(r => r.width != 0 && r.height != 0) &&
 				results.Any(r => r.x != 0 || r.y != 0);
@@ -30,13 +31,14 @@ namespace Kawashirov {
 			return result;
 		}
 
-		public static IEnumerator<int> GenerateAtlasIterAsync(Vector2[] sizes, int size, List<Rect> results, float step, KawaEditorBehaviour keb) {
+		public static IEnumerator<int> GenerateAtlasIterAsync(Vector2[] sizes, int padding, int size, List<Rect> results,
+			float step, KawaEditorBehaviour keb) {
 			// Похоже, Texture2D.GenerateAtlas кеширует ответ для sizes игнорируя size.
 			// Так, что если однажды решение было найдено, то потом даже если size = 1,
 			// то всё равно результат тот же. По этой причине, если необходимо найти минимальный атлас, 
 			// нужно делать и маленький прирост, порядка +10%. Если меньше, то может быть слишком долго.
 			// По этой же причине оптимизировать размер бинарным поиском не выйдет.
-			while (!GenerateAtlas(sizes, size, results, keb)) {
+			while (!GenerateAtlas(sizes, padding, size, results, keb)) {
 				size = Mathf.Max(size + 1, Mathf.RoundToInt(size * step));
 				if (size < 0 || size >= int.MaxValue / 4) {
 					var exc = new Exception($"Atlas size grow too big: {size}!");
@@ -50,8 +52,9 @@ namespace Kawashirov {
 			}
 		}
 
-		public static int GenerateAtlasIterSync(Vector2[] sizes, int size, List<Rect> results, float step, KawaEditorBehaviour keb) {
-			var task = GenerateAtlasIterAsync(sizes, size, results, step, keb);
+		public static int GenerateAtlasIterSync(Vector2[] sizes, int padding, int size, List<Rect> results,
+			float step, KawaEditorBehaviour keb) {
+			var task = GenerateAtlasIterAsync(sizes, padding, size, results, step, keb);
 			while (task.MoveNext())
 				size = task.Current;
 			return size;

@@ -20,6 +20,7 @@ namespace Kawashirov.MeshCombining {
 
 		public readonly List<Vector2> lightmapUV = new List<Vector2>();
 		public UVIsland lightmapIsland = UVIsland.singual;
+		public float lightmapUVDistributionMetric = 1;
 
 		public RendererInfo(MeshCombineGroupMeta group, int index, MeshRenderer renderer) {
 			combiner = group.Combiner;
@@ -80,6 +81,7 @@ namespace Kawashirov.MeshCombining {
 					group.LogWarning($"{logToken}: Mesh have TexCoord1 dimension={dim_uv1}", meshFilter);
 				} else {
 					meshOriginal.GetUVs(1, lightmapUV);
+					lightmapUVDistributionMetric = meshOriginal.GetUVDistributionMetric(1);
 				}
 			}
 
@@ -89,6 +91,7 @@ namespace Kawashirov.MeshCombining {
 					group.LogWarning($"{logToken}: Mesh have TexCoord0 dimension={dim_uv0}!", meshFilter);
 				} else {
 					meshOriginal.GetUVs(0, lightmapUV);
+					lightmapUVDistributionMetric = meshOriginal.GetUVDistributionMetric(0);
 				}
 			}
 

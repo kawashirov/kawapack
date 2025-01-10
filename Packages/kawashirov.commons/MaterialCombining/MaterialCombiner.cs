@@ -368,7 +368,7 @@ namespace Kawashirov.MaterialCombining {
 			).Max()) / 2; // Наибольшая степень 2 в которую точно не поместится
 
 			var results = new List<Rect>(sizes.Length);
-			var atlas_task = AtlasUtility.GenerateAtlasIterAsync(sizes, size, results, 1.1f, this);
+			var atlas_task = AtlasUtility.GenerateAtlasIterAsync(sizes, 1, size, results, 1.1f, this);
 			while (atlas_task.MoveNext()) {
 				size = atlas_task.Current;
 				if (ShouldYield(null))
@@ -406,7 +406,7 @@ namespace Kawashirov.MaterialCombining {
 			).Max()) / 2; // Наибольшая степень 2 в которую точно не поместится
 
 			var results = new List<Rect>(sizes.Length);
-			var atlas_task = AtlasUtility.GenerateAtlasIterAsync(sizes, size, results, 2.0f, this);
+			var atlas_task = AtlasUtility.GenerateAtlasIterAsync(sizes, 1, size, results, 2.0f, this);
 			while (atlas_task.MoveNext()) {
 				size = atlas_task.Current;
 				if (ShouldYield(null))

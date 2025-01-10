@@ -109,13 +109,14 @@ namespace Kawashirov.MeshCombining {
 				.ToList();
 			if (islands.Count < 1)
 				return;
-			// Пока что используем простой алгоритм упаковки.
+			// Простой алгоритм упаковки.
 			// Разбиваем UV квадрат на сетку из квадратиков и каждую меш переносим в него.
 			var table_size = Mathf.FloorToInt(Mathf.Sqrt(islands.Count));
 			while (table_size * table_size < islands.Count)
 				++table_size;
-			Log($"Apply Lightmap UV table grid correction of size {table_size} for {islands.Count} islands...");
+			LogDebug($"Applying Lightmap UV table grid correction of size {table_size} for {islands.Count} islands...");
 			LightmapTableSize = table_size;
+			var transforms = new List<string>();
 			for (var i = 0; i < islands.Count; ++i) {
 				var r = islands[i];
 				var gx = i % table_size;
@@ -128,7 +129,7 @@ namespace Kawashirov.MeshCombining {
 					(gx + 1) * cell_size - cell_pad,
 					(gy + 1) * cell_size - cell_pad);
 				var orig_island = r.lightmapIsland.ExpandToSquare();
-				Log($"{r.logToken}: TableGrid ({gx}, {gy}): {orig_island} -> {mod_island}", r.meshFilter);
+				transforms.Add($"- {r.logToken} (gx={gx}, gy={gy}): {orig_island} -> {mod_island}");
 				var uvs = r.lightmapUV;
 				for (var j = 0; j < uvs.Count; j++) {
 					var uv = uvs[j];
@@ -140,7 +141,8 @@ namespace Kawashirov.MeshCombining {
 					uvs[j] = uv;
 				}
 			}
-			Log($"Applied lightmap UV table grid correction of size {table_size} for {islands.Count} islands.");
+			var transforms_s = string.Join("\n", transforms);
+			Log($"Applied lightmap UV TableGrid correction for {islands.Count} islands. table_size={table_size}:\n{transforms_s}");
 		}
 
 		protected virtual void LightmapApplyCorrections_GenerateAtlas() {
@@ -150,35 +152,62 @@ namespace Kawashirov.MeshCombining {
 			if (islands_r.Count < 1)
 				return;
 
-			Log($"Applying lightmap UV repack correction for {islands_r.Count} islands...");
+			Log($"Applying lightmap UV GenerateAtlas correction for {islands_r.Count} islands...");
 
-			var BASE = 1024;
+			var BASE = 1024; // Желательно степень 2.
 
 			var islands_orig = new UVIsland[islands_r.Count];
 			var sizes = new Vector2[islands_r.Count];
 			for (var i = 0; i < islands_r.Count; ++i) {
-				var island = islands_r[i].lightmapIsland;
-				var ex = island.Size() * Combiner.LightmapPadding / 2;
-				island = island.Expand(ex.x, ex.y, ex.x, ex.y);
+				var r = islands_r[i];
+				var island = r.lightmapIsland;
+				// Расширяем остров на LightmapPadding
+				// var ex = island.Size() * Combiner.LightmapPadding / 2;
+				// island = island.Expand(ex.x, ex.y, ex.x, ex.y);
+				// Расширенный остров будет использоваться как основа преобразования.
 				islands_orig[i] = island;
-				sizes[i].x = Mathf.RoundToInt(island.Width() * BASE);
-				sizes[i].y = Mathf.RoundToInt(island.Height() * BASE);
+				// Далее размер на атласе. Корректируется на
+				var island_size = island.Size();
+				// - размер самого рендерера на сцене, средний по осям.
+				var mesh_scale_v = r.renderer.transform.lossyScale;
+				island_size *= (mesh_scale_v.x + mesh_scale_v.y + mesh_scale_v.z) / 3f;
+				// - множитель Scale In Lightmap рендерера.
+				island_size *= r.renderer.scaleInLightmap;
+				// - распределение площади (по этому и корень) UV меши 
+				island_size *= Mathf.Sqrt(r.lightmapUVDistributionMetric);
+				sizes[i] = island_size;
+				LogDebug($"{r.renderer.gameObject} island size: {island_size}...");
 			}
 
-			var size = Mathf.NextPowerOfTwo(sizes.Select(
+			// Нормализируем все размеры к BASE и расчитываем padding по наибольшему острову.
+			var size_norm = sizes.Select(s => Mathf.Max(s.x, s.y)).Average();
+			LogDebug($"Max island size: {size_norm}...");
+			var (largest_i, largest_area, avg_side) = (-1, -1f, 1f);
+			for (var i = 0; i < islands_r.Count; ++i) {
+				var island_size = sizes[i] / size_norm * BASE;
+				island_size.x = Mathf.RoundToInt(Mathf.Max(2f, island_size.x));
+				island_size.y = Mathf.RoundToInt(Mathf.Max(2f, island_size.y));
+				var area = island_size.x * island_size.y;
+				if (largest_area < area)
+					(largest_i, largest_area, avg_side) = (i, area, island_size.x * 0.5f + island_size.y * 0.5f);
+				sizes[i] = island_size;
+			}
+			var padding = Mathf.CeilToInt(avg_side * Combiner.LightmapPadding / 2);
+
+			var pack_size = Mathf.NextPowerOfTwo(sizes.Select(
 				v => Mathf.RoundToInt(Mathf.Max(v.x, v.y))
 			).Max()) / 2; // Наибольшая степень 2 в которую точно не поместится
-
 			var results = new List<Rect>(islands_r.Count);
-			size = AtlasUtility.GenerateAtlasIterSync(sizes, size, results, 1.1f, this);
-			var size_r = results.Select(r => Mathf.Max(r.xMax, r.yMax)).Max();
-			Assert.IsTrue(size_r <= size, $"size_r={size_r}, size={size}");
+			pack_size = AtlasUtility.GenerateAtlasIterSync(sizes, padding, pack_size, results, 1.1f, this);
+			size_norm = results.Select(r => Mathf.Max(r.xMax, r.yMax)).Max();
+			Assert.IsTrue(size_norm <= pack_size, $"size_r={size_norm}, size={pack_size}");
 
+			var transforms = new List<string>();
 			for (var i = 0; i < islands_r.Count; ++i) {
 				var r = islands_r[i];
 				var orig_island = islands_orig[i];
-				var mod_island = new UVIsland(results[i], size_r);
-				Log($"{r.logToken}: Repack: {orig_island} -> {mod_island}", r.meshFilter);
+				var mod_island = new UVIsland(results[i], size_norm);
+				transforms.Add($"- {r.logToken}: {orig_island} -> {mod_island}");
 				var uvs = r.lightmapUV;
 				for (var j = 0; j < uvs.Count; j++) {
 					var uv = uvs[j];
@@ -190,6 +219,10 @@ namespace Kawashirov.MeshCombining {
 					uvs[j] = uv;
 				}
 			}
+			var transforms_s = string.Join("\n", transforms);
+			Log($"Applied lightmap UV GenerateAtlas correction for {islands_r.Count} islands.\n" +
+				$"largest_i={largest_i}, padding={padding}, pack_size={pack_size}, size_norm={size_norm}:\n" +
+				transforms_s);
 		}
 
 		protected virtual void LightmapApplyCorrections() {
@@ -264,7 +297,9 @@ namespace Kawashirov.MeshCombining {
 			Assert.IsTrue(matGroups.Count == CmbMesh.subMeshCount, $"{matGroups.Count}, {CmbMesh.subMeshCount}");
 			MeshUtility.Optimize(CmbMesh);
 			CmbMesh.RecalculateBounds();
+			CmbMesh.RecalculateUVDistributionMetrics();
 			CmbMesh.MarkModified();
+			CmbMesh.UploadMeshData(false);
 			EditorUtility.SetDirty(CmbMesh);
 			// cmbMesh уже забинджен в MeshFilter
 			CmbMeshRenderer.sharedMaterials = matGroups.Select(g => g.material).ToArray();
