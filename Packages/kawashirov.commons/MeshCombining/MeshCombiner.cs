@@ -26,13 +26,14 @@ namespace Kawashirov.MeshCombining {
 		// Применять или нет базовую перепаковку второго UV слоая, если он есть. 
 		// Перепаковка имеет базовую, не очень эффективную реализацию, 
 		// но необходима для корректной работы лайтмап на объединённой меши.
-		public bool RepackLightmapUV = true;
+		public LightmapCorrectionMode LightmapUVCorrection = LightmapCorrectionMode.Grid;
 
 		// false - рендереры с разным scaleInLightmap считаются не комбинируемыми
 		// true - рендереры с разным scaleInLightmap кобминируются и UV1 корректируется на это масштаб
 		// Может быть переопределено в кастомном MeshRendererEquality,
 		// но корректировка будет применяться как указано тут.
 		public bool ApplyScaleInLightmap = true;
+		public float LightmapPadding = 0.1f;
 
 		[Space]
 		// Гейм-объект в который будут объеденённые меши.
@@ -225,6 +226,7 @@ namespace Kawashirov.MeshCombining {
 			transform.localScale = Vector3.one;
 
 			var group_new = gobj.AddComponent<MeshCombineGroupMeta>();
+			group_new.debugMode = debugMode;
 			group_new.Combiner = this;
 			group_new.GroupIndex = index_mrg_new;
 			group_new.Init();

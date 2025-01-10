@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Kawashirov.MaterialCombining {
+namespace Kawashirov {
 	public readonly struct UVIsland {
+		// Used both in Material Combiner and Mesh Combiner
+
 		public static readonly UVIsland singual = new UVIsland(
 			float.PositiveInfinity, float.PositiveInfinity, float.NegativeInfinity, float.NegativeInfinity
 		);
@@ -78,6 +80,9 @@ namespace Kawashirov.MaterialCombining {
 			}
 		}
 
+		public bool IsFinite() => 
+			float.IsFinite(umin) && float.IsFinite(vmin) && float.IsFinite(umax) && float.IsFinite(vmax);
+
 		// Проверяет, что inner внутри this с допуском epsilon
 		public bool Inside(UVIsland inner, float epsilon) {
 			return umin <= inner.umin + epsilon &&
@@ -110,6 +115,24 @@ namespace Kawashirov.MaterialCombining {
 			umax + value, vmax + value
 		);
 
+		public UVIsland Expand(float umin, float vmin, float umax, float vmax) => new UVIsland(
+			this.umin - umin, this.vmin - vmin,
+			this.umax + umax, this.vmax + vmax
+		);
+
+		public UVIsland ExpandToSquare() {
+			var (width, height) = (this.umax - this.umin, this.vmax - this.vmin);
+			if (Mathf.Approximately(width, height))
+				return this;
+			if (width < height) {
+				var halfd = (height - width) * 0.5f;
+				return new UVIsland(this.umin - halfd, this.vmin, this.umax + halfd, this.vmax);
+			} else {
+				var halfd = (width - height) * 0.5f;
+				return new UVIsland(this.umin, this.vmin - halfd, this.umax, this.vmax + halfd);
+			}
+		}
+
 		private static float Align(float value, int align, bool up) {
 			var rem = value % align;
 			return rem == 0 ? value : up ? value + (align - rem) : value - rem;
@@ -138,6 +161,8 @@ namespace Kawashirov.MaterialCombining {
 		);
 
 		public Vector2 Size() => new Vector2(umax - umin, vmax - vmin);
+		public float Width() => umax - umin;
+		public float Height() => vmax - vmin;
 
 		private static int RoundToInt(float v) => Mathf.Max(Mathf.RoundToInt(v), 1);
 

@@ -28,9 +28,9 @@ namespace Kawashirov.MeshCombining {
 		public MeshRenderer CmbMeshRenderer = null; // in PrepareCombinedGObj
 
 		/**/
-
+		protected List<RendererInfo> renderers = new List<RendererInfo>();
 		protected readonly List<SubMeshGroup> matGroups = new List<SubMeshGroup>();
-		protected readonly List<Object> tempObjectsDestroyLater = new List<Object>();
+
 
 		internal virtual void Init() {
 			OriginalRenderers.Clear();
@@ -103,164 +103,50 @@ namespace Kawashirov.MeshCombining {
 			LogDebug($"Configured combined mesh renderer: {CmbMeshRenderer}");
 		}
 
-		protected void LightmapFindTableSize() {
+		protected virtual void LightmapApplyCorrections_TableGrid() {
+			var islands = renderers
+				.Where(r => r.lightmapUV.Count > 0 && r.lightmapIsland.IsFinite())
+				.ToList();
+			if (islands.Count < 1)
+				return;
 			// Пока что используем простой алгоритм упаковки.
 			// Разбиваем UV квадрат на сетку из квадратиков и каждую меш переносим в него.
-			var table_size = 0;
-			while (table_size * table_size < OriginalRenderers.Count)
+			var table_size = Mathf.FloorToInt(Mathf.Sqrt(islands.Count));
+			while (table_size * table_size < islands.Count)
 				++table_size;
-			Combiner.Log($"Using Lightmap UV packing table of size {table_size}...");
+			Log($"Apply Lightmap UV table grid correction of size {table_size} for {islands.Count} islands...");
 			LightmapTableSize = table_size;
-		}
-
-		protected virtual bool GetFilterSafe(MeshRenderer mesh_renderer, int source_index,
-			out MeshFilter mesh_filter, out Mesh mesh) {
-
-			mesh_filter = null;
-			mesh = null;
-			var log_token = $"Source №{source_index}";
-
-			if (mesh_renderer == null) {
-				Combiner.LogWarning($"{log_token}: MeshRenderer doesn't exist anymore!");
-				return false;
-			}
-
-			var shared_materials = mesh_renderer.sharedMaterials;
-			if (shared_materials == null || shared_materials.Length < 1) {
-				Combiner.LogWarning($"{log_token}: MeshRenderer have no Materials!", mesh_renderer);
-				return false;
-			}
-
-			if (!mesh_renderer.TryGetComponent(out mesh_filter) || mesh_filter == null) {
-				Combiner.LogWarning($"{log_token}: There is no MeshFilter!", mesh_renderer);
-				return false;
-			}
-
-			mesh = mesh_filter.sharedMesh;
-			if (mesh == null) {
-				Combiner.LogWarning($"{log_token}: MeshFilter have no Mesh!", mesh_filter);
-				return false;
-			}
-
-			return true;
-		}
-
-		protected virtual void LightmapNormalizeBounds(List<Vector2> data) {
-			// Может получиться так, что данные на UV не помещаются в 0..1
-			// Обычно юнити лайтмапер с этим справляется, 
-			// но нам нужно привести это впорядок для корректной упаковки.
-
-			float minX = float.MaxValue, minY = float.MaxValue;
-			float maxX = float.MinValue, maxY = float.MinValue;
-			foreach (var point in data) {
-				if (point.x < minX)
-					minX = point.x;
-				if (point.y < minY)
-					minY = point.y;
-				if (point.x > maxX)
-					maxX = point.x;
-				if (point.y > maxY)
-					maxY = point.y;
-			}
-
-			// Коэффициент масштабирования для сохранения пропорций из размеров по осям
-			var scale = 1f / Mathf.Max(maxX - minX, maxY - minY);
-
-			for (var i = 0; i < data.Count; ++i) {
-				var point = data[i];
-				data[i] = new Vector2(
-					(point.x - minX) * scale,
-					(point.y - minY) * scale
-				);
-			}
-		}
-
-		protected virtual void LightmapApplyPadding(List<Vector2> data, float padding) {
-			// Может получиться так, что после перепаковки 
-			// острова из соседних ячеек сетки будут ссоприкасаться.
-			// Что бы этого не было добавляем отступы.
-			var half_padding = padding / 2;
-			var one_minus_padding = 1 - padding;
-			for (var i = 0; i < data.Count; ++i) {
-				var point = data[i];
-				data[i] = new Vector2(
-					half_padding + one_minus_padding * point.x,
-					half_padding + one_minus_padding * point.y
-				);
-			}
-		}
-
-		protected virtual void LightmapApplyGrid(List<Vector2> data, int size, int gx, int gy) {
-			// Преобразование сетки
-			var min_x = 1f * gx / size;
-			var min_y = 1f * gy / size;
-			var width = 1f / size;
-			for (var i = 0; i < data.Count; ++i) {
-				var point = data[i];
-				data[i] = new Vector2(
-					min_x + width * point.x,
-					min_y + width * point.y
-				);
-			}
-		}
-
-		protected virtual void LightmapApplyCorrections(MeshRenderer mesh_renderer, int source_index) {
-			if (!GetFilterSafe(mesh_renderer, source_index, out var mesh_filter, out var mesh))
-				return;
-			var log_token = $"Source №{source_index} Lightmap correction: ";
-
-			var has_uv0 = mesh.HasVertexAttribute(VertexAttribute.TexCoord0);
-			var has_uv1 = mesh.HasVertexAttribute(VertexAttribute.TexCoord1);
-
-			if (!has_uv0 && !has_uv1) {
-				Combiner.LogWarning($"{log_token}: Mesh have no UV 0 or 1!", mesh_filter);
-				return;
-			}
-
-			var data = new List<Vector2>();
-
-			if (has_uv1) {
-				var dim_uv1 = mesh.GetVertexAttributeDimension(VertexAttribute.TexCoord1);
-				if (dim_uv1 != 2) {
-					Combiner.LogWarning($"{log_token}: Mesh have TexCoord1 dimension={dim_uv1}", mesh_filter);
-				} else {
-					mesh.GetUVs(1, data);
+			for (var i = 0; i < islands.Count; ++i) {
+				var r = islands[i];
+				var gx = i % table_size;
+				var gy = i / table_size;
+				var cell_size = 1f / table_size;
+				var cell_pad = cell_size * Combiner.LightmapPadding / 2;
+				var cell_island = new UVIsland(
+					gx * cell_size + cell_pad,
+					gy * cell_size + cell_pad,
+					(gx + 1) * cell_size - cell_pad,
+					(gy + 1) * cell_size - cell_pad);
+				var orig_island = r.lightmapIsland.ExpandToSquare();
+				Log($"{r.logToken}: TableGrid ({gx}, {gy}): {orig_island} -> {cell_island}", r.meshFilter);
+				var uvs = r.lightmapUV;
+				for (var j = 0; j < uvs.Count; j++) {
+					var uv = uvs[j];
+					if (!float.IsFinite(uv.x) || !float.IsFinite(uv.y))
+						continue;
+					uv = orig_island.InverseLerp(uv);
+					uv = cell_island.Lerp(uv);
+					Assert.IsTrue(float.IsFinite(uv.x) && float.IsFinite(uv.y), $"{r.logToken}: i={i}, j={j}: {uvs[j]} -> {uv}");
+					uvs[j] = uv;
 				}
 			}
+			Log($"Applied Lightmap UV table grid correction of size {table_size} for {islands.Count} islands.");
+		}
 
-			if (data.Count == 0 && has_uv0) {
-				var dim_uv0 = mesh.GetVertexAttributeDimension(VertexAttribute.TexCoord0);
-				if (dim_uv0 != 2) {
-					Combiner.LogWarning($"{log_token}: Mesh have TexCoord0 dimension={dim_uv0}!", mesh_filter);
-				} else {
-					mesh.GetUVs(0, data);
-				}
-			}
-
-			if (data.Count < 1) {
-				Combiner.LogError($"{log_token}: was not able to get UV data!", mesh_filter);
-				return;
-			}
-
-			// Шаг 1: нормализация к 0..1
-			LightmapNormalizeBounds(data);
-
-			// Шаг 2: отступы
-			LightmapApplyPadding(data, 0.1f);
-
-			// Шаг 3: перенос в квадрат
-			var gx = source_index % LightmapTableSize;
-			var gy = source_index / LightmapTableSize;
-			Combiner.Log($"{log_token}: Grid coord is ({gx}, {gy})!", mesh_filter);
-			LightmapApplyGrid(data, LightmapTableSize, gx, gy);
-
-			// Теперь кладём данные назад, но в копию меша.
-			var mesh_copy = Object.Instantiate(mesh);
-			tempObjectsDestroyLater.Add(mesh_copy);
-			mesh_copy.name = $"TmpCopy_{Combiner.gameObject.name}_{GroupIndex}_{mesh.name}";
-			mesh_copy.SetUVs(1, data);
-			mesh_copy.MarkModified();
-			mesh_filter.sharedMesh = mesh_copy;
+		protected virtual void LightmapApplyCorrections_Repack() {
+			var islands = renderers
+				.Where(r => r.lightmapUV.Count > 0 && r.lightmapIsland.IsFinite())
+				.ToList();
 		}
 
 		protected virtual void LightmapApplyCorrections() {
@@ -270,32 +156,46 @@ namespace Kawashirov.MeshCombining {
 			// а потом комбинировать. Ну и так тупо проще.
 
 			if (!IsLightmapped) {
-				Combiner.LogDebug($"Assume is not light map able group. No UV corrections.", CmbMeshRenderer);
+				LogDebug($"Assume is not light map able group. No UV corrections.", CmbMeshRenderer);
 				return;
 			}
 
-			LightmapFindTableSize();
+			if (Combiner.LightmapUVCorrection == LightmapCorrectionMode.Disabled) {
+				LogDebug($"{nameof(Combiner.LightmapUVCorrection)} is Disabled. No UV corrections.", CmbMeshRenderer);
+				return;
+			}
 
-			for (var i = 0; i < OriginalRenderers.Count; ++i) {
-				var mesh_renderer = OriginalRenderers[i];
-				LightmapApplyCorrections(mesh_renderer, i);
+			MaxScaleInLightmap = OriginalRenderers.Select(r => r.scaleInLightmap).Max();
+
+			foreach (var info in renderers) {
+				info.LightmapUVPrepare();
+			}
+
+			if (Combiner.LightmapUVCorrection == LightmapCorrectionMode.Grid) {
+				LightmapApplyCorrections_TableGrid();
+			} else if (Combiner.LightmapUVCorrection == LightmapCorrectionMode.Repack) {
+				LightmapApplyCorrections_Repack();
+			}
+
+			foreach (var info in renderers) {
+				info.LightmapUVApply();
 			}
 		}
 
-		protected virtual void GroupSubMeshes(MeshRenderer mesh_renderer, int source_index) {
-			if (!GetFilterSafe(mesh_renderer, source_index, out var mesh_filter, out var mesh))
+		protected virtual void GroupSubMeshes(RendererInfo info) {
+			var mesh = info.GetMeshForCombining();
+			if (mesh == null || info.renderer == null)
 				return;
+			var shared_materials = info.renderer.sharedMaterials;
 
-			var shared_materials = mesh_renderer.sharedMaterials;
-
-			var orig2world = mesh_renderer.transform.localToWorldMatrix;
+			var orig2world = info.renderer.transform.localToWorldMatrix;
 			var world2container = Combiner.GetContainer().transform.worldToLocalMatrix;
 			var matrix = world2container * orig2world;
 
 			var n = Math.Min(mesh.subMeshCount, shared_materials.Length);
 			for (var i = 0; i < n; i++) {
 				var material = shared_materials[i];
-				var smi = new SubMeshInfo(mesh_renderer, mesh, i, matrix);
+				var smi = new SubMeshInfo(info.renderer, mesh, i, matrix);
 				// TODO можно оптимизировать?
 				foreach (var smg in matGroups) {
 					if (smg.material == material) {
@@ -308,9 +208,9 @@ namespace Kawashirov.MeshCombining {
 		}
 
 		protected virtual void GroupSubMeshes() {
-			LogDebug($"Grouping sub meshes of {OriginalRenderers.Count} mesh renderers...");
-			for (var i = 0; i < OriginalRenderers.Count; ++i)
-				GroupSubMeshes(OriginalRenderers[i], i);
+			LogDebug($"Grouping sub meshes of {renderers.Count} mesh renderers...");
+			foreach (var renderer in renderers)
+				GroupSubMeshes(renderer);
 			LogDebug($"Grouped sub meshes to {matGroups.Count} material groups.");
 		}
 
@@ -327,46 +227,41 @@ namespace Kawashirov.MeshCombining {
 			CmbMeshRenderer.sharedMaterials = matGroups.Select(g => g.material).ToArray();
 			CmbMeshRenderer.ResetLocalBounds();
 			CmbMeshRenderer.ResetBounds();
-			Combiner.LogDebug($"Combined into {CmbMesh.subMeshCount} sub meshes / materials.");
-		}
-
-		protected virtual void RemoveOriginals(MeshRenderer mesh_renderer, int source_index) {
-			mesh_renderer.enabled = false;
-
-			if (mesh_renderer.TryGetComponent<MeshFilter>(out var mesh_filter) && mesh_filter != null)
-				DestroyImmediate(mesh_filter);
-
-			DestroyImmediate(mesh_renderer);
+			LogDebug($"Combined into {CmbMesh.subMeshCount} sub meshes / materials.");
 		}
 
 		protected virtual void RemoveOriginals() {
-			Combiner.Log($"Removing original mesh renderers...");
-			for (var i = 0; i < OriginalRenderers.Count; i++) {
-				var orig = OriginalRenderers[i];
-				if (orig != null)
-					RemoveOriginals(orig, i);
-			}
+			LogDebug($"Removing original mesh renderers...");
+			foreach (var info in renderers)
+				info.DestroyOriginals();
 			// OriginalRenderers.Clear();
 			// SetDirty();
+			LogDebug($"Removed original mesh renderers.");
 		}
 
 		protected virtual void DestroyTemp() {
 			foreach (var mat_group in matGroups)
 				mat_group.DestroyTemp();
-			foreach (var tmp in tempObjectsDestroyLater)
-				DestroyImmediate(tmp);
+			foreach (var info in renderers)
+				info.DestroyModified();
 			matGroups.Clear();
 		}
 
 		public virtual void Process() {
 			Log($"Processing combine meshes group \"{gameObject.name}\"...");
 
+			renderers.Clear();
+			var renderers_filter = OriginalRenderers.Distinct().UnityNotNull().Select((x, i) => (x, i));
+			foreach (var (renderer, i) in renderers_filter) {
+				var info = new RendererInfo(this, i, renderer);
+				renderers.Add(info);
+				info.Init();
+			}
+
 			OriginalGameObjects.Clear();
 			OriginalGameObjects.AddRange(OriginalRenderers.Distinct()
 				.UnityNotNull().Select(r => r.gameObject));
 			SetDirty();
-
-			MaxScaleInLightmap = OriginalRenderers.Select(r => r.scaleInLightmap).Max();
 
 			PrepareAndConfigure();
 			LightmapApplyCorrections();
