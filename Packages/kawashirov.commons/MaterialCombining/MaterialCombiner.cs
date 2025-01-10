@@ -549,7 +549,10 @@ namespace Kawashirov.MaterialCombining {
 			texRT2 = null;
 			EditorUtility.UnloadUnusedAssetsImmediate(true); // save ram
 			var sw = Stopwatch.StartNew();
-			var capture = desc.isParallax;
+			var capture = false;
+#if KAWA_DEBUG
+			capture = false; // desc.isParallax;
+#endif
 			try {
 				texRT1 = AtlasMakeRT(desc);
 				texRT2 = AtlasMakeRT(desc);

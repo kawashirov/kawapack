@@ -176,9 +176,9 @@ namespace Kawashirov.MaterialCombining {
 
 			if (ParallaxEnable) {
 				yield return descParallax = new DataTexDesc(this, DATACH_PARALLAX) {
-					bgTexture = Texture2D.grayTexture,
+					bgTexture = Texture2D.whiteTexture,
 					textureChannels = "RGB1",
-					bgColor = Color.white, bgScale = Vector4.one * PARALLAX_SCALE_DEFAULT,
+					bgColor = Color.white, bgScale = Vector4.zero,
 					scaleFactor = ParallaxScale,
 					sRGB = false, isParallax = true, parallaxRef = ParallaxReference,
 				};
@@ -311,8 +311,13 @@ namespace Kawashirov.MaterialCombining {
 		}
 
 		protected virtual DataTex GetParallaxDC(Material mat) {
-			var parallax_tex = GetTexture2D(mat, "_ParallaxMap", Texture2D.grayTexture);
-			var parallax_scale = GetScalar(mat, "_Parallax", PARALLAX_SCALE_DEFAULT);
+			var parallax_tex = Texture2D.whiteTexture;
+			var parallax_scale = 0f;
+			var parallax_tex_raw = GetTexture2D(mat, "_ParallaxMap", null);
+			if (parallax_tex_raw != null) {
+				parallax_tex = parallax_tex_raw;
+				parallax_scale = GetScalar(mat, "_Parallax", PARALLAX_SCALE_DEFAULT);
+			}
 			return new DataTex(mat, descParallax)
 				.SetTexRGB(parallax_tex).SetScaleRGB(Vector4.one * parallax_scale)
 				.SetColorRGB(Color.white).SetAlphaWhite();
