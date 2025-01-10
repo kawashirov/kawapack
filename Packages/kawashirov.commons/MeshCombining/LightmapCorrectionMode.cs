@@ -2,8 +2,8 @@
 namespace Kawashirov.MeshCombining {
 	public enum LightmapCorrectionMode {
 		Disabled,
-		Grid,
-		Repack
+		TableGrid,
+		GenerateAtlas
 	}
 }
 #endif

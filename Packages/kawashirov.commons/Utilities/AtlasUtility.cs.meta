@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 8aceb19925f3b8c4f8cdc32304803a43
+guid: 8694008d2aba1ba46b94cdf9f04f427b
 labels:
 - Kawashirov
 MonoImporter:
@@ -7,7 +7,7 @@ MonoImporter:
   serializedVersion: 2
   defaultReferences: []
   executionOrder: 0
-  icon: {fileID: 2800000, guid: 302691306fd300648a26254d75364f60, type: 3}
+  icon: {fileID: 2800000, guid: a184db8c1b83f2e458273d59d80ae006, type: 3}
   userData: 
   assetBundleName: 
   assetBundleVariant: 

@@ -122,31 +122,74 @@ namespace Kawashirov.MeshCombining {
 				var gy = i / table_size;
 				var cell_size = 1f / table_size;
 				var cell_pad = cell_size * Combiner.LightmapPadding / 2;
-				var cell_island = new UVIsland(
+				var mod_island = new UVIsland(
 					gx * cell_size + cell_pad,
 					gy * cell_size + cell_pad,
 					(gx + 1) * cell_size - cell_pad,
 					(gy + 1) * cell_size - cell_pad);
 				var orig_island = r.lightmapIsland.ExpandToSquare();
-				Log($"{r.logToken}: TableGrid ({gx}, {gy}): {orig_island} -> {cell_island}", r.meshFilter);
+				Log($"{r.logToken}: TableGrid ({gx}, {gy}): {orig_island} -> {mod_island}", r.meshFilter);
 				var uvs = r.lightmapUV;
 				for (var j = 0; j < uvs.Count; j++) {
 					var uv = uvs[j];
 					if (!float.IsFinite(uv.x) || !float.IsFinite(uv.y))
 						continue;
 					uv = orig_island.InverseLerp(uv);
-					uv = cell_island.Lerp(uv);
+					uv = mod_island.Lerp(uv);
 					Assert.IsTrue(float.IsFinite(uv.x) && float.IsFinite(uv.y), $"{r.logToken}: i={i}, j={j}: {uvs[j]} -> {uv}");
 					uvs[j] = uv;
 				}
 			}
-			Log($"Applied Lightmap UV table grid correction of size {table_size} for {islands.Count} islands.");
+			Log($"Applied lightmap UV table grid correction of size {table_size} for {islands.Count} islands.");
 		}
 
-		protected virtual void LightmapApplyCorrections_Repack() {
-			var islands = renderers
+		protected virtual void LightmapApplyCorrections_GenerateAtlas() {
+			var islands_r = renderers
 				.Where(r => r.lightmapUV.Count > 0 && r.lightmapIsland.IsFinite())
 				.ToList();
+			if (islands_r.Count < 1)
+				return;
+
+			Log($"Applying lightmap UV repack correction for {islands_r.Count} islands...");
+
+			var BASE = 1024;
+
+			var islands_orig = new UVIsland[islands_r.Count];
+			var sizes = new Vector2[islands_r.Count];
+			for (var i = 0; i < islands_r.Count; ++i) {
+				var island = islands_r[i].lightmapIsland;
+				var ex = island.Size() * Combiner.LightmapPadding / 2;
+				island = island.Expand(ex.x, ex.y, ex.x, ex.y);
+				islands_orig[i] = island;
+				sizes[i].x = Mathf.RoundToInt(island.Width() * BASE);
+				sizes[i].y = Mathf.RoundToInt(island.Height() * BASE);
+			}
+
+			var size = Mathf.NextPowerOfTwo(sizes.Select(
+				v => Mathf.RoundToInt(Mathf.Max(v.x, v.y))
+			).Max()) / 2; // Наибольшая степень 2 в которую точно не поместится
+
+			var results = new List<Rect>(islands_r.Count);
+			size = AtlasUtility.GenerateAtlasIterSync(sizes, size, results, 1.1f, this);
+			var size_r = results.Select(r => Mathf.Max(r.xMax, r.yMax)).Max();
+			Assert.IsTrue(size_r <= size, $"size_r={size_r}, size={size}");
+
+			for (var i = 0; i < islands_r.Count; ++i) {
+				var r = islands_r[i];
+				var orig_island = islands_orig[i];
+				var mod_island = new UVIsland(results[i], size_r);
+				Log($"{r.logToken}: Repack: {orig_island} -> {mod_island}", r.meshFilter);
+				var uvs = r.lightmapUV;
+				for (var j = 0; j < uvs.Count; j++) {
+					var uv = uvs[j];
+					if (!float.IsFinite(uv.x) || !float.IsFinite(uv.y))
+						continue;
+					uv = orig_island.InverseLerp(uv);
+					uv = mod_island.Lerp(uv);
+					Assert.IsTrue(float.IsFinite(uv.x) && float.IsFinite(uv.y), $"{r.logToken}: i={i}, j={j}: {uvs[j]} -> {uv}");
+					uvs[j] = uv;
+				}
+			}
 		}
 
 		protected virtual void LightmapApplyCorrections() {
@@ -171,10 +214,10 @@ namespace Kawashirov.MeshCombining {
 				info.LightmapUVPrepare();
 			}
 
-			if (Combiner.LightmapUVCorrection == LightmapCorrectionMode.Grid) {
+			if (Combiner.LightmapUVCorrection == LightmapCorrectionMode.TableGrid) {
 				LightmapApplyCorrections_TableGrid();
-			} else if (Combiner.LightmapUVCorrection == LightmapCorrectionMode.Repack) {
-				LightmapApplyCorrections_Repack();
+			} else if (Combiner.LightmapUVCorrection == LightmapCorrectionMode.GenerateAtlas) {
+				LightmapApplyCorrections_GenerateAtlas();
 			}
 
 			foreach (var info in renderers) {

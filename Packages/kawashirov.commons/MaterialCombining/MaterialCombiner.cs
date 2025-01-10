@@ -354,21 +354,6 @@ namespace Kawashirov.MaterialCombining {
 				islands_str);
 		}
 
-		protected bool CalcAtlasLayout_GenerateAtlas_Try(Vector2[] sizes, int size, List<Rect> results) {
-			// Texture2D.GenerateAtlas очень баганый и плохо докмументирован
-			// https://discussions.unity.com/t/texture2d-generateatlas-has-a-bug-texture2d-generateatlas-has-a-bug/240115
-			// https://issuetracker.unity3d.com/issues/texture2d-dot-generateatlas-returns-true-with-a-list-of-returned-rectangles-with-a-size-of-0-when-it-should-return-false-or-return-true-and-downscale-the-sizes-provided-in-the-parameters-to-fit-the-atlas-size
-			// По этому используем цирковые проверки
-			results.Clear();
-			var result = Texture2D.GenerateAtlas(sizes, 1, size, results) &&
-				results.Count == sizes.Length &&
-				results.All(r => r.width != 0 && r.height != 0) &&
-				results.Any(r => r.x != 0 || r.y != 0);
-			var dbg = string.Join("\n", results.Select((r, i) => $"{i}: {r}"));
-			LogWarning($"Texture2D.GenerateAtlas: size={size}, result={result}:\n{dbg}");
-			return result;
-		}
-
 		protected virtual IEnumerator CalcAtlasLayout_GenerateAtlas_Dense() {
 			var begin = Stopwatch.StartNew();
 			var islands = materials.Values.SelectMany(
@@ -380,23 +365,20 @@ namespace Kawashirov.MaterialCombining {
 			var sizes = islands.Select(x => x.isl.Size()).ToArray();
 			var size = Mathf.NextPowerOfTwo(sizes.Select(
 				v => Mathf.RoundToInt(Mathf.Max(v.x, v.y))
-			).Max()) / 2; // Наибольшая степерь 2 в которую точно не поместится
+			).Max()) / 2; // Наибольшая степень 2 в которую точно не поместится
 
 			var results = new List<Rect>(sizes.Length);
-			while (!CalcAtlasLayout_GenerateAtlas_Try(sizes, size, results)) {
-				size = Mathf.Max(size + 1, Mathf.RoundToInt(size * 1.1f));
-				if (size >= int.MaxValue / 2)
-					ThrowException(new Exception($"Atlas size grow too big: {size}!"));
+			var atlas_task = AtlasUtility.GenerateAtlasIterAsync(sizes, size, results, 1.1f, this);
+			while (atlas_task.MoveNext()) {
+				size = atlas_task.Current;
 				if (ShouldYield(null))
 					yield return null;
 			}
-			// Есть желание оптимизировать размер бинарным поиском, но он тупо не работает.
-			// Похоже, Texture2D.GenerateAtlas кеширует ответ для sizes игнорируя size.
-			// Так, что даже если size = 1, то всё равно результат тот же.
-			// Именно по этому рост в цикле выше по +10%
 
 			var size_r = results.Select(r => Mathf.Max(r.xMax, r.yMax)).Max();
+			Assert.IsTrue(size_r <= size, $"size_r={size_r}, size={size}");
 			atlasSize = Vector2Int.one * MaxAtlasSize;
+
 			var islands_str = "";
 			for (var i = 0; i < results.Count; ++i) {
 				var (grp, isl, idx) = islands[i];
@@ -421,20 +403,20 @@ namespace Kawashirov.MaterialCombining {
 			var sizes = islands.Select(x => x.isl.Size()).ToArray();
 			var size = Mathf.NextPowerOfTwo(sizes.Select(v =>
 				Mathf.CeilToInt(Mathf.Max(v.x, v.y))
-			).Max()) / 2; // Наибольшая степерь 2 в которую точно не поместится
+			).Max()) / 2; // Наибольшая степень 2 в которую точно не поместится
 
 			var results = new List<Rect>(sizes.Length);
-			while (!CalcAtlasLayout_GenerateAtlas_Try(sizes, size, results)) {
-				size *= 2;
-				if (size >= int.MaxValue / 4)
-					ThrowException(new Exception($"Atlas size grow too big: {size}!"));
+			var atlas_task = AtlasUtility.GenerateAtlasIterAsync(sizes, size, results, 2.0f, this);
+			while (atlas_task.MoveNext()) {
+				size = atlas_task.Current;
 				if (ShouldYield(null))
 					yield return null;
 			}
 
 			var size_r = results.Select(r => Mathf.Max(r.xMax, r.yMax)).Max();
-			Assert.IsTrue(size_r <= size);
+			Assert.IsTrue(size_r <= size, $"size_r={size_r}, size={size}");
 			atlasSize = Vector2Int.one * Mathf.Min(MaxAtlasSize, size);
+
 			var islands_str = "";
 			for (var i = 0; i < results.Count; ++i) {
 				var (grp, isl, idx) = islands[i];
