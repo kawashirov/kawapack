@@ -37,6 +37,7 @@ namespace Kawashirov.MaterialCombining {
 
 		public override void AtlasConfigureImporter(TextureImporter importer) {
 			base.AtlasConfigureImporter(importer);
+			importer.sRGBTexture = true;
 			importer.textureType = TextureImporterType.NormalMap;
 		}
 

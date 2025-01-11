@@ -14,7 +14,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6071057193576381472, guid: e7773cd12e99bf1498794bef3b893524, type: 3}
       propertyPath: m_Name
-      value: StandardOpaqueMaterialCombiner Variant
+      value: StandardOpaqueMaterialCombiner
+      objectReference: {fileID: 0}
+    - target: {fileID: 7775716599942744145, guid: e7773cd12e99bf1498794bef3b893524, type: 3}
+      propertyPath: Blend
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8917906090019455707, guid: e7773cd12e99bf1498794bef3b893524, type: 3}
       propertyPath: m_LocalPosition.x

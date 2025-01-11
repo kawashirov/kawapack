@@ -1,15 +1,11 @@
 #if UNITY_EDITOR
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using Kawashirov.Refreshables;
 using UnityEditor;
-using System;
+using Kawashirov.Refreshables;
 
 namespace Kawashirov.MaterialCombining {
 	[CustomEditor(typeof(AbstaractMaterialCombiner), true)]
-	public class MaterialCombinerEditor : KawaEditorBehaviour.KawaEditorBehaviourEditor {
-		public SerializedProperty WholeScene;
+	public class AbstaractMaterialCombinerEditor : KawaEditorBehaviour.KawaEditorBehaviourEditor {
 
 		public override bool ShowIKnowWhatIamDoing() => true;
 
@@ -33,35 +29,6 @@ namespace Kawashirov.MaterialCombining {
 			}
 			using (new EditorGUI.DisabledScope(!WholeScene.hasMultipleDifferentValues && WholeScene.boolValue)) {
 				EditorGUILayout.PropertyField(Prop("Hierarchy"));
-			}
-		}
-
-		protected void AdaptersGUI() {
-			GUILayout.Label("Adapters", EditorStyles.boldLabel);
-			var MainAdapter = Prop("MainAdapter");
-			var SecondaryAdapters = Prop("SecondaryAdapters");
-			EditorGUILayout.PropertyField(MainAdapter, new GUIContent("Main"));
-			EditorGUILayout.PropertyField(SecondaryAdapters, new GUIContent("Secondary"));
-			if (MainAdapter.hasMultipleDifferentValues || SecondaryAdapters.hasMultipleDifferentValues)
-				return;
-
-			var obj = MainAdapter.objectReferenceValue;
-			if (obj == null) {
-				KawaGUIUtility.HelpBoxRich("<b>Main adapater is not set!</b>");
-				return;
-			}
-
-			if (KawaGUIUtility.Contains(SecondaryAdapters, obj))
-				return;
-
-			if (KawaGUIUtility.HelpBoxWithButton(new GUIContent(
-				"<b>Main adapater is not listed in secondary adapters.</b> " +
-				"This might be OK in some specific scenarios, but you likely want to " +
-				"use main adapter as secondary for decoding original input materials."
-			), new GUIContent("Add"))) {
-				SecondaryAdapters.InsertArrayElementAtIndex(0);
-				SecondaryAdapters.GetArrayElementAtIndex(0).objectReferenceValue = obj;
-				SecondaryAdapters.isExpanded = true;
 			}
 		}
 
@@ -123,7 +90,6 @@ namespace Kawashirov.MaterialCombining {
 				return;
 			}
 
-
 			var min = Mathf.Min(Align.intValue, Epsilon.intValue, Padding.intValue);
 			var max = Mathf.Max(Align.intValue, Epsilon.intValue, Padding.intValue);
 			if (!IKnowWhatIamDoing && 1f * max / min > 3) {
@@ -142,7 +108,7 @@ namespace Kawashirov.MaterialCombining {
 
 		}
 
-		protected void PropertiesGUI() {
+		protected void BasicPropertiesGUI() {
 			ScriptGUI();
 
 			EditorGUILayout.Space();
@@ -150,12 +116,9 @@ namespace Kawashirov.MaterialCombining {
 			HierarchyGUI();
 
 			EditorGUILayout.Space();
-
+			
+			GUILayout.Label("Basic filters", EditorStyles.boldLabel);
 			EditorGUILayout.PropertyField(Prop("Filters"));
-
-			EditorGUILayout.Space();
-
-			AdaptersGUI();
 
 			EditorGUILayout.Space();
 
@@ -176,17 +139,26 @@ namespace Kawashirov.MaterialCombining {
 			EditorGUILayout.PropertyField(Prop("SaveMeshes"));
 			EditorGUILayout.PropertyField(Prop("SaveMaterials"));
 			EditorGUILayout.PropertyField(Prop("UniqueAssetNames"));
+		}
 
+		protected virtual void ImplPropertiesGUI() {
+
+		}
+
+		protected virtual void AutoPropertiesGUIOuter() {
 			EditorGUILayout.Space();
-
 			GUILayout.Label("Properties below are auto-generated", EditorStyles.boldLabel);
 			using (new EditorGUI.DisabledScope(!IKnowWhatIamDoing)) {
-				EditorGUILayout.PropertyField(Prop("OriginalTextures"));
-				EditorGUILayout.PropertyField(Prop("OriginalMaterials"));
-				EditorGUILayout.PropertyField(Prop("AtlasTextures"));
-				EditorGUILayout.PropertyField(Prop("AtlasMaterials"));
-				EditorGUILayout.PropertyField(Prop("AtlasMeshes"));
+				AutoPropertiesGUI();
 			}
+		}
+
+		protected virtual void AutoPropertiesGUI() {
+			EditorGUILayout.PropertyField(Prop("OriginalTextures"));
+			EditorGUILayout.PropertyField(Prop("OriginalMaterials"));
+			EditorGUILayout.PropertyField(Prop("AtlasTextures"));
+			EditorGUILayout.PropertyField(Prop("AtlasMaterials"));
+			EditorGUILayout.PropertyField(Prop("AtlasMeshes"));
 		}
 
 		public override void OnInspectorGUI() {
@@ -196,11 +168,15 @@ namespace Kawashirov.MaterialCombining {
 			EditorGUI.BeginChangeCheck();
 			serializedObject.UpdateIfRequiredOrScript();
 
-			PropertiesGUI();
+			BasicPropertiesGUI();
+
+			ImplPropertiesGUI();
+
+			AutoPropertiesGUIOuter();
 
 			serializedObject.ApplyModifiedProperties();
 			EditorGUI.EndChangeCheck();
-			
+
 			this.BehaviourRefreshGUI();
 		}
 

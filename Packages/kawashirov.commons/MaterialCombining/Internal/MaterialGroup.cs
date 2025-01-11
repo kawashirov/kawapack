@@ -169,6 +169,8 @@ namespace Kawashirov.MaterialCombining {
 			islandsAtlas.TrimExcess();
 		}
 
+		public Vector4 PxToNorm(UVIsland island) => island.ToVector4Norm(textureSize.x, textureSize.y);
+
 		public virtual void AtlasApplyUV(MaterialSlotItem item) {
 			var mesh = item.MakeUniqueMesh();
 			combiner.SelectFocus(mesh);

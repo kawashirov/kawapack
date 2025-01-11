@@ -44,6 +44,8 @@ namespace Kawashirov.MaterialCombining {
 			}
 		}
 
+		public override string AtlasSaveFormat() => "exr";
+
 		public override void AtlasConfigureImporter(TextureImporter importer) {
 			base.AtlasConfigureImporter(importer);
 			importer.sRGBTexture = false;

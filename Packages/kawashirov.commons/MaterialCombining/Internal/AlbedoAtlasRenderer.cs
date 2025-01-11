@@ -12,6 +12,7 @@ namespace Kawashirov.MaterialCombining {
 
 		public override void BlitPrepareReset(Material mat_blit) {
 			base.BlitPrepareReset(mat_blit);
+			mat_blit.SetInteger("_ColorSpace", 1);
 		}
 
 		public override Vector2Int GetTexSize(MaterialGroup group) {
@@ -36,6 +37,7 @@ namespace Kawashirov.MaterialCombining {
 
 		public override void AtlasConfigureImporter(TextureImporter importer) {
 			base.AtlasConfigureImporter(importer);
+			importer.sRGBTexture = true;
 			importer.alphaIsTransparency = true;
 			importer.mipMapsPreserveCoverage = true;
 		}

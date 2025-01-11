@@ -165,6 +165,7 @@ namespace Kawashirov.MaterialCombining {
 		/* Abstract workflow */
 
 		public virtual bool BlitDebugCapture() => false;
+		// public override bool BlitDebugCapture() => true;
 
 		public abstract Vector2Int GetTexSize(MaterialGroup group);
 

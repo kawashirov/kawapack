@@ -19,6 +19,8 @@ namespace Kawashirov.MaterialCombining {
 
 		public override void BlitPrepareReset(Material mat_blit) {
 			base.BlitPrepareReset(mat_blit);
+			mat_blit.SetFloat("_ParallaxRef", PARALLAX_SCALE_DEFAULT);
+			mat_blit.SetInteger("_ParallaxMode", 0);
 		}
 
 		public override Vector2Int GetTexSize(MaterialGroup group) {
@@ -29,6 +31,7 @@ namespace Kawashirov.MaterialCombining {
 		public override void PrepareRenderBackground(Material mat_blit) {
 			BlitTexRGBA(mat_blit, Texture2D.whiteTexture);
 			mat_blit.SetVector("_Scale", Vector4.zero);
+			mat_blit.SetFloat("_ParallaxRef", parallaxRef);
 			mat_blit.SetInteger("_ParallaxMode", 1);
 		}
 
@@ -49,6 +52,7 @@ namespace Kawashirov.MaterialCombining {
 
 		public override void AtlasConfigureImporter(TextureImporter importer) {
 			base.AtlasConfigureImporter(importer);
+			importer.sRGBTexture = false;
 		}
 
 		public override void AtlasReset(Material mat_atlas) {

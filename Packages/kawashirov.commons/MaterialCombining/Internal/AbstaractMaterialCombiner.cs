@@ -429,7 +429,7 @@ namespace Kawashirov.MaterialCombining {
 
 		protected virtual RenderTexture AtlasMakeRT() {
 			return RenderTexture.GetTemporary(atlasSize.x, atlasSize.y, 0,
-				RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.sRGB);
+				RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
 		}
 
 		protected virtual void AtlasBlitBackground(AbstractAtlasRenderer renderer) {
@@ -456,15 +456,13 @@ namespace Kawashirov.MaterialCombining {
 			LogDebug($"Trying to render data \"{dsc_name}\" of material {group.matOriginal}...");
 			var mat_original = group.matOriginal;
 
-			var src_tex_size = group.textureSize;
-
 			atlas_renderer.BlitPrepareReset(matBlit);
 			atlas_renderer.PrepareRenderMaterial(group, matBlit);
 
 			for (var islands_i = 0; islands_i < group.islandsAtlas.Count; ++islands_i) {
 				var island_source = group.islandsPadded[islands_i]; // pixel coords
 				var island_atlas = group.islandsAtlas[islands_i]; // 0..1 coords
-				var vec_source = island_source.ToVector4Norm(src_tex_size.x, src_tex_size.y);
+				var vec_source = group.PxToNorm(island_source);
 				var vec_atlas = island_atlas.ToVector4();
 				matBlit.SetVector("_SourceRect", vec_source);
 				matBlit.SetVector("_TargetRect", vec_atlas);

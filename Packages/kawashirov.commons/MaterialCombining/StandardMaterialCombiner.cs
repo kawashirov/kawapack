@@ -11,11 +11,6 @@ namespace Kawashirov.MaterialCombining {
 	public class StandardMaterialCombiner : AbstaractMaterialCombiner {
 		public const string SHADER_NAME_METALLIC = "Standard";
 		public const string SHADER_NAME_SPECULAR = "Standard (Specular)";
-		public const string SHADER_NAME_DIELECTRIC = "Standard (Dielectric)";
-
-		public const string DATACH_PARALLAX = "Parallax";
-		public const string DATACH_OCCLUSION = "Occlusion";
-		public const string DATACH_EMISSION = "Emission";
 
 		public enum WorkflowMode { Specular, Metallic } // Dielectric
 		public enum GlossMode { GlossAndSmoothness, GlossOnly, SmoothnessOnly }
@@ -56,12 +51,11 @@ namespace Kawashirov.MaterialCombining {
 		public bool EmissionEnable = true;
 		public float EmissionScale = 1;
 
-		public bool AssumeCompatible = false;
-
-		public List<string> ExcludeNameWords = new List<string> { "Legacy" };
+		public List<string> ExcludeShadersWithWordsInName = new List<string> { "Legacy" };
 		public List<Shader> ExcludeShaders = new List<Shader>();
-		public List<string> IncludeNameWords = new List<string> { "VRChat/Mobile/Standard Lite" };
+		public List<string> IncludeShadersWithWordsInName = new List<string> { "VRChat/Mobile/Standard Lite" };
 		public List<Shader> IncludeShaders = new List<Shader>();
+		public bool AssumeCompatible = false;
 
 		/**/
 
@@ -148,12 +142,12 @@ namespace Kawashirov.MaterialCombining {
 
 			if (IncludeShaders.Contains(shader))
 				return true;
-			if (IncludeNameWords.Any(kw => Contains(shader_name, kw)))
+			if (IncludeShadersWithWordsInName.Any(kw => Contains(shader_name, kw)))
 				return true;
 
 			if (ExcludeShaders.Contains(shader))
 				return false;
-			if (ExcludeNameWords.Any(kw => Contains(shader_name, kw)))
+			if (ExcludeShadersWithWordsInName.Any(kw => Contains(shader_name, kw)))
 				return false;
 
 			if (Workflow == WorkflowMode.Specular) {

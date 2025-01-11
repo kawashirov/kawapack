@@ -12,6 +12,7 @@ namespace Kawashirov.MaterialCombining {
 
 		public override void BlitPrepareReset(Material mat_blit) {
 			base.BlitPrepareReset(mat_blit);
+			mat_blit.SetInteger("_OcclusionMode", 0);
 		}
 
 		public override Vector2Int GetTexSize(MaterialGroup group) {
@@ -22,6 +23,7 @@ namespace Kawashirov.MaterialCombining {
 		public override void PrepareRenderBackground(Material mat_blit) {
 			BlitTexRGBA(mat_blit, Texture2D.whiteTexture);
 			mat_blit.SetInteger("_OcclusionMode", 1);
+			mat_blit.SetInteger("_ColorSpace", 1);
 		}
 
 		public override void PrepareRenderMaterial(MaterialGroup group, Material mat_blit) {
@@ -30,6 +32,9 @@ namespace Kawashirov.MaterialCombining {
 			var occ_str = GetScalar(mat_orig, "_OcclusionStrength", 1);
 			BlitTexRGB(mat_blit, occ_tex);
 			mat_blit.SetVector("_Scale", Vector4.one * occ_str);
+			mat_blit.SetInteger("_OcclusionMode", 1);
+			mat_blit.SetInteger("_ColorSpace", 1);
+			// TODO FIXME too bright
 		}
 
 		public override void AtlasConfigureImporter(TextureImporter importer) {
