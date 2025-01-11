@@ -18,7 +18,7 @@ namespace Kawashirov.MaterialCombining {
 		// Всё это происходит в этом классе. 
 		// TODO объединение слотов одинаковых материалов
 
-		public readonly MaterialCombiner combiner;
+		public readonly AbstaractMaterialCombiner combiner;
 		public readonly int index;
 		public readonly Renderer renderer;
 		public readonly Dictionary<int, MaterialSlotItem> items;
@@ -27,7 +27,7 @@ namespace Kawashirov.MaterialCombining {
 		// Может получиться null.
 		public Mesh meshAtlas;
 
-		public RendererGroup(MaterialCombiner combiner, int index, Renderer renderer) {
+		public RendererGroup(AbstaractMaterialCombiner combiner, int index, Renderer renderer) {
 			this.combiner = combiner;
 			this.index = index;
 			this.renderer = renderer;

@@ -16,16 +16,16 @@ namespace Kawashirov.SceneBuilding {
 
 		[Space]
 		[Tooltip("What combiners to run.\nUsed only if CombineEveryithingOnScene is off")]
-		public List<MaterialCombiner> Combiners = new List<MaterialCombiner>();
+		public List<AbstaractMaterialCombiner> Combiners = new List<AbstaractMaterialCombiner>();
 		[Tooltip("Exclude those combiners.\nUseful when CombineEveryithingOnScene is on, but applies always.")]
-		public List<MaterialCombiner> Except = new List<MaterialCombiner>();
+		public List<AbstaractMaterialCombiner> Except = new List<AbstaractMaterialCombiner>();
 
-		protected virtual List<MaterialCombiner> GetCombiners() {
+		protected virtual List<AbstaractMaterialCombiner> GetCombiners() {
 			var allow_disabled = !OnlyEnabled;
 			var except = Except.Distinct().UnityNotNull();
 			if (CombineEveryithingOnScene) {
 				return gameObject.scene.GetRootGameObjects()
-					.SelectMany(gobj => gobj.GetComponentsInChildren<MaterialCombiner>())
+					.SelectMany(gobj => gobj.GetComponentsInChildren<AbstaractMaterialCombiner>())
 					.Where(mc => allow_disabled || (mc.enabled && mc.gameObject.activeSelf))
 					.Except(except).ToList();
 			} else {

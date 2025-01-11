@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 
 namespace Kawashirov.MaterialCombining {
 	public class MaterialSlotItem {
-		public readonly MaterialCombiner combiner;
+		public readonly AbstaractMaterialCombiner combiner;
 		public readonly MaterialGroup matGroup;
 		public readonly Renderer renderer;
 		public readonly int slot;
@@ -56,7 +56,7 @@ namespace Kawashirov.MaterialCombining {
 		}
 
 		public bool EnsureUV2D(Mesh mesh, bool except) {
-			var uv_idx = matGroup.adapted.uvIndex;
+			var uv_idx = combiner.GetUVChannel();
 			var attr = UVIndxToAttrib(uv_idx);
 			if (!mesh.HasVertexAttribute(attr)) {
 				var msg = $"{this}: The material requires UV №{uv_idx}, but the mesh have no this UV layer!";

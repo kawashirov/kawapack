@@ -17,15 +17,15 @@ namespace Kawashirov.MaterialCombining {
 		private readonly static List<int> BUFFER_INDICES = new List<int>();
 		private readonly static List<Vector2> BUFFER_UV = new List<Vector2>();
 
-		public readonly MaterialCombiner combiner;
+		public readonly AbstaractMaterialCombiner combiner;
 		public readonly Material matOriginal;
-		public readonly DataAdapted adapted;
 		public readonly List<MaterialSlotItem> items;
 
 		public int alignPx = 8;
 		public float epsilonPx = 8;
 		public float paddingPx = 8;
 		public Vector2Int textureSize = Vector2Int.one;
+		public Vector4 texST = new Vector4(1, 1, 0, 0);
 
 		public readonly List<UVIsland> islandsOriginal = new List<UVIsland>(); // tex coords (by textureSize)
 		public readonly List<UVIsland> islandsPadded = new List<UVIsland>(); // tex coords (by textureSize)
@@ -37,10 +37,9 @@ namespace Kawashirov.MaterialCombining {
 		// Может быть null если что-то пошло не так и не получилось заатласить это.
 		public Material matAtlas = null;
 
-		public MaterialGroup(MaterialCombiner combiner, Material matOriginal, DataAdapted adapted) {
+		public MaterialGroup(AbstaractMaterialCombiner combiner, Material matOriginal) {
 			this.combiner = combiner;
 			this.matOriginal = matOriginal;
-			this.adapted = adapted;
 			items = new List<MaterialSlotItem>(1);
 		}
 
@@ -70,27 +69,6 @@ namespace Kawashirov.MaterialCombining {
 					$"{this}: have topology={topology} by {steps} indicies, " +
 					$"but have {count} total indicies!"
 				);
-			}
-		}
-
-		public void CalcTexSize() {
-			var min_size = Mathf.Max(combiner.IslandsPaddingPx, combiner.IslandsEpsilonPx);
-			var rem_size = min_size % combiner.IslandsAlignPx;
-			if (min_size != 0)
-				min_size += combiner.IslandsAlignPx - rem_size;
-
-			if (adapted.data.Count < 1) {
-				textureSize = Vector2Int.one * min_size;
-				combiner.LogWarning($"No texture size for {matOriginal}, there is no data textures!");
-			} else {
-				var ldata = adapted.data.OrderByDescending(d => d.LargestTexSize().sqrMagnitude).First();
-				var desc_name = ldata.desc.name;
-				var ts = ldata.LargestTexSize();
-				// TODO это может вызвать диспропорцию
-				ts.x = Mathf.Max(ts.x, min_size);
-				ts.y = Mathf.Max(ts.y, min_size);
-				textureSize = ts;
-				combiner.LogDebug($"Detected size for {matOriginal}: {ts.x}x{ts.y} from data \"{desc_name}\".");
 			}
 		}
 
@@ -140,14 +118,13 @@ namespace Kawashirov.MaterialCombining {
 
 			BUFFER_UV.Clear();
 			BUFFER_INDICES.Clear();
-			mesh.GetUVs(adapted.uvIndex, BUFFER_UV);
+			mesh.GetUVs(combiner.GetUVChannel(), BUFFER_UV);
 			mesh.GetIndices(BUFFER_INDICES, item.slot);
 
 			var topology = mesh.GetTopology(item.slot);
 			var steps = TopologyToSteps(topology, BUFFER_INDICES.Count);
 			CheckIndiciesCount(ref steps, topology, BUFFER_INDICES.Count);
 
-			var st = adapted.texST;
 			for (var i = 0; i < BUFFER_INDICES.Count; i += steps) {
 				var island_raw = UVIsland.singual;
 				for (var j = 0; j < steps; j++) {
@@ -155,7 +132,7 @@ namespace Kawashirov.MaterialCombining {
 					var uv = BUFFER_UV[v_idx];
 					island_raw = island_raw.ExpandByUVPoint(uv);
 				}
-				var island_px = island_raw.TransformST(st).ToTexCoords(textureSize).RoundToInt();
+				var island_px = island_raw.TransformST(texST).ToTexCoords(textureSize).RoundToInt();
 				PushUVIsland(island_px);
 			}
 
@@ -201,14 +178,12 @@ namespace Kawashirov.MaterialCombining {
 
 			BUFFER_UV.Clear();
 			BUFFER_INDICES.Clear();
-			mesh.GetUVs(adapted.uvIndex, BUFFER_UV);
+			mesh.GetUVs(combiner.GetUVChannel(), BUFFER_UV);
 			mesh.GetIndices(BUFFER_INDICES, 0);
 
 			var topology = mesh.GetTopology(0);
 			var steps = TopologyToSteps(topology, BUFFER_INDICES.Count);
 			CheckIndiciesCount(ref steps, topology, BUFFER_INDICES.Count);
-
-			var adapted_st = adapted.texST;
 
 			Assert.IsTrue(islandsOriginal.Count == islandsPadded.Count);
 			Assert.IsTrue(islandsOriginal.Count == islandsAtlas.Count);
@@ -241,7 +216,7 @@ namespace Kawashirov.MaterialCombining {
 					// Ни один из индексов не был найден до этого, 
 					// так что считерить не получится и будем искать.
 					// Округление до целого не обязательно.
-					var island_px = island_raw.TransformST(adapted_st).ToTexCoords(textureSize);
+					var island_px = island_raw.TransformST(texST).ToTexCoords(textureSize);
 					// Поиск такого острова, в который быполностью поместился бы сформированый.
 					for (island_idx = 0; island_idx < islandsOriginal.Count; ++island_idx)
 						// Точности в 0.1 пикселя должно быть более чем достаточно.
@@ -274,8 +249,8 @@ namespace Kawashirov.MaterialCombining {
 
 				var uv = BUFFER_UV[i];
 				// original 0..1 -> scale/offset 0..1 -> original tex px
-				uv.x = (uv.x * adapted_st.x + adapted_st.z) * textureSize.x;
-				uv.y = (uv.y * adapted_st.y + adapted_st.w) * textureSize.y;
+				uv.x = (uv.x * texST.x + texST.z) * textureSize.x;
+				uv.y = (uv.y * texST.y + texST.w) * textureSize.y;
 				// original tex px -> window 0..1 -> atlas 0..1
 				uv = island_ppx.InverseLerp(uv);
 				uv = island_atlas.Lerp(uv);
@@ -285,7 +260,7 @@ namespace Kawashirov.MaterialCombining {
 				BUFFER_UV[i] = uv;
 			}
 
-			mesh.SetUVs(adapted.uvIndex, BUFFER_UV);
+			mesh.SetUVs(combiner.GetUVChannel(), BUFFER_UV);
 
 			BUFFER_UV.Clear();
 			BUFFER_INDICES.Clear();

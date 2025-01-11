@@ -7,7 +7,7 @@ using UnityEditor;
 using System;
 
 namespace Kawashirov.MaterialCombining {
-	[CustomEditor(typeof(MaterialCombiner), true)]
+	[CustomEditor(typeof(AbstaractMaterialCombiner), true)]
 	public class MaterialCombinerEditor : KawaEditorBehaviour.KawaEditorBehaviourEditor {
 		public SerializedProperty WholeScene;
 
