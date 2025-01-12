@@ -92,7 +92,17 @@ Shader "Kawashirov/MaterialCombiner/BlitCopy" {
 					float color_src_a = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_TexA, src_uv)[(int)_Channels.a];
 					float4 color_src = float4(color_src_r, color_src_g, color_src_b, color_src_a);
 
-					color_src *= _Color;
+					// Операции до цветокоррекции
+					if (_OcclusionMode > 0) {
+						// Не используем _Color
+						float strength = _Scale.g; // _OcclusionStrength
+						float occ = (1 - strength) + color_src.g * strength;
+						color_src.rgb = occ;
+						color_src.a = 1;						
+					} else {
+						// по-умолчанию
+						color_src.rgba *= _Color;
+					}
 
 					if (_ColorSpace < 0) {
 						color_src.rgb = GammaToLinearSpace(color_src.rgb);
@@ -100,6 +110,7 @@ Shader "Kawashirov/MaterialCombiner/BlitCopy" {
 						color_src.rgb = LinearToGammaSpace(color_src.rgb);
 					}
 
+					// Операции после цветокоррекции
 					if (_BumpMode > 0) {
 						float scale = _Scale.r;
 						float3 normal = UnpackNormalWithScale(color_src, scale);
@@ -114,10 +125,10 @@ Shader "Kawashirov/MaterialCombiner/BlitCopy" {
 						color_src.a = 1;
 
 					} else if (_OcclusionMode > 0) {
-						color_src.rgb = 1 - (1 - color_src.rgb) * _Scale;
-						color_src.a = 1;
+						// ничего
 						
 					} else {
+						// по-умолчанию
 						color_src.rgba *= _Scale;
 					}
 
