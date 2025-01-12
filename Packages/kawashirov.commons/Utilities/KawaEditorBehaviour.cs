@@ -22,6 +22,19 @@ namespace Kawashirov {
 
 		/* EditorBehaviour "API" (mostly shortcuts) */
 
+		public object SelectFocus(Object obj) {
+			// Вовзращает null, что бы можно было использовать как yield return SelectFocus(...); 
+			if (obj == null)
+				return null;
+			Selection.SetActiveObjectWithContext(obj, this);
+			if (debugMode)
+				EditorGUIUtility.PingObject(obj);
+			var view = SceneView.lastActiveSceneView;
+			if (view != null && (obj is GameObject || obj is Component))
+				view.FrameSelected(false, true);
+			return null;
+		}
+
 		public string FormatForLog(string message, Object override_context, out Object context) {
 			var type_name = GetType().Name;
 			context = override_context != null ? override_context : this;
