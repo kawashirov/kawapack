@@ -128,8 +128,9 @@ namespace Kawashirov.LightProbesTools {
 			}
 		}
 
-		//[MenuItem("Kawashirov/Report LightingData")]
-		[Obsolete]
+#if KAWA_DEBUG
+		[MenuItem("Kawashirov/Internals/Report LightingData")]
+#endif
 		public static void ReportLightingData() {
 			// TODO panel
 			Debug.Log("LightingDataAsset begin:");

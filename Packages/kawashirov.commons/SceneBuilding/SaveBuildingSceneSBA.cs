@@ -103,11 +103,39 @@ namespace Kawashirov.SceneBuilding {
 
 			AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
 
+			if (Lightmapping.TryGetLightingSettings(out var lighting_settings_orig)) {
+				var lighting_settings_building = Lightmapping.lightingSettings = Instantiate(lighting_settings_orig);
+				LogWarning($"Copied lightingSettings: {lighting_settings_orig} -> {lighting_settings_building}");
+			}
+
+			var lighting_data_orig = Lightmapping.lightingDataAsset;
+			LightingDataAsset lighting_data_building = null;
+			if (lighting_data_orig != null) {
+				lighting_data_building = Instantiate(lighting_data_orig);
+				LogWarning($"Copied lightingDataAsset: {lighting_data_orig} -> {lighting_data_building}");
+				Lightmapping.lightingDataAsset = null;
+			}
+
 			// Теперь можно сохранить эту сцену на место сцены сборки
 			if (!EditorSceneManager.SaveScene(scene, building_scene_path)) {
-				ThrowException(new FailedToSaveBuildingScene($"Failed to save building scene: \"{building_scene_path}\""));
+				ThrowException(new FailedToSaveBuildingScene($"Failed to save building scene WITH OUT lighting data: \"{building_scene_path}\""));
 			}
 			EditorSceneManager.MarkSceneDirty(scene);
+
+			if (lighting_data_building != null) {
+				var building_scene_asset = AssetDatabase.LoadAssetAtPath<SceneAsset>(building_scene_path);
+				var lighting_data_building_s = new SerializedObject(lighting_data_building);
+				lighting_data_building_s.FindProperty("m_Scene").objectReferenceValue = building_scene_asset;
+				lighting_data_building_s.ApplyModifiedPropertiesWithoutUndo();
+				Lightmapping.lightingDataAsset = lighting_data_building;
+
+				// Теперь сохраняем сцену со светом.
+				if (!EditorSceneManager.SaveScene(scene)) {
+					ThrowException(new FailedToSaveBuildingScene($"Failed to save building scene WITH lighting data: \"{building_scene_path}\""));
+				}
+				EditorSceneManager.MarkSceneDirty(scene);
+			}
+
 			Log($"Scene saved as building to new location \"{building_scene_path}\".");
 
 			// И подгрузить оригинал на менеджер сцен
