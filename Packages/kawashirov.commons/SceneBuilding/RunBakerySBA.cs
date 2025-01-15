@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System;
 using System.Collections;
 
 namespace Kawashirov.SceneBuilding {
@@ -21,6 +22,7 @@ namespace Kawashirov.SceneBuilding {
 			yield break;
 #else // BAKERY_INCLUDED
 			ThrowException(new Exception("Bakery not found"));
+			yield break;
 #endif // BAKERY_INCLUDED
 		}
 	}
