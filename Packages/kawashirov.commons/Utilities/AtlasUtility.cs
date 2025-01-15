@@ -15,6 +15,19 @@ namespace Kawashirov {
 			// https://issuetracker.unity3d.com/issues/texture2d-dot-generateatlas-returns-true-with-a-list-of-returned-rectangles-with-a-size-of-0-when-it-should-return-false-or-return-true-and-downscale-the-sizes-provided-in-the-parameters-to-fit-the-atlas-size
 			// По этому используем цирковые проверки
 			results.Clear();
+
+			if (sizes.Length == 1) {
+				// Texture2D.GenerateAtlas обсирается если на входе один остров 
+				var size_0 = sizes[0];
+				if (size_0.x > size || size_0.y > size) {
+					results.Add(Rect.zero);
+					return false;
+				} else {
+					results.Add(Rect.MinMaxRect(0, 0, size_0.x, size_0.y));
+					return true;
+				}
+			}
+
 			var result = Texture2D.GenerateAtlas(sizes, padding, size, results) &&
 				results.Count == sizes.Length &&
 				results.All(r => r.width != 0 && r.height != 0) &&
@@ -41,7 +54,8 @@ namespace Kawashirov {
 			while (!GenerateAtlas(sizes, padding, size, results, keb)) {
 				size = Mathf.Max(size + 1, Mathf.RoundToInt(size * step));
 				if (size < 0 || size >= int.MaxValue / 4) {
-					var exc = new Exception($"Atlas size grow too big: {size}!");
+					var sizes_s = string.Join("\n", sizes.Select((s, i) => $"- №{i}: {s}"));
+					var exc = new Exception($"Atlas size grow too big: {size}!\n{sizes_s}");
 					if (keb == null) {
 						throw exc;
 					} else {
