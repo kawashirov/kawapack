@@ -265,8 +265,9 @@ namespace Kawashirov.MeshCombining {
 			var groups_s = new List<string>(CombineGroups.Count);
 			for (var i = 0; i < CombineGroups.Count; ++i) {
 				var group = CombineGroups[i];
+				var count = group.OriginalRenderers.Count;
 				var items = string.Join("\n", group.OriginalRenderers.Select(mr => mr.gameObject.KawaGetFullPath()));
-				groups_s.Add($"Group №{i}:\n{items}");
+				groups_s.Add($"Group №{i} ({count} items):\n{items}");
 			}
 			Log($"Created {groups_s.Count} groups from {OriginalRenderers.Count} original mesh renderers:\n" +
 				string.Join("\n\n", groups_s));

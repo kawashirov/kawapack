@@ -260,26 +260,34 @@ namespace Kawashirov.MeshCombining {
 
 		protected virtual void GroupSubMeshes(RendererInfo info) {
 			var mesh = info.GetMeshForCombining();
-			if (mesh == null || info.renderer == null)
+			if (mesh == null || info.renderer == null) {
+				LogWarning($"mesh={mesh} or renderer={info.renderer} is null at {info.gobj}. That should not happen!");
 				return;
+			}
 			var shared_materials = info.renderer.sharedMaterials;
 
 			var orig2world = info.renderer.transform.localToWorldMatrix;
 			var world2container = Combiner.GetContainer().transform.worldToLocalMatrix;
 			var matrix = world2container * orig2world;
 
+			Assert.IsTrue(mesh.subMeshCount == shared_materials.Length,
+				$"{mesh.subMeshCount}, {shared_materials.Length} at {mesh}, {info.renderer}, {info.gobj}");
 			var n = Math.Min(mesh.subMeshCount, shared_materials.Length);
 			for (var i = 0; i < n; i++) {
 				var material = shared_materials[i];
 				var smi = new SubMeshInfo(info.renderer, mesh, i, matrix);
+				LogDebug($"Trying to group {info.gobj}, {info.renderer}, {mesh}, №{i}/{n}, {material}");
 				// TODO можно оптимизировать?
+				var no_group = true;
 				foreach (var smg in matGroups) {
-					if (smg.material == material) {
-						smg.originals.Add(smi);
-						return;
-					}
+					if (smg.material != material)
+						continue;
+					smg.originals.Add(smi);
+					no_group = false;
+					break;
 				}
-				matGroups.Add(new SubMeshGroup(this, GroupIndex, matGroups.Count, material, smi));
+				if (no_group)
+					matGroups.Add(new SubMeshGroup(this, GroupIndex, matGroups.Count, material, smi));
 			}
 		}
 
@@ -287,7 +295,18 @@ namespace Kawashirov.MeshCombining {
 			LogDebug($"Grouping sub meshes of {renderers.Count} mesh renderers...");
 			foreach (var renderer in renderers)
 				GroupSubMeshes(renderer);
-			LogDebug($"Grouped sub meshes to {matGroups.Count} material groups.");
+
+			var mat_groups_l = new List<string>();
+			for (var i = 0; i < matGroups.Count; i++) {
+				var mat_group = matGroups[i];
+				var count = mat_group.originals.Count;
+				var mat_group_s = string.Join("\n", mat_group.originals.Select(
+					(smi, j) => $"- №{j}: R={smi.meshRenderer}, M={smi.mesh}, №={smi.subMeshIndex}")
+				);
+				mat_groups_l.Add($"Group №{i} for {mat_group.material} ({count} items):\n{mat_group_s}\n");
+			}
+			var mat_groups_s = string.Join("\n", mat_groups_l);
+			Log($"Grouped sub meshes to {matGroups.Count} material groups:\n\n{mat_groups_s}");
 		}
 
 		protected virtual void CombineMaterialGroups() {
