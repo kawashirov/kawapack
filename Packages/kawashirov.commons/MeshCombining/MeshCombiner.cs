@@ -115,12 +115,17 @@ namespace Kawashirov.MeshCombining {
 				hrs = gameObject.GetComponentsInChildren<MeshRenderer>(!IgnoreDisabled);
 				sub = gameObject.GetComponentsInChildren<MeshCombiner>(true);
 			} else {
-				hrs = Hierarchy.SelectMany(g => gameObject.GetComponentsInChildren<MeshRenderer>(!IgnoreDisabled)).Distinct();
-				sub = Hierarchy.SelectMany(g => gameObject.GetComponentsInChildren<MeshCombiner>(true)).Distinct();
+				var gobjs = Hierarchy.UnityNotNull().Distinct().ToList();
+				hrs = gobjs.SelectMany(g => g.GetComponentsInChildren<MeshRenderer>(!IgnoreDisabled)).Distinct();
+				sub = gobjs.SelectMany(g => g.GetComponentsInChildren<MeshCombiner>(true)).Distinct();
 			}
+
+			hrs = hrs.ToList();
+			LogDebug($"Found {hrs.Count()} potential mesh renderers before filtering for {gameObject.name}.");
 
 			// Не включать в этот меш комбайнер рендереры от других меш комбайнеров внутри иерархии.
 			var subr = sub.Where(c => c != this).SelectMany(c => c.ResolveHierarchy()).Distinct().ToHashSet();
+			LogDebug($"Found {subr.Count} mesh renderers to exclude from {gameObject.name}.");
 			hrs = hrs.Except(subr);
 
 			if (IgnoreEditorOnly)
