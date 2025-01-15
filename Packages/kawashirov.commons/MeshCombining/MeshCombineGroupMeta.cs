@@ -19,7 +19,7 @@ namespace Kawashirov.MeshCombining {
 		[Space]
 		// Является ли эта группа лайтмапируемой (да, если хотя бы один, но на самом деле они все)
 		public bool IsLightmapped = false;
-		public float MaxScaleInLightmap = 0;
+		public float MaxScaleInLightmap = 1;
 		public int LightmapTableSize = 0;
 
 		[Space]
