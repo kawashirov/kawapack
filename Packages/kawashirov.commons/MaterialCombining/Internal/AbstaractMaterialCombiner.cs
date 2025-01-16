@@ -836,7 +836,8 @@ namespace Kawashirov.MaterialCombining {
 				foreach (var mat_atlas in AtlasMaterials) {
 					if (mat_atlas == null)
 						continue;
-					var mat_atlas_path = $"{sceneDir}/{mat_atlas.name}.mat";
+					var mat_atlas_path = mat_atlas.name.SanitizeFileName();
+					mat_atlas_path = $"{sceneDir}/{mat_atlas_path}.mat";
 					if (UniqueAssetNames)
 						mat_atlas_path = AssetDatabase.GenerateUniqueAssetPath(mat_atlas_path);
 					AssetDatabase.CreateAsset(mat_atlas, mat_atlas_path);

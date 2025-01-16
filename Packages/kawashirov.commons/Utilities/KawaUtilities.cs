@@ -238,6 +238,10 @@ namespace Kawashirov {
 			return false;
 		}
 
+		public static string SanitizeFileName(this string file_name) {
+			var invalid_chars = Path.GetInvalidFileNameChars();
+			return new string(file_name.Select(ch => invalid_chars.Contains(ch) ? '_' : ch).ToArray());
+		}
 
 #if UNITY_EDITOR
 

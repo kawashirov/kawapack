@@ -123,7 +123,8 @@ namespace Kawashirov.MaterialCombining {
 		public virtual void SaveMesh() {
 			if (meshAtlas == null)
 				return;
-			var mesh_atlas_path = $"{combiner.sceneDir}/{meshAtlas.name}.asset";
+			var mesh_atlas_path = meshAtlas.name.SanitizeFileName();
+			mesh_atlas_path = $"{combiner.sceneDir}/{mesh_atlas_path}.asset";
 			if (combiner.UniqueAssetNames)
 				mesh_atlas_path = AssetDatabase.GenerateUniqueAssetPath(mesh_atlas_path);
 			AssetDatabase.CreateAsset(meshAtlas, mesh_atlas_path);
