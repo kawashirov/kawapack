@@ -48,9 +48,9 @@ namespace Kawashirov.MaterialCombining {
 				return true;
 			var msg = $"{this}: Only have {mesh.subMeshCount} material slots!";
 			if (except) {
-				combiner.ThrowException(new Exception(msg + " This shouldn't happened."));
+				combiner.ThrowException(new Exception(msg + " This shouldn't happened."), renderer);
 			} else {
-				combiner.LogWarning(msg + " This slot will be skipped.");
+				combiner.LogWarning(msg + " This slot will be skipped.", renderer);
 			}
 			return false;
 		}
@@ -61,9 +61,9 @@ namespace Kawashirov.MaterialCombining {
 			if (!mesh.HasVertexAttribute(attr)) {
 				var msg = $"{this}: The material requires UV №{uv_idx}, but the mesh have no this UV layer!";
 				if (except) {
-					combiner.ThrowException(new Exception(msg + " This shouldn't happened."));
+					combiner.ThrowException(new Exception(msg + " This shouldn't happened."), renderer);
 				} else {
-					combiner.LogWarning(msg + " This slot will be skipped.");
+					combiner.LogWarning(msg + " This slot will be skipped.", renderer);
 				}
 				return false;
 			}
@@ -72,9 +72,9 @@ namespace Kawashirov.MaterialCombining {
 			if (dim != 2) {
 				var msg = $"{this}: The material requires 2D UV №{uv_idx}, but this UV layer have dimension of {dim}!";
 				if (except) {
-					combiner.ThrowException(new Exception(msg + " This shouldn't happened."));
+					combiner.ThrowException(new Exception(msg + " This shouldn't happened."), renderer);
 				} else {
-					combiner.LogWarning(msg + " This slot will be skipped.");
+					combiner.LogWarning(msg + " This slot will be skipped.", renderer);
 				}
 				return false;
 			}

@@ -49,7 +49,7 @@ namespace Kawashirov.SceneBuilding {
 						if (!task.MoveNext())
 							break;
 					} catch (Exception exc) {
-						LogException("Combiner {combiner} failed!", exc, combiner);
+						LogException($"Combiner {combiner} failed!", exc, combiner);
 						throw exc;
 					}
 					yield return task.Current;
