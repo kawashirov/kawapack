@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -276,7 +277,7 @@ namespace Kawashirov {
 #if UNITY_EDITOR
 
 #if KAWA_DEBUG
-		[MenuItem("Kawashirov/Debug/Path info")]
+		[MenuItem("Kawashirov/Internals/Debug Path Info")]
 		public static void ReportInfos() {
 			var items = Selection.objects.OfType<GameObject>()
 				.SelectMany(g => g.GetComponentsInChildren<Component>(true));
