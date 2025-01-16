@@ -15,7 +15,7 @@ namespace Kawashirov.MaterialCombining {
 		}
 
 		public override Vector2Int GetTexSize(MaterialGroup group) {
-			var tex = GetTexture2D(group.matOriginal, "_BumpMode", null);
+			var tex = GetTexture2D(group.matOriginal, "_BumpMap", null);
 			return tex != null ? new Vector2Int(tex.width, tex.height) : Vector2Int.zero;
 		}
 
