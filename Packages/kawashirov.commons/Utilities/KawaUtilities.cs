@@ -52,6 +52,36 @@ namespace Kawashirov {
 		public static IEnumerable<GameObject> WithTag(this IEnumerable<GameObject> enumerable, string tag) => enumerable.Where(g => g.CompareTag(tag));
 		public static IEnumerable<GameObject> WithoutTag(this IEnumerable<GameObject> enumerable, string tag) => enumerable.Where(g => !g.CompareTag(tag));
 
+		public static bool IsLightmapped(this MeshRenderer mr) {
+			// Меш считается лайтмапируемым, если выполнены все условия:
+			// - MeshRenderer существует и валиден 
+			// - Установлен флаг ContributeGI (aka LightmapStatic) (только Editor)
+			// - receiveGI == Lightmaps (только Editor)
+			// - scaleInLightmap > 0 (только Editor)
+			// - имеется лайтмап индекс (не Editor)
+			if (mr == null)
+				return false;
+
+#if UNITY_EDITOR
+			var gobj = mr.gameObject;
+			if (!GameObjectUtility.AreStaticEditorFlagsSet(gobj, StaticEditorFlags.ContributeGI))
+				return false;
+
+			if (mr.receiveGI != ReceiveGI.Lightmaps)
+				return false;
+
+			if (mr.scaleInLightmap <= 0)
+				return false;
+#else
+			// https://docs.unity3d.com/2022.3/Documentation/ScriptReference/Renderer-lightmapIndex.html
+			// A value of -1 (0xFFFF) means no lightmap has been assigned, which is the default.
+			var lm_index = mr.lightmapIndex;
+			if (lm_index == -1 || lm_index == 0xFFFF)
+				return false;
+#endif
+			return true;
+		}
+
 		private static bool IsRuntimeHideFlags(Object obj) => (obj.hideFlags & (HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild)) == HideFlags.None;
 
 		public static bool IsRuntime(this Object obj) {

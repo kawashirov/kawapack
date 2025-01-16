@@ -54,22 +54,8 @@ namespace Kawashirov.MeshCombining {
 		public GameObject GetContainer() => Container != null ? Container : gameObject;
 
 		public virtual bool IsLightmapped(MeshRenderer mr) {
-			// Меш считается лайтмапируемым, если выполнены все условия:
-			// - Установлен флаг ContributeGI (aka LightmapStatic)
-			// - receiveGI == Lightmaps
-			// - scaleInLightmap > 0
-
-			var gobj = mr.gameObject;
-			if (!GameObjectUtility.AreStaticEditorFlagsSet(gobj, StaticEditorFlags.ContributeGI))
-				return false;
-
-			if (mr.receiveGI != ReceiveGI.Lightmaps)
-				return false;
-
-			if (mr.scaleInLightmap <= 0)
-				return false;
-
-			return true;
+			// overridable
+			return mr.IsLightmapped();
 		}
 
 		public virtual bool IsStatic(MeshRenderer mr) {
