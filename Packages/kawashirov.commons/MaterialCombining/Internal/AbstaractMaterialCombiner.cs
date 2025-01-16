@@ -152,6 +152,11 @@ namespace Kawashirov.MaterialCombining {
 
 		// Возвращает true, если слот был добавлен в группу
 		protected virtual MaterialSlotItem ProcessRenderer(RendererGroup group_r, int slot, Material mat) {
+			if (mat == null) {
+				LogWarning($"Renderer={group_r.renderer}, slot={slot} have null/destroyed material!", group_r.renderer);
+				return null;
+			}
+
 			// Если известно, что материал не поддаётся адаптации, 
 			// то дальнейшие проверки не имеют смысла.
 			if (unadaptable.Contains(mat))

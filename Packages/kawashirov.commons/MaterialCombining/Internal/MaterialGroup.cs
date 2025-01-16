@@ -175,7 +175,8 @@ namespace Kawashirov.MaterialCombining {
 			var mesh = item.MakeUniqueMesh();
 			combiner.SelectFocus(mesh);
 
-			item.EnsureSlotsConsistent(mesh, true);
+			// item.EnsureSlotsConsistent(mesh, true);
+			// Тут EnsureSlotsConsistent не нужен т.к. на уникальной меши у нас всегда 1 слот.
 			item.EnsureUV2D(mesh, true);
 
 			BUFFER_UV.Clear();
