@@ -26,7 +26,7 @@ namespace Kawashirov.MeshCombining {
 		// Применять или нет базовую перепаковку второго UV слоая, если он есть. 
 		// Перепаковка имеет базовую, не очень эффективную реализацию, 
 		// но необходима для корректной работы лайтмап на объединённой меши.
-		public LightmapCorrectionMode LightmapUVCorrection = LightmapCorrectionMode.TableGrid;
+		public LightmapCorrectionMode LightmapUVCorrection = LightmapCorrectionMode.GenerateAtlas;
 
 		// false - рендереры с разным scaleInLightmap считаются не комбинируемыми
 		// true - рендереры с разным scaleInLightmap кобминируются и UV1 корректируется на это масштаб
