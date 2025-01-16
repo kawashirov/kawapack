@@ -10,6 +10,11 @@ using Object = UnityEngine.Object;
 
 namespace Kawashirov.MaterialCombining {
 	public class MaterialExcluder : AbstractMaterialFilter {
+		public bool ExcludeEditorOnly = true;
+		public bool ExcludeDisabled = true;
+		public bool ExcludeDynamic = true;
+		public bool ExcludeNonLightmapped = true;
+
 		[Header("Exclude these materials")]
 		public List<Material> Materials = new List<Material>();
 		public List<string> MaterialNameWords = new List<string>();
@@ -56,6 +61,18 @@ namespace Kawashirov.MaterialCombining {
 		}
 
 		public override bool CheckExclude(Renderer renderer, Mesh mesh, int slot, Material mat) {
+			if (ExcludeDisabled && !(renderer.enabled && renderer.gameObject.activeInHierarchy))
+				return true;
+
+			if (ExcludeEditorOnly && !(renderer.IsRuntime() && mesh.IsRuntime() && mat.IsRuntime()))
+				return true;
+
+			if (ExcludeDynamic && GameObjectUtility.GetStaticEditorFlags(renderer.gameObject) == 0)
+				return true;
+
+			if (ExcludeNonLightmapped && !(renderer is MeshRenderer mr && mr.IsLightmapped()))
+				return true;
+
 			if (Materials.Contains(mat))
 				return true;
 			if (ContainsAnyKeyword(mat.name, MaterialNameWords))
