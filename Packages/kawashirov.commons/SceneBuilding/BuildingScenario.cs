@@ -25,9 +25,11 @@ namespace Kawashirov.SceneBuilding {
 				LogWarning($"Building action №{i} is not active/enabled, skip!");
 				yield break;
 			}
+			float progress = 0;
+			string info = "";
 			if (progress_gui) {
-				var progress = (i + 1f) / (Actions.Length + 1f);
-				var info = $"Running №{i} {action.GetType()} {action}...";
+				progress = (i + 1f) / (Actions.Length + 1f);
+				info = $"Running №{i} {action.GetType()} {action}...";
 				if (EditorUtility.DisplayCancelableProgressBar(title, info, progress))
 					throw new CancelBuilding();
 			}
@@ -39,6 +41,10 @@ namespace Kawashirov.SceneBuilding {
 				try {
 					if (!task.MoveNext())
 						break;
+					if (progress_gui) {
+						if (EditorUtility.DisplayCancelableProgressBar(title, info, progress))
+							throw new CancelBuilding();
+					}
 				} catch (Exception exc) {
 					LogException($"Building action №{i} {action.GetType()} failed: {exc}", exc, this);
 					throw exc;
