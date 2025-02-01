@@ -25,7 +25,7 @@ namespace Kawashirov.MaterialCombining {
 		/* Serializables */
 
 		public WorkflowMode Workflow = WorkflowMode.Metallic;
-		public GlossMode Gloss = GlossMode.GlossAndSmoothness;
+		// public GlossMode Gloss = GlossMode.GlossAndSmoothness;
 		public BlendFlags Blend = BlendFlags.All;
 		public bool InstancingMatters = false;
 		public bool GIFlagsMatters = false;
