@@ -101,33 +101,23 @@ namespace Kawashirov.MaterialCombining {
 			throw new Exception();
 		}
 
-		protected override IEnumerable<AbstractAtlasRenderer> YieldAtlasRenderers() {
-			if (AlbedoEnable) {
-				yield return descAlbedo = new AlbedoAtlasRenderer(this);
-			}
+		protected override void InitAtlasRenderers() {
+			AddAtlasRenderer(AlbedoEnable, descAlbedo = new AlbedoAtlasRenderer(this));
 
 			if (GlossEnable && Workflow == WorkflowMode.Specular) {
-				yield return descSpecSmooth = new SpecSmoothRenderer(this);
+				AddAtlasRenderer(GlossEnable, descSpecSmooth = new SpecSmoothRenderer(this));
 
 			} else if (GlossEnable && Workflow == WorkflowMode.Metallic) {
-				yield return descMetalSmooth = new MetalSmoothRenderer(this);
+				AddAtlasRenderer(GlossEnable, descMetalSmooth = new MetalSmoothRenderer(this));
 			}
 
-			if (NormalEnable) {
-				yield return descNormal = new NormalAtlasRenderer(this);
-			}
+			AddAtlasRenderer(NormalEnable, descNormal = new NormalAtlasRenderer(this));
 
-			if (ParallaxEnable) {
-				yield return descParallax = new ParallaxAtlasRenderer(this, ParallaxReference);
-			}
+			AddAtlasRenderer(ParallaxEnable, descParallax = new ParallaxAtlasRenderer(this, ParallaxReference));
 
-			if (OcclusionEnable) {
-				yield return descOcclusion = new OcclusionAtlasRenderer(this);
-			}
+			AddAtlasRenderer(OcclusionEnable, descOcclusion = new OcclusionAtlasRenderer(this));
 
-			if (EmissionEnable) {
-				yield return descEmission = new EmissionAtlasRenderer(this);
-			}
+			AddAtlasRenderer(EmissionEnable, descEmission = new EmissionAtlasRenderer(this));
 		}
 
 		protected override bool CanAdaptMaterial(Material mat) {
@@ -203,7 +193,7 @@ namespace Kawashirov.MaterialCombining {
 
 		protected override Vector2Int CalcMatSize(MaterialGroup mat_group) {
 			var size = Vector2Int.zero;
-			foreach (var atlas_renderer in atlasRenderers) {
+			foreach (var atlas_renderer in enabledAtlasRenderers) {
 				var size_renderer = atlas_renderer.GetTexSize(mat_group);
 				if (size_renderer.x * size_renderer.y > size.x * size.y)
 					size = size_renderer;
@@ -242,7 +232,10 @@ namespace Kawashirov.MaterialCombining {
 
 			mat_atlas.RemoveAllTextures();
 
-			foreach (var atlas_renderer in atlasRenderers)
+			foreach (var atlas_renderer in enabledAtlasRenderers)
+				atlas_renderer.AtlasReset(mat_atlas);
+
+			foreach (var atlas_renderer in disablededAtlasRenderers)
 				atlas_renderer.AtlasReset(mat_atlas);
 
 			// Reset unsupported
@@ -253,7 +246,7 @@ namespace Kawashirov.MaterialCombining {
 			SetTextureNoST(mat_atlas, "_DetailNormalMap", null);
 			mat_atlas.SetFloat("_UVSec", 0);
 
-			foreach (var atlas_renderer in atlasRenderers)
+			foreach (var atlas_renderer in enabledAtlasRenderers)
 				atlas_renderer.AtlasApply(mat_atlas);
 
 			CheckSpecularHighlights(mat_atlas);

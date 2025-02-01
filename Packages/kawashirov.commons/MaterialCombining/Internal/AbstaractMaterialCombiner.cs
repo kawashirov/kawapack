@@ -48,7 +48,8 @@ namespace Kawashirov.MaterialCombining {
 		/* * * */
 
 		protected int stallTimeMS = 1000;
-		protected readonly List<AbstractAtlasRenderer> atlasRenderers = new List<AbstractAtlasRenderer>();
+		protected readonly List<AbstractAtlasRenderer> enabledAtlasRenderers = new List<AbstractAtlasRenderer>();
+		protected readonly List<AbstractAtlasRenderer> disablededAtlasRenderers = new List<AbstractAtlasRenderer>();
 		protected readonly List<RendererGroup> rendererGroups = new List<RendererGroup>();
 		protected readonly Dictionary<Material, MaterialGroup> materialGroups = new Dictionary<Material, MaterialGroup>();
 		protected readonly HashSet<Material> unadaptable = new HashSet<Material>();
@@ -80,13 +81,15 @@ namespace Kawashirov.MaterialCombining {
 
 		public virtual int GetUVChannel() => 0;
 
-		protected abstract IEnumerable<AbstractAtlasRenderer> YieldAtlasRenderers();
-
-		public virtual List<AbstractAtlasRenderer> InitAtlasRenderers() {
-			atlasRenderers.Clear();
-			atlasRenderers.AddRange(YieldAtlasRenderers());
-			return atlasRenderers;
+		protected void AddAtlasRenderer(bool is_enabled, AbstractAtlasRenderer atlas_renderer) {
+			if (is_enabled) {
+				enabledAtlasRenderers.Add(atlas_renderer);
+			} else {
+				disablededAtlasRenderers.Add(atlas_renderer);
+			}
 		}
+
+		protected abstract void InitAtlasRenderers();
 
 		protected virtual void InitSceneDir() {
 			var scene = gameObject.scene;
@@ -717,7 +720,7 @@ namespace Kawashirov.MaterialCombining {
 
 			try {
 				matBlit = new Material(shader);
-				foreach (var atlas_renderer in atlasRenderers) {
+				foreach (var atlas_renderer in enabledAtlasRenderers) {
 					var task_bake = AtlasBakeNamed(atlas_renderer);
 					while (task_bake.MoveNext())
 						yield return task_bake.Current;
