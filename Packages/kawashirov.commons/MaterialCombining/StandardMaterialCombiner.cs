@@ -228,7 +228,6 @@ namespace Kawashirov.MaterialCombining {
 			mat_atlas.shader = EnsureAtlasShader();
 			if (!InstancingMatters)
 				mat_atlas.enableInstancing = true;
-			mat_atlas.globalIlluminationFlags = MaterialEditor.FixupEmissiveFlag(Color.white, mat_atlas.globalIlluminationFlags);
 
 			mat_atlas.RemoveAllTextures();
 
